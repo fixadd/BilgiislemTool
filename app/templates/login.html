@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html>
-<head><title>Giriş</title></head>
+<head>
+  <title>Giriş</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    .login-container {
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    input {
+      margin-bottom: 10px;
+    }
+    img {
+      max-width: 150px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
 <body>
-  <h2>Giriş Yap</h2>
-  <form method="POST">
-    <input name="username" placeholder="Kullanıcı Adı" required><br>
-    <input name="password" type="password" placeholder="Şifre" required><br>
-    <button type="submit">Giriş</button>
-  </form>
+  <div class="login-container">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+    <h2>Hoş geldiniz</h2>
+    <form method="POST">
+      <input name="username" placeholder="Kullanıcı Adı" required>
+      <input name="password" type="password" placeholder="Şifre" required>
+      <button type="submit">Giriş</button>
+    </form>
+  </div>
 </body>
 </html>
