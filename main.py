@@ -1,13 +1,16 @@
 # main.py
 # FastAPI + SQLAlchemy + Docker uyumlu envanter sistemi backend yapisi
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date
 from sqlalchemy import create_engine, Column, Integer, String, Date, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from starlette.middleware.sessions import SessionMiddleware
 import os
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
@@ -115,6 +118,8 @@ class StockItemSchema(BaseModel):
 
 # --- FastAPI Uygulaması ---
 app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
+templates = Jinja2Templates(directory="templates")
 
 # --- Dependency ---
 def get_db():
@@ -123,6 +128,40 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# --- Authentication ve Ana Sayfa ---
+@app.get("/login", response_class=HTMLResponse)
+def login_form(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/login")
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    if username == "admin" and password == "password":
+        request.session["user"] = username
+        return RedirectResponse(url="/", status_code=302)
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request, "error": "Geçersiz kullanıcı adı veya şifre"},
+        status_code=401,
+    )
+
+
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/login", status_code=302)
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request, db: Session = Depends(get_db)):
+    user = request.session.get("user")
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
+    hardware_items = db.query(HardwareInventory).all()
+    return templates.TemplateResponse(
+        "home.html", {"request": request, "user": user, "hardware": hardware_items}
+    )
 
 # --- Donanım ---
 @app.get("/hardware", response_model=List[HardwareItem])

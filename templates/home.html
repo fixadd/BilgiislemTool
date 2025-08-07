@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+</head>
+<body>
+    <h1>Welcome {{ user }}</h1>
+    <h2>Hardware Inventory</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Demirbaş Adı</th>
+            <th>Marka</th>
+            <th>Model</th>
+            <th>Seri No</th>
+        </tr>
+        {% for item in hardware %}
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.demirbas_adi }}</td>
+            <td>{{ item.marka }}</td>
+            <td>{{ item.model }}</td>
+            <td>{{ item.seri_no }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <p><a href="/logout">Logout</a></p>
+</body>
+</html>
