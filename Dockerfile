@@ -7,4 +7,5 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["python", "app/routes.py"]
+# Uvicorn ile FastAPI uygulamasini baslat
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
