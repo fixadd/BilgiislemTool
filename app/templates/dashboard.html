@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><title>Envanter Paneli</title></head>
+<body>
+  <h2>Envanter Listesi</h2>
+  <ul>
+    {% for item in items %}
+      <li>{{ item.name }} - {{ item.quantity }}</li>
+    {% endfor %}
+  </ul>
+  <a href="{{ url_for('logout') }}">Çıkış Yap</a>
+</body>
+</html>
