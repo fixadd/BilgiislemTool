@@ -1,11 +1,13 @@
 # main.py
 # FastAPI + SQLAlchemy + Docker uyumlu envanter sistemi backend yapisi
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date
-from sqlalchemy import create_engine, Column, Integer, String, Date, Text
+from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 import os
@@ -62,7 +64,29 @@ class StockItem(Base):
     lokasyon = Column(String)
     guncelleme_tarihi = Column(Date)
 
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    is_admin = Column(Boolean, default=False)
+
 Base.metadata.create_all(bind=engine)
+
+
+def init_admin():
+    db = SessionLocal()
+    try:
+        if not db.query(User).filter(User.username == "admin").first():
+            admin = User(username="admin", password="admin", is_admin=True)
+            db.add(admin)
+            db.commit()
+    finally:
+        db.close()
+
+
+init_admin()
 
 # --- Pydantic Şemalar ---
 class HardwareItem(BaseModel):
@@ -115,6 +139,7 @@ class StockItemSchema(BaseModel):
 
 # --- FastAPI Uygulaması ---
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 # --- Dependency ---
 def get_db():
@@ -123,6 +148,20 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# --- Kullanıcı Giriş ---
+@app.get("/", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/login", response_class=HTMLResponse)
+def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username, User.password == password).first()
+    if user:
+        return templates.TemplateResponse("main.html", {"request": request, "username": username})
+    return templates.TemplateResponse("login.html", {"request": request, "error": "Hatalı kullanıcı adı veya şifre"})
 
 # --- Donanım ---
 @app.get("/hardware", response_model=List[HardwareItem])
