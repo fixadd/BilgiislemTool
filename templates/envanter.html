@@ -1,10 +1,54 @@
 {% extends "base.html" %}
 {% block title %}Envanter Takip{% endblock %}
 {% block content %}
-<h2>Burası Envanter Takip Sayfası</h2>
-<p>Envanter kayıtlarını buradan yönetebilirsiniz.</p>
+<h2>Donanım Envanteri</h2>
+
+<form action="/inventory/add" method="post">
+    <input type="text" name="demirbas_adi" placeholder="Demirbaş Adı" required>
+    <input type="text" name="marka" placeholder="Marka" required>
+    <input type="text" name="model" placeholder="Model" required>
+    <input type="text" name="seri_no" placeholder="Seri No" required>
+    <input type="text" name="lokasyon" placeholder="Lokasyon" required>
+    <input type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
+    <input type="text" name="notlar" placeholder="Notlar">
+    <button type="submit">Ekle</button>
+    <br><br>
+</form>
+
+<form action="/inventory/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="excel_file" accept=".xls,.xlsx" required>
+    <button type="submit">Excel Yükle</button>
+    <br><br>
+</form>
+
 <table border="1">
-    <tr><th>ID</th><th>Örnek Başlık</th></tr>
-    <tr><td>1</td><td>Örnek Veri</td></tr>
+    <tr>
+        <th>ID</th>
+        <th>Demirbaş Adı</th>
+        <th>Marka</th>
+        <th>Model</th>
+        <th>Seri No</th>
+        <th>Lokasyon</th>
+        <th>Zimmetli Kişi</th>
+        <th>Notlar</th>
+        <th>Sil</th>
+    </tr>
+    {% for i in items %}
+    <tr>
+        <td>{{ i.id }}</td>
+        <td>{{ i.demirbas_adi }}</td>
+        <td>{{ i.marka }}</td>
+        <td>{{ i.model }}</td>
+        <td>{{ i.seri_no }}</td>
+        <td>{{ i.lokasyon }}</td>
+        <td>{{ i.zimmetli_kisi }}</td>
+        <td>{{ i.notlar }}</td>
+        <td>
+            <form action="/inventory/delete/{{ i.id }}" method="post" style="display:inline;">
+                <button type="submit">Sil</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
 </table>
 {% endblock %}
