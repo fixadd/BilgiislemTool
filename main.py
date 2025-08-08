@@ -273,7 +273,9 @@ async def upload_printer_excel(
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
-    if not excel_file.filename.endswith((".xls", ".xlsx")):
+    # Dosya uzantısını küçük harfe çevirerek Excel dosyası kontrolünü
+    # büyük/küçük harf duyarlılığından bağımsız hale getir
+    if not excel_file.filename.lower().endswith((".xls", ".xlsx")):
         raise HTTPException(status_code=400, detail="Sadece Excel dosyaları yüklenebilir.")
     contents = await excel_file.read()
     try:
