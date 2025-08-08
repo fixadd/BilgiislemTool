@@ -37,13 +37,12 @@ class HardwareInventory(Base):
 class PrinterInventory(Base):
     __tablename__ = "printer_inventory"
     id = Column(Integer, primary_key=True, index=True)
-    yazici_adi = Column(String)
-    marka = Column(String)
-    model = Column(String)
+    yazici_markasi = Column(String)
+    yazici_modeli = Column(String)
+    kullanim_alani = Column(String)
     ip_adresi = Column(String)
-    seri_no = Column(String)
-    lokasyon = Column(String)
-    zimmetli_kisi = Column(String)
+    mac = Column(String)
+    hostname = Column(String)
     notlar = Column(Text)
 
 class LicenseInventory(Base):
@@ -106,13 +105,12 @@ class HardwareItem(BaseModel):
 
 class PrinterItem(BaseModel):
     id: Optional[int]
-    yazici_adi: str
-    marka: str
-    model: str
+    yazici_markasi: str
+    yazici_modeli: str
+    kullanim_alani: str
     ip_adresi: str
-    seri_no: str
-    lokasyon: str
-    zimmetli_kisi: str
+    mac: str
+    hostname: str
     notlar: Optional[str]
     class Config:
         orm_mode = True
@@ -222,26 +220,24 @@ def printer_page(
 
 @app.post("/printer/add")
 def add_printer_form(
-    yazici_adi: str = Form(...),
-    marka: str = Form(...),
-    model: str = Form(...),
+    yazici_markasi: str = Form(...),
+    yazici_modeli: str = Form(...),
+    kullanim_alani: str = Form(...),
     ip_adresi: str = Form(...),
-    seri_no: str = Form(...),
-    lokasyon: str = Form(...),
-    zimmetli_kisi: str = Form(...),
+    mac: str = Form(...),
+    hostname: str = Form(...),
     notlar: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
     """Formdan gelen verilerle yeni yazıcı kaydı oluşturur."""
     db_item = PrinterInventory(
-        yazici_adi=yazici_adi,
-        marka=marka,
-        model=model,
+        yazici_markasi=yazici_markasi,
+        yazici_modeli=yazici_modeli,
+        kullanim_alani=kullanim_alani,
         ip_adresi=ip_adresi,
-        seri_no=seri_no,
-        lokasyon=lokasyon,
-        zimmetli_kisi=zimmetli_kisi,
+        mac=mac,
+        hostname=hostname,
         notlar=notlar,
     )
     db.add(db_item)
