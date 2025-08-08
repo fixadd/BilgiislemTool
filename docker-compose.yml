@@ -9,3 +9,4 @@ services:
       - DB_FILE=./data/envanter.db
     volumes:
       - ./data:/app/data
+      - ./image:/app/image     # hosttaki image klasörünü container’a bağla
