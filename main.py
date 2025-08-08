@@ -195,23 +195,23 @@ def home_page(request: Request, username: Optional[str] = None):
 
 
 # --- Takip Sayfaları (HTML) ---
-@app.get("/envanter", response_class=HTMLResponse)
-def envanter_page(request: Request):
+@app.get("/inventory", response_class=HTMLResponse)
+def inventory_page(request: Request):
     return templates.TemplateResponse("envanter.html", {"request": request})
 
 
-@app.get("/lisans", response_class=HTMLResponse)
-def lisans_page(request: Request):
+@app.get("/license", response_class=HTMLResponse)
+def license_page(request: Request):
     return templates.TemplateResponse("lisans.html", {"request": request})
 
 
-@app.get("/yazici", response_class=HTMLResponse)
-def yazici_page(request: Request):
+@app.get("/printer", response_class=HTMLResponse)
+def printer_page(request: Request):
     return templates.TemplateResponse("yazici.html", {"request": request})
 
 
-@app.get("/stok", response_class=HTMLResponse)
-def stok_page(request: Request):
+@app.get("/stock", response_class=HTMLResponse)
+def stock_page(request: Request):
     return templates.TemplateResponse("stok.html", {"request": request})
 
 # --- Donanım ---
@@ -272,13 +272,13 @@ def add_license(
     return db_item
 
 # --- Stok ---
-@app.get("/stock", response_model=List[StockItemSchema])
+@app.get("/stock_items", response_model=List[StockItemSchema])
 def get_stock(
     user: User = Depends(require_login), db: Session = Depends(get_db)
 ):
     return db.query(StockItem).all()
 
-@app.post("/stock", response_model=StockItemSchema)
+@app.post("/stock_items", response_model=StockItemSchema)
 def add_stock(
     item: StockItemSchema,
     user: User = Depends(require_login),
