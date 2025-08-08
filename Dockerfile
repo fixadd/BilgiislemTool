@@ -11,4 +11,6 @@ COPY . .
 COPY data/envanter.db ./data/envanter.db
 
 # Uvicorn ile FastAPI uygulamasini baslat
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
+# Allow the port to be overridden at runtime via the PORT environment variable.
+# Defaults to 5000 if PORT is not set.
+CMD ["bash", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-5000}"]
