@@ -156,6 +156,12 @@ def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
+@app.get("/login", response_class=HTMLResponse)
+def login_get(request: Request):
+    """Serve the login page when accessed directly."""
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
 @app.post("/login", response_class=HTMLResponse)
 def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username, User.password == password).first()
