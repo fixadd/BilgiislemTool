@@ -1,7 +1,7 @@
 # main.py
 # FastAPI + SQLAlchemy + Docker uyumlu envanter sistemi backend yapisi
 
-from fastapi import FastAPI, Depends, Request, Form
+from fastapi import FastAPI, Depends, Request, Form, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -10,6 +10,7 @@ from datetime import date
 from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
@@ -149,6 +150,24 @@ def get_db():
     finally:
         db.close()
 
+# --- Authentication ---
+security = HTTPBasic()
+
+def require_login(
+    credentials: HTTPBasicCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(
+        User.username == credentials.username,
+        User.password == credentials.password,
+    ).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Geçersiz kullanıcı adı/şifre",
+        )
+    return user
+
 
 # --- Kullanıcı Giriş ---
 @app.get("/", response_class=HTMLResponse)
@@ -176,11 +195,17 @@ def home_page(request: Request, username: str):
 
 # --- Donanım ---
 @app.get("/hardware", response_model=List[HardwareItem])
-def get_hardware(db: Session = Depends(get_db)):
+def get_hardware(
+    user: User = Depends(require_login), db: Session = Depends(get_db)
+):
     return db.query(HardwareInventory).all()
 
 @app.post("/hardware", response_model=HardwareItem)
-def add_hardware(item: HardwareItem, db: Session = Depends(get_db)):
+def add_hardware(
+    item: HardwareItem,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
     db_item = HardwareInventory(**item.dict())
     db.add(db_item)
     db.commit()
@@ -189,11 +214,17 @@ def add_hardware(item: HardwareItem, db: Session = Depends(get_db)):
 
 # --- Yazıcı ---
 @app.get("/printers", response_model=List[PrinterItem])
-def get_printers(db: Session = Depends(get_db)):
+def get_printers(
+    user: User = Depends(require_login), db: Session = Depends(get_db)
+):
     return db.query(PrinterInventory).all()
 
 @app.post("/printers", response_model=PrinterItem)
-def add_printer(item: PrinterItem, db: Session = Depends(get_db)):
+def add_printer(
+    item: PrinterItem,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
     db_item = PrinterInventory(**item.dict())
     db.add(db_item)
     db.commit()
@@ -202,11 +233,17 @@ def add_printer(item: PrinterItem, db: Session = Depends(get_db)):
 
 # --- Lisans ---
 @app.get("/licenses", response_model=List[LicenseItem])
-def get_licenses(db: Session = Depends(get_db)):
+def get_licenses(
+    user: User = Depends(require_login), db: Session = Depends(get_db)
+):
     return db.query(LicenseInventory).all()
 
 @app.post("/licenses", response_model=LicenseItem)
-def add_license(item: LicenseItem, db: Session = Depends(get_db)):
+def add_license(
+    item: LicenseItem,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
     db_item = LicenseInventory(**item.dict())
     db.add(db_item)
     db.commit()
@@ -215,11 +252,17 @@ def add_license(item: LicenseItem, db: Session = Depends(get_db)):
 
 # --- Stok ---
 @app.get("/stock", response_model=List[StockItemSchema])
-def get_stock(db: Session = Depends(get_db)):
+def get_stock(
+    user: User = Depends(require_login), db: Session = Depends(get_db)
+):
     return db.query(StockItem).all()
 
 @app.post("/stock", response_model=StockItemSchema)
-def add_stock(item: StockItemSchema, db: Session = Depends(get_db)):
+def add_stock(
+    item: StockItemSchema,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
     db_item = StockItem(**item.dict())
     db.add(db_item)
     db.commit()
