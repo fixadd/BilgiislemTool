@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Giriş</title>
+</head>
+<body>
+    <h2>Hoş geldiniz</h2>
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    <form action="/login" method="post">
+        <label>Kullanıcı Adı: <input type="text" name="username"></label><br>
+        <label>Şifre: <input type="password" name="password"></label><br>
+        <button type="submit">Giriş Yap</button>
+    </form>
+</body>
+</html>
