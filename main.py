@@ -169,16 +169,12 @@ def require_login(
     return user
 
 
-# --- Ana Sayfa ---
+# --- Ana Sayfa ve Giriş ---
+# Hem "/" hem de "/login" adreslerine gelen istekler aynı sayfayı döndürür.
 @app.get("/", response_class=HTMLResponse)
-def root():
-    """Kullanıcıyı giriş sayfasına yönlendir."""
-    return RedirectResponse(url="/login")
-
-
 @app.get("/login", response_class=HTMLResponse)
 def login_get(request: Request):
-    """Serve the login page when accessed directly."""
+    """Giriş sayfasını döndür."""
     return templates.TemplateResponse("login.html", {"request": request})
 
 
@@ -191,7 +187,10 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 
 
 @app.get("/home", response_class=HTMLResponse)
-def home_page(request: Request, username: str):
+def home_page(request: Request, username: Optional[str] = None):
+    """Ana ekranı döndür, kullanıcı adı yoksa girişe yönlendir."""
+    if not username:
+        return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse("main.html", {"request": request, "username": username})
 
 
