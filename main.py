@@ -1,8 +1,10 @@
 # main.py
 # FastAPI + SQLAlchemy + Docker uyumlu envanter sistemi backend yapisi
 
-from fastapi import FastAPI, Depends, Request, Form, HTTPException, status
+from fastapi import FastAPI, Depends, Request, Form, HTTPException, status, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
+from io import BytesIO
+import pandas as pd
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
@@ -262,6 +264,79 @@ def delete_printer_form(
     if printer:
         db.delete(printer)
         db.commit()
+    return RedirectResponse("/printer", status_code=303)
+
+
+@app.post("/printer/upload")
+async def upload_printer_excel(
+    excel_file: UploadFile = File(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not excel_file.filename.endswith((".xls", ".xlsx")):
+        raise HTTPException(status_code=400, detail="Sadece Excel dosyaları yüklenebilir.")
+    contents = await excel_file.read()
+    try:
+        xls = pd.ExcelFile(BytesIO(contents))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Excel dosyası okunamadı.")
+
+    for sheet in xls.sheet_names:
+        df = xls.parse(sheet)
+        df = df.rename(
+            columns={
+                "Yazıcı Adı": "yazici_adi",
+                "Marka": "marka",
+                "Model": "model",
+                "IP Adresi": "ip_adresi",
+                "Seri No": "seri_no",
+                "Lokasyon": "lokasyon",
+                "Zimmetli Kişi": "zimmetli_kisi",
+                "Notlar": "notlar",
+            }
+        )
+        expected_cols = [
+            "yazici_adi",
+            "marka",
+            "model",
+            "ip_adresi",
+            "seri_no",
+            "lokasyon",
+            "zimmetli_kisi",
+            "notlar",
+        ]
+        df = df[expected_cols]
+
+        for _, row in df.iterrows():
+            if (
+                pd.isnull(row["yazici_adi"]) or
+                pd.isnull(row["marka"]) or
+                pd.isnull(row["model"]) or
+                pd.isnull(row["ip_adresi"]) or
+                pd.isnull(row["seri_no"]) or
+                pd.isnull(row["lokasyon"]) or
+                pd.isnull(row["zimmetli_kisi"])
+            ):
+                continue
+            existing = (
+                db.query(PrinterInventory)
+                .filter(PrinterInventory.seri_no == str(row["seri_no"]))
+                .first()
+            )
+            if existing:
+                continue
+            printer = PrinterInventory(
+                yazici_adi=str(row["yazici_adi"]),
+                marka=str(row["marka"]),
+                model=str(row["model"]),
+                ip_adresi=str(row["ip_adresi"]),
+                seri_no=str(row["seri_no"]),
+                lokasyon=str(row["lokasyon"]),
+                zimmetli_kisi=str(row["zimmetli_kisi"]),
+                notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
+            )
+            db.add(printer)
+    db.commit()
     return RedirectResponse("/printer", status_code=303)
 
 

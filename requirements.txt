@@ -7,3 +7,4 @@ jinja2
 python-multipart
 pandas
 xlrd==1.2.0
+openpyxl
