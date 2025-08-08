@@ -3,6 +3,7 @@
 
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, status, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 import pandas as pd
 from fastapi.templating import Jinja2Templates
@@ -140,6 +141,7 @@ class StockItemSchema(BaseModel):
 
 # --- FastAPI Uygulaması ---
 app = FastAPI()
+app.mount("/image", StaticFiles(directory="image"), name="image")
 templates = Jinja2Templates(directory="templates")
 
 # --- Dependency ---
