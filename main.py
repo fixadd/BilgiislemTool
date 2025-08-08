@@ -169,10 +169,11 @@ def require_login(
     return user
 
 
-# --- Kullanıcı Giriş ---
+# --- Ana Sayfa ---
 @app.get("/", response_class=HTMLResponse)
-def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+def root():
+    """Basit bir hoş geldin mesajı döner."""
+    return "<h1>Envanter Sistemine Hoşgeldiniz</h1><p>API kullanımı için /docs adresine gidin.</p>"
 
 
 @app.get("/login", response_class=HTMLResponse)
