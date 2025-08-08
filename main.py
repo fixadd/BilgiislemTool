@@ -2,7 +2,7 @@
 # FastAPI + SQLAlchemy + Docker uyumlu envanter sistemi backend yapisi
 
 from fastapi import FastAPI, Depends, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
@@ -160,8 +160,13 @@ def login_page(request: Request):
 def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username, User.password == password).first()
     if user:
-        return templates.TemplateResponse("main.html", {"request": request, "username": username})
+        return RedirectResponse(url=f"/home?username={username}", status_code=303)
     return templates.TemplateResponse("login.html", {"request": request, "error": "Hatalı kullanıcı adı veya şifre"})
+
+
+@app.get("/home", response_class=HTMLResponse)
+def home_page(request: Request, username: str):
+    return templates.TemplateResponse("main.html", {"request": request, "username": username})
 
 # --- Donanım ---
 @app.get("/hardware", response_model=List[HardwareItem])
