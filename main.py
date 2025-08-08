@@ -206,8 +206,63 @@ def license_page(request: Request):
 
 
 @app.get("/printer", response_class=HTMLResponse)
-def printer_page(request: Request):
-    return templates.TemplateResponse("yazici.html", {"request": request})
+def printer_page(
+    request: Request,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    """Yazıcı envanterini listeleyen sayfa."""
+    printers = db.query(PrinterInventory).all()
+    return templates.TemplateResponse(
+        "yazici.html", {"request": request, "printers": printers}
+    )
+
+
+@app.post("/printer/add")
+def add_printer_form(
+    yazici_adi: str = Form(...),
+    marka: str = Form(...),
+    model: str = Form(...),
+    ip_adresi: str = Form(...),
+    seri_no: str = Form(...),
+    lokasyon: str = Form(...),
+    zimmetli_kisi: str = Form(...),
+    notlar: str = Form(""),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    """Formdan gelen verilerle yeni yazıcı kaydı oluşturur."""
+    db_item = PrinterInventory(
+        yazici_adi=yazici_adi,
+        marka=marka,
+        model=model,
+        ip_adresi=ip_adresi,
+        seri_no=seri_no,
+        lokasyon=lokasyon,
+        zimmetli_kisi=zimmetli_kisi,
+        notlar=notlar,
+    )
+    db.add(db_item)
+    db.commit()
+    return RedirectResponse("/printer", status_code=303)
+
+
+@app.post("/printer/delete/{printer_id}")
+def delete_printer_form(
+    printer_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    """Seçilen yazıcı kaydını siler."""
+    printer = (
+        db.query(PrinterInventory)
+        .filter(PrinterInventory.id == printer_id)
+        .first()
+    )
+    if printer:
+        db.delete(printer)
+        db.commit()
+    return RedirectResponse("/printer", status_code=303)
 
 
 @app.get("/stock", response_class=HTMLResponse)

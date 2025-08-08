@@ -1,10 +1,51 @@
 {% extends "base.html" %}
 {% block title %}Yazıcı Takip{% endblock %}
 {% block content %}
-<h2>Burası Yazıcı Takip Sayfası</h2>
-<p>Yazıcı envanterini buradan görüntüleyebilirsiniz.</p>
+<h2>Yazıcı Envanteri</h2>
+
+<form action="/printer/add" method="post">
+    <input type="text" name="yazici_adi" placeholder="Yazıcı Adı" required>
+    <input type="text" name="marka" placeholder="Marka" required>
+    <input type="text" name="model" placeholder="Model" required>
+    <input type="text" name="ip_adresi" placeholder="IP Adresi" required>
+    <input type="text" name="seri_no" placeholder="Seri No" required>
+    <input type="text" name="lokasyon" placeholder="Lokasyon" required>
+    <input type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
+    <input type="text" name="notlar" placeholder="Notlar">
+    <button type="submit">Ekle</button>
+    <br><br>
+</form>
+
 <table border="1">
-    <tr><th>ID</th><th>Örnek Yazıcı</th></tr>
-    <tr><td>1</td><td>Örnek Veri</td></tr>
+    <tr>
+        <th>ID</th>
+        <th>Yazıcı Adı</th>
+        <th>Marka</th>
+        <th>Model</th>
+        <th>IP</th>
+        <th>Seri No</th>
+        <th>Lokasyon</th>
+        <th>Zimmetli Kişi</th>
+        <th>Notlar</th>
+        <th>Sil</th>
+    </tr>
+    {% for p in printers %}
+    <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.yazici_adi }}</td>
+        <td>{{ p.marka }}</td>
+        <td>{{ p.model }}</td>
+        <td>{{ p.ip_adresi }}</td>
+        <td>{{ p.seri_no }}</td>
+        <td>{{ p.lokasyon }}</td>
+        <td>{{ p.zimmetli_kisi }}</td>
+        <td>{{ p.notlar }}</td>
+        <td>
+            <form action="/printer/delete/{{ p.id }}" method="post" style="display:inline;">
+                <button type="submit">Sil</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
 </table>
 {% endblock %}
