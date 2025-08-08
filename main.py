@@ -288,60 +288,39 @@ async def upload_printer_excel(
             raise HTTPException(status_code=400, detail=f"Excel dosyası okunamadı. Hata: {str(e)}")
 
     for df in sheets.values():
+        df.columns = df.columns.str.strip()
         df = df.rename(
             columns={
-                "Yazıcı Adı": "yazici_adi",
-                "Marka": "marka",
-                "Model": "model",
-                "IP Adresi": "ip_adresi",
-                "Seri No": "seri_no",
-                "Lokasyon": "lokasyon",
-                "Zimmetli Kişi": "zimmetli_kisi",
-                "Notlar": "notlar",
+                "Yazıcı Markası": "yazici_markasi",
+                "Yazıcı Modeli": "yazici_modeli",
+                "Kullanım alanı": "kullanim_alani",
+                "İp Adresi": "ip_adresi",
+                "Mac": "mac",
+                "Hostname": "hostname",
+                "not": "notlar",
             }
         )
         expected_cols = [
-            "yazici_adi",
-            "marka",
-            "model",
-            "ip_adresi",
-            "seri_no",
-            "lokasyon",
-            "zimmetli_kisi",
-            "notlar",
+            "yazici_markasi", "yazici_modeli", "kullanim_alani", "ip_adresi", "mac", "hostname", "notlar"
         ]
+        eksik_kolonlar = [col for col in expected_cols if col not in df.columns]
+        if eksik_kolonlar:
+            raise HTTPException(status_code=400, detail=f"Excel başlıkları eksik veya yanlış: {eksik_kolonlar}")
         df = df[expected_cols]
 
         for _, row in df.iterrows():
-            if (
-                pd.isnull(row["yazici_adi"]) or
-                pd.isnull(row["marka"]) or
-                pd.isnull(row["model"]) or
-                pd.isnull(row["ip_adresi"]) or
-                pd.isnull(row["seri_no"]) or
-                pd.isnull(row["lokasyon"]) or
-                pd.isnull(row["zimmetli_kisi"])
-            ):
-                continue
-            existing = (
-                db.query(PrinterInventory)
-                .filter(PrinterInventory.seri_no == str(row["seri_no"]))
-                .first()
-            )
-            if existing:
-                continue
             printer = PrinterInventory(
-                yazici_adi=str(row["yazici_adi"]),
-                marka=str(row["marka"]),
-                model=str(row["model"]),
+                yazici_markasi=str(row["yazici_markasi"]),
+                yazici_modeli=str(row["yazici_modeli"]),
+                kullanim_alani=str(row["kullanim_alani"]),
                 ip_adresi=str(row["ip_adresi"]),
-                seri_no=str(row["seri_no"]),
-                lokasyon=str(row["lokasyon"]),
-                zimmetli_kisi=str(row["zimmetli_kisi"]),
+                mac=str(row["mac"]),
+                hostname=str(row["hostname"]),
                 notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
             )
             db.add(printer)
     db.commit()
+
     return RedirectResponse("/printer", status_code=303)
 
 
