@@ -279,12 +279,14 @@ async def upload_printer_excel(
         raise HTTPException(status_code=400, detail="Sadece Excel dosyaları yüklenebilir.")
     contents = await excel_file.read()
     try:
-        xls = pd.ExcelFile(BytesIO(contents))
+        if excel_file.filename.lower().endswith(".xls"):
+            sheets = pd.read_excel(BytesIO(contents), sheet_name=None, engine="xlrd")
+        else:
+            sheets = pd.read_excel(BytesIO(contents), sheet_name=None, engine="openpyxl")
     except Exception:
         raise HTTPException(status_code=400, detail="Excel dosyası okunamadı.")
 
-    for sheet in xls.sheet_names:
-        df = xls.parse(sheet)
+    for df in sheets.values():
         df = df.rename(
             columns={
                 "Yazıcı Adı": "yazici_adi",
