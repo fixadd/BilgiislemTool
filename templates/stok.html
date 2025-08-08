@@ -1,10 +1,51 @@
 {% extends "base.html" %}
 {% block title %}Stok Takip{% endblock %}
 {% block content %}
-<h2>Burası Stok Takip Sayfası</h2>
-<p>Stok hareketlerini buradan izleyebilirsiniz.</p>
+<h2>Stok Takibi</h2>
+
+<form action="/stock/add" method="post">
+    <input type="text" name="urun_adi" placeholder="Ürün Adı" required>
+    <input type="text" name="kategori" placeholder="Kategori" required>
+    <input type="text" name="marka" placeholder="Marka" required>
+    <input type="number" name="adet" placeholder="Adet" required>
+    <input type="text" name="lokasyon" placeholder="Lokasyon" required>
+    <input type="date" name="guncelleme_tarihi" placeholder="Güncelleme Tarihi">
+    <button type="submit">Ekle</button>
+    <br><br>
+</form>
+
+<form action="/stock/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="excel_file" accept=".xls,.xlsx" required>
+    <button type="submit">Excel Yükle</button>
+    <br><br>
+</form>
+
 <table border="1">
-    <tr><th>ID</th><th>Örnek Stok</th></tr>
-    <tr><td>1</td><td>Örnek Veri</td></tr>
+    <tr>
+        <th>ID</th>
+        <th>Ürün Adı</th>
+        <th>Kategori</th>
+        <th>Marka</th>
+        <th>Adet</th>
+        <th>Lokasyon</th>
+        <th>Güncelleme Tarihi</th>
+        <th>Sil</th>
+    </tr>
+    {% for s in stocks %}
+    <tr>
+        <td>{{ s.id }}</td>
+        <td>{{ s.urun_adi }}</td>
+        <td>{{ s.kategori }}</td>
+        <td>{{ s.marka }}</td>
+        <td>{{ s.adet }}</td>
+        <td>{{ s.lokasyon }}</td>
+        <td>{{ s.guncelleme_tarihi }}</td>
+        <td>
+            <form action="/stock/delete/{{ s.id }}" method="post" style="display:inline;">
+                <button type="submit">Sil</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
 </table>
 {% endblock %}
