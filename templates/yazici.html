@@ -4,13 +4,12 @@
 <h2>Yazıcı Envanteri</h2>
 
 <form action="/printer/add" method="post">
-    <input type="text" name="yazici_adi" placeholder="Yazıcı Adı" required>
-    <input type="text" name="marka" placeholder="Marka" required>
-    <input type="text" name="model" placeholder="Model" required>
+    <input type="text" name="yazici_markasi" placeholder="Yazıcı Markası" required>
+    <input type="text" name="yazici_modeli" placeholder="Yazıcı Modeli" required>
+    <input type="text" name="kullanim_alani" placeholder="Kullanım Alanı" required>
     <input type="text" name="ip_adresi" placeholder="IP Adresi" required>
-    <input type="text" name="seri_no" placeholder="Seri No" required>
-    <input type="text" name="lokasyon" placeholder="Lokasyon" required>
-    <input type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
+    <input type="text" name="mac" placeholder="MAC" required>
+    <input type="text" name="hostname" placeholder="Hostname" required>
     <input type="text" name="notlar" placeholder="Notlar">
     <button type="submit">Ekle</button>
     <br><br>
@@ -25,26 +24,24 @@
 <table border="1">
     <tr>
         <th>ID</th>
-        <th>Yazıcı Adı</th>
-        <th>Marka</th>
-        <th>Model</th>
+        <th>Yazıcı Markası</th>
+        <th>Yazıcı Modeli</th>
+        <th>Kullanım Alanı</th>
         <th>IP</th>
-        <th>Seri No</th>
-        <th>Lokasyon</th>
-        <th>Zimmetli Kişi</th>
+        <th>MAC</th>
+        <th>Hostname</th>
         <th>Notlar</th>
         <th>Sil</th>
     </tr>
     {% for p in printers %}
     <tr>
         <td>{{ p.id }}</td>
-        <td>{{ p.yazici_adi }}</td>
-        <td>{{ p.marka }}</td>
-        <td>{{ p.model }}</td>
+        <td>{{ p.yazici_markasi }}</td>
+        <td>{{ p.yazici_modeli }}</td>
+        <td>{{ p.kullanim_alani }}</td>
         <td>{{ p.ip_adresi }}</td>
-        <td>{{ p.seri_no }}</td>
-        <td>{{ p.lokasyon }}</td>
-        <td>{{ p.zimmetli_kisi }}</td>
+        <td>{{ p.mac }}</td>
+        <td>{{ p.hostname }}</td>
         <td>{{ p.notlar }}</td>
         <td>
             <form action="/printer/delete/{{ p.id }}" method="post" style="display:inline;">
