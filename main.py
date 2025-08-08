@@ -172,8 +172,8 @@ def require_login(
 # --- Ana Sayfa ---
 @app.get("/", response_class=HTMLResponse)
 def root():
-    """Basit bir hoş geldin mesajı döner."""
-    return "<h1>Envanter Sistemine Hoşgeldiniz</h1><p>API kullanımı için /docs adresine gidin.</p>"
+    """Kullanıcıyı giriş sayfasına yönlendir."""
+    return RedirectResponse(url="/login")
 
 
 @app.get("/login", response_class=HTMLResponse)
@@ -193,6 +193,27 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 @app.get("/home", response_class=HTMLResponse)
 def home_page(request: Request, username: str):
     return templates.TemplateResponse("main.html", {"request": request, "username": username})
+
+
+# --- Takip Sayfaları (HTML) ---
+@app.get("/envanter", response_class=HTMLResponse)
+def envanter_page(request: Request):
+    return templates.TemplateResponse("envanter.html", {"request": request})
+
+
+@app.get("/lisans", response_class=HTMLResponse)
+def lisans_page(request: Request):
+    return templates.TemplateResponse("lisans.html", {"request": request})
+
+
+@app.get("/yazici", response_class=HTMLResponse)
+def yazici_page(request: Request):
+    return templates.TemplateResponse("yazici.html", {"request": request})
+
+
+@app.get("/stok", response_class=HTMLResponse)
+def stok_page(request: Request):
+    return templates.TemplateResponse("stok.html", {"request": request})
 
 # --- Donanım ---
 @app.get("/hardware", response_model=List[HardwareItem])

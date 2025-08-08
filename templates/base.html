@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        .sidebar {
+            width: 200px;
+            background: #333;
+            color: #fff;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+        .sidebar ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar li { padding: 10px; }
+        .sidebar li a { color: #fff; text-decoration: none; display: block; }
+        .sidebar li a:hover { background: #444; }
+        .content { margin-left: 200px; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <ul>
+            <li><a href="/envanter">Envanter Takip</a></li>
+            <li><a href="/lisans">Lisans Takip</a></li>
+            <li><a href="/yazici">Yazıcı Takip</a></li>
+            <li><a href="/stok">Stok Takip</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

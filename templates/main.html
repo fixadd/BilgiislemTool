@@ -1,54 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Ana Ekran</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 2rem;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        h2 {
-            margin-top: 0;
-        }
-        .link-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        .card {
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .card a {
-            text-decoration: none;
-            color: #007bff;
-            font-weight: bold;
-        }
-        .card a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Merhaba {{ username }}</h2>
-        <div class="link-grid">
-            <div class="card"><a href="/hardware">Donanım Envanteri</a></div>
-            <div class="card"><a href="/printers">Yazıcı Envanteri</a></div>
-            <div class="card"><a href="/licenses">Lisans Envanteri</a></div>
-            <div class="card"><a href="/stock">Stok Takibi</a></div>
-        </div>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Ana Sayfa{% endblock %}
+{% block content %}
+<h2>Hoşgeldiniz {{ username }}</h2>
+<p>Menüden bir seçenek seçiniz.</p>
+{% endblock %}
