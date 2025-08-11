@@ -93,10 +93,12 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
         <button id="confirm-delete" type="button" class="btn btn-danger">Sil</button>
       </div>
-    </div>
   </div>
 </div>
+</div>
+{% endblock %}
 
+{% block scripts %}
 <script>
 const tableName = "{{ table_name }}";
 const settingsModal = document.getElementById('settingsModal');
