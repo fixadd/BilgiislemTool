@@ -10,6 +10,7 @@
     {% for col in ["demirbas_adi","marka","model","seri_no","lokasyon","zimmetli_kisi","notlar"] %}
     <th>{{ col.replace('_',' ').title() }}</th>
     {% endfor %}
+    <th>Kalan Gün</th>
     <th>İşlem</th>
   </tr>
   {% for i in hardware %}
@@ -21,6 +22,7 @@
     <td style="white-space: normal; word-break: break-word;" title="{{ i.lokasyon }}">{{ i.lokasyon }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ i.zimmetli_kisi }}">{{ i.zimmetli_kisi }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ i.notlar }}">{{ i.notlar }}</td>
+    <td>{{ 15 - (today - i.deleted_at).days }}</td>
     <td>
       <form action="/inventory/restore/{{ i.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
@@ -36,6 +38,7 @@
     {% for col in ["yazilim_adi","lisans_anahtari","adet","satin_alma_tarihi","bitis_tarihi","zimmetli_kisi","notlar"] %}
     <th>{{ col.replace('_',' ').title() }}</th>
     {% endfor %}
+    <th>Kalan Gün</th>
     <th>İşlem</th>
   </tr>
   {% for l in licenses %}
@@ -47,6 +50,7 @@
     <td style="white-space: normal; word-break: break-word;" title="{{ l.bitis_tarihi }}">{{ l.bitis_tarihi }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ l.zimmetli_kisi }}">{{ l.zimmetli_kisi }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ l.notlar }}">{{ l.notlar }}</td>
+    <td>{{ 15 - (today - l.deleted_at).days }}</td>
     <td>
       <form action="/license/restore/{{ l.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
@@ -62,6 +66,7 @@
     {% for col in ["yazici_markasi","yazici_modeli","kullanim_alani","ip_adresi","mac","hostname","notlar"] %}
     <th>{{ col.replace('_',' ').title() }}</th>
     {% endfor %}
+    <th>Kalan Gün</th>
     <th>İşlem</th>
   </tr>
   {% for p in printers %}
@@ -73,6 +78,7 @@
     <td style="white-space: normal; word-break: break-word;" title="{{ p.mac }}">{{ p.mac }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ p.hostname }}">{{ p.hostname }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ p.notlar }}">{{ p.notlar }}</td>
+    <td>{{ 15 - (today - p.deleted_at).days }}</td>
     <td>
       <form action="/printer/restore/{{ p.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
@@ -88,6 +94,7 @@
     {% for col in ["urun_adi","kategori","marka","adet","lokasyon","guncelleme_tarihi"] %}
     <th>{{ col.replace('_',' ').title() }}</th>
     {% endfor %}
+    <th>Kalan Gün</th>
     <th>İşlem</th>
   </tr>
   {% for s in stocks %}
@@ -98,6 +105,7 @@
     <td style="white-space: normal; word-break: break-word;" title="{{ s.adet }}">{{ s.adet }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ s.lokasyon }}">{{ s.lokasyon }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ s.guncelleme_tarihi }}">{{ s.guncelleme_tarihi }}</td>
+    <td>{{ 15 - (today - s.deleted_at).days }}</td>
     <td>
       <form action="/stock/restore/{{ s.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
