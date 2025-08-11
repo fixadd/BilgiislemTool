@@ -310,7 +310,7 @@ async def upload_printer_excel(
 
         for _, row in df.iterrows():
             printer = PrinterInventory(
-                yazici_markasi=str(row["yazici_markasi"]),
+                marka=str(row["yazici_markasi"]),
                 yazici_modeli=str(row["yazici_modeli"]),
                 kullanim_alani=str(row["kullanim_alani"]),
                 ip_adresi=str(row["ip_adresi"]),
