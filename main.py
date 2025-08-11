@@ -131,6 +131,9 @@ class User(Base):
     password = Column(String)
     is_admin = Column(Boolean, default=False)
     must_change_password = Column(Boolean, default=False)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    email = Column(String, nullable=True)
 
 
 class LookupItem(Base):
@@ -149,9 +152,19 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     inspector = inspect(engine)
     cols = [c["name"] for c in inspector.get_columns("users")]
-    if "must_change_password" not in cols:
-        with engine.connect() as conn:
-            conn.execute(text("ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 0"))
+    with engine.connect() as conn:
+        if "must_change_password" not in cols:
+            conn.execute(
+                text(
+                    "ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 0"
+                )
+            )
+        if "first_name" not in cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN first_name TEXT"))
+        if "last_name" not in cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN last_name TEXT"))
+        if "email" not in cols:
+            conn.execute(text("ALTER TABLE users ADD COLUMN email TEXT"))
 
 
 def init_admin():
@@ -165,6 +178,9 @@ def init_admin():
                 password=pwd_context.hash(password_plain),
                 is_admin=True,
                 must_change_password=True,
+                first_name="Admin",
+                last_name="",
+                email="",
             )
             db.add(admin)
             db.commit()
@@ -331,6 +347,10 @@ def login(
                 db.commit()
     if verified:
         request.session["username"] = user.username
+        request.session["is_admin"] = user.is_admin
+        request.session["first_name"] = user.first_name
+        request.session["last_name"] = user.last_name
+        request.session["email"] = user.email
         if user.must_change_password:
             return RedirectResponse(url="/change-password", status_code=303)
         return RedirectResponse(url="/home", status_code=303)
@@ -341,8 +361,6 @@ def login(
 
 @app.get("/change-password", response_class=HTMLResponse)
 def change_password_get(request: Request, user: User = Depends(require_login)):
-    if not user.must_change_password:
-        return RedirectResponse(url="/home", status_code=303)
     return templates.TemplateResponse("change_password.html", {"request": request})
 
 
@@ -423,6 +441,11 @@ def home_page(
     )
 
 
+@app.get("/profile", response_class=HTMLResponse)
+def profile_page(request: Request, user: User = Depends(require_login)):
+    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+
+
 @app.get("/admin", response_class=HTMLResponse)
 def admin_page(
     request: Request,
@@ -442,6 +465,9 @@ def admin_create_user(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
+    first_name: str = Form(""),
+    last_name: str = Form(""),
+    email: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -461,6 +487,9 @@ def admin_create_user(
         User(
             username=username,
             password=pwd_context.hash(password),
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
             must_change_password=True,
         )
     )

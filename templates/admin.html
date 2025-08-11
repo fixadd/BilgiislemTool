@@ -10,16 +10,28 @@
   <div class="mb-3">
     <input type="password" name="password" class="form-control" placeholder="Şifre" required>
   </div>
+  <div class="mb-3">
+    <input type="text" name="first_name" class="form-control" placeholder="İsim">
+  </div>
+  <div class="mb-3">
+    <input type="text" name="last_name" class="form-control" placeholder="Soyisim">
+  </div>
+  <div class="mb-3">
+    <input type="email" name="email" class="form-control" placeholder="Mail Adresi">
+  </div>
   <button type="submit" class="btn btn-primary">Ekle</button>
 </form>
 <table class="table">
   <thead>
-    <tr><th>Kullanıcı Adı</th><th>Admin</th><th>İşlem</th></tr>
+    <tr><th>Kullanıcı Adı</th><th>İsim</th><th>Soyisim</th><th>Mail</th><th>Admin</th><th>İşlem</th></tr>
   </thead>
   <tbody>
     {% for u in users %}
     <tr>
       <td>{{ u.username }}</td>
+      <td>{{ u.first_name }}</td>
+      <td>{{ u.last_name }}</td>
+      <td>{{ u.email }}</td>
       <td>{{ "Evet" if u.is_admin else "Hayır" }}</td>
       <td>
         {% if not u.is_admin %}
