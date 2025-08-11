@@ -423,6 +423,7 @@ def trash(request: Request, user: User = Depends(require_login), db: Session = D
             "printers": printers,
             "licenses": licenses,
             "stocks": stocks,
+            "today": date.today(),
         },
     )
 
