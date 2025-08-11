@@ -10,9 +10,10 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date
-from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.exc import SQLAlchemyError
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 
@@ -79,8 +80,7 @@ class User(Base):
 
 def init_db():
     os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
-    if not os.path.exists(DB_FILE):
-        Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 
 def init_admin():
@@ -695,6 +695,54 @@ def add_hardware(
     db.commit()
     db.refresh(db_item)
     return db_item
+
+
+# --- DB Şema Yönetimi ---
+@app.post("/db/add-column")
+def add_column(
+    table_name: str = Form(...),
+    column_name: str = Form(...),
+    column_type: str = Form(...),
+    user: User = Depends(require_login),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
+                )
+            )
+        return {"message": "Kolon eklendi"}
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/db/remove-column")
+def remove_column(
+    table_name: str = Form(...),
+    column_name: str = Form(...),
+    user: User = Depends(require_login),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    with engine.connect() as conn:
+        count = conn.execute(
+            text(
+                f"SELECT COUNT(*) FROM {table_name} WHERE {column_name} IS NOT NULL AND TRIM({column_name}) != ''"
+            )
+        ).scalar()
+        if count and count > 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Kolon verisi içeriyor, silinemez",
+            )
+        try:
+            conn.execute(text(f"ALTER TABLE {table_name} DROP COLUMN {column_name}"))
+        except SQLAlchemyError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+    return {"message": "Kolon silindi"}
 
 # --- Yazıcı ---
 @app.get("/printers", response_model=List[PrinterItem])
