@@ -8,7 +8,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Statik veritabanını imajın içine göm
-COPY data/envanter.db ./data/envanter.db
+#COPY data/envanter.db ./data/envanter.db
 
 # Uvicorn ile FastAPI uygulamasini baslat
 # Allow the port to be overridden at runtime via the PORT environment variable.
