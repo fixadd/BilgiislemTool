@@ -20,7 +20,7 @@
       margin:10px; border-radius:4px;
     }
     .sidebar ul{
-      list-style:none; margin:0; padding:0;
+      list-style:none; margin:0; padding:0; flex-grow:1;
     }
     .sidebar li{}
     .sidebar a{
@@ -57,7 +57,9 @@
       <li><a href="/stock"     class="{% if request.path.startswith('/stock') %}active{% endif %}">Stok Takip</a></li>
       <li><a href="/trash" class="{% if request.path.startswith('/trash') %}active{% endif %}">Çöp Kutusu</a></li>
       <li><a href="/lists" class="{% if request.path.startswith('/lists') %}active{% endif %}">Envanter Ekleme</a></li>
+      <li><a href="/admin" class="{% if request.path.startswith('/admin') %}active{% endif %}">Admin Paneli</a></li>
     </ul>
+    <a href="/logout" class="text-center py-3" title="Çıkış"><i class="bi bi-door-closed-fill text-danger" style="font-size:1.5rem;"></i></a>
   </div>
 
   <div class="content">

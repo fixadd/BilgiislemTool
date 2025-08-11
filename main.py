@@ -17,6 +17,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.sessions import SessionMiddleware
 import os
 import json
+import base64
+from passlib.context import CryptContext
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +28,8 @@ engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 SETTINGS_FILE = os.path.join(BASE_DIR, "data", "column_settings.json")
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # --- SQLALCHEMY MODELLER ---
 class HardwareInventory(Base):
@@ -146,8 +150,14 @@ def init_db():
 def init_admin():
     db = SessionLocal()
     try:
-        if not db.query(User).filter(User.username == "admin").first():
-            admin = User(username="admin", password="admin", is_admin=True)
+        username = base64.b64decode("YWRtaW4=").decode()
+        password_plain = base64.b64decode("YWRtaW4=").decode()
+        if not db.query(User).filter(User.username == username).first():
+            admin = User(
+                username=username,
+                password=pwd_context.hash(password_plain),
+                is_admin=True,
+            )
             db.add(admin)
             db.commit()
     finally:
@@ -296,13 +306,19 @@ def login_get(request: Request):
 
 @app.post("/login", response_class=HTMLResponse)
 def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == username, User.password == password).first()
-    if user:
+    user = db.query(User).filter(User.username == username).first()
+    if user and pwd_context.verify(password, user.password):
         request.session["username"] = user.username
         return RedirectResponse(url="/home", status_code=303)
     return templates.TemplateResponse(
         "login.html", {"request": request, "error": "Hatalı kullanıcı adı veya şifre"}
     )
+
+
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/home", status_code=303)
 
 
 @app.get("/home", response_class=HTMLResponse)
@@ -345,6 +361,45 @@ def home_page(
             "recent": recent,
         },
     )
+
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_page(
+    request: Request,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    users = db.query(User).all()
+    return templates.TemplateResponse(
+        "admin.html", {"request": request, "users": users}
+    )
+
+
+@app.post("/admin/create")
+def admin_create_user(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    if db.query(User).filter(User.username == username).first():
+        users = db.query(User).all()
+        return templates.TemplateResponse(
+            "admin.html",
+            {
+                "request": request,
+                "users": users,
+                "error": "Kullanıcı zaten var",
+            },
+        )
+    db.add(User(username=username, password=pwd_context.hash(password)))
+    db.commit()
+    return RedirectResponse("/admin", status_code=303)
 
 
 # --- Takip Sayfaları (HTML) ---
