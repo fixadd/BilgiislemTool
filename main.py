@@ -51,6 +51,41 @@ class DeletedHardwareInventory(Base):
     notlar = Column(Text)
     deleted_at = Column(Date)
 
+class DeletedPrinterInventory(Base):
+    __tablename__ = "deleted_printer_inventory"
+    id = Column(Integer, primary_key=True, index=True)
+    yazici_markasi = Column(String)
+    yazici_modeli = Column(String)
+    kullanim_alani = Column(String)
+    ip_adresi = Column(String)
+    mac = Column(String)
+    hostname = Column(String)
+    notlar = Column(Text)
+    deleted_at = Column(Date)
+
+class DeletedLicenseInventory(Base):
+    __tablename__ = "deleted_license_inventory"
+    id = Column(Integer, primary_key=True, index=True)
+    yazilim_adi = Column(String)
+    lisans_anahtari = Column(String)
+    adet = Column(Integer)
+    satin_alma_tarihi = Column(Date)
+    bitis_tarihi = Column(Date)
+    zimmetli_kisi = Column(String)
+    notlar = Column(Text)
+    deleted_at = Column(Date)
+
+class DeletedStockItem(Base):
+    __tablename__ = "deleted_stock_items"
+    id = Column(Integer, primary_key=True, index=True)
+    urun_adi = Column(String)
+    kategori = Column(String)
+    marka = Column(String)
+    adet = Column(Integer)
+    lokasyon = Column(String)
+    guncelleme_tarihi = Column(Date)
+    deleted_at = Column(Date)
+
 class PrinterInventory(Base):
     __tablename__ = "printer_inventory"
     id = Column(Integer, primary_key=True, index=True)
@@ -141,9 +176,12 @@ def set_user_settings(username: str, table_name: str, settings: dict):
     data.setdefault(username, {})[table_name] = settings
     save_settings(data)
 
-def cleanup_deleted_inventory(db: Session):
+def cleanup_deleted(db: Session):
     cutoff = date.today() - timedelta(days=15)
     db.query(DeletedHardwareInventory).filter(DeletedHardwareInventory.deleted_at < cutoff).delete()
+    db.query(DeletedPrinterInventory).filter(DeletedPrinterInventory.deleted_at < cutoff).delete()
+    db.query(DeletedLicenseInventory).filter(DeletedLicenseInventory.deleted_at < cutoff).delete()
+    db.query(DeletedStockItem).filter(DeletedStockItem.deleted_at < cutoff).delete()
     db.commit()
 
 # --- Pydantic Şemalar ---
@@ -367,11 +405,27 @@ def delete_inventory(ids: DeleteIds, user: User = Depends(require_login), db: Se
     db.commit()
     return {"message": "deleted"}
 
-@app.get("/inventory/trash", response_class=HTMLResponse)
-def inventory_trash(request: Request, user: User = Depends(require_login), db: Session = Depends(get_db)):
-    cleanup_deleted_inventory(db)
-    items = db.query(DeletedHardwareInventory).all()
-    return templates.TemplateResponse("envanter_trash.html", {"request": request, "items": items})
+@app.get("/trash", response_class=HTMLResponse)
+def trash(request: Request, user: User = Depends(require_login), db: Session = Depends(get_db)):
+    cleanup_deleted(db)
+    hardware = db.query(DeletedHardwareInventory).all()
+    printers = db.query(DeletedPrinterInventory).all()
+    licenses = db.query(DeletedLicenseInventory).all()
+    stocks = db.query(DeletedStockItem).all()
+    return templates.TemplateResponse(
+        "trash.html",
+        {
+            "request": request,
+            "hardware": hardware,
+            "printers": printers,
+            "licenses": licenses,
+            "stocks": stocks,
+        },
+    )
+
+@app.get("/inventory/trash")
+def inventory_trash_redirect():
+    return RedirectResponse("/trash", status_code=307)
 
 @app.post("/inventory/restore/{item_id}")
 def restore_inventory(item_id: int, user: User = Depends(require_login), db: Session = Depends(get_db)):
@@ -390,7 +444,7 @@ def restore_inventory(item_id: int, user: User = Depends(require_login), db: Ses
         db.add(restored)
         db.delete(item)
         db.commit()
-    return RedirectResponse("/inventory/trash", status_code=303)
+    return RedirectResponse("/trash", status_code=303)
 
 
 @app.post("/inventory/upload")
@@ -520,9 +574,78 @@ def delete_license_form(
         .first()
     )
     if lic:
+        deleted = DeletedLicenseInventory(
+            id=lic.id,
+            yazilim_adi=lic.yazilim_adi,
+            lisans_anahtari=lic.lisans_anahtari,
+            adet=lic.adet,
+            satin_alma_tarihi=lic.satin_alma_tarihi,
+            bitis_tarihi=lic.bitis_tarihi,
+            zimmetli_kisi=lic.zimmetli_kisi,
+            notlar=lic.notlar,
+            deleted_at=date.today(),
+        )
+        db.add(deleted)
         db.delete(lic)
         db.commit()
     return RedirectResponse("/license", status_code=303)
+
+
+@app.post("/license/delete")
+def delete_license(
+    ids: DeleteIds,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = (
+        db.query(LicenseInventory)
+        .filter(LicenseInventory.id.in_(ids.ids))
+        .all()
+    )
+    for lic in items:
+        deleted = DeletedLicenseInventory(
+            id=lic.id,
+            yazilim_adi=lic.yazilim_adi,
+            lisans_anahtari=lic.lisans_anahtari,
+            adet=lic.adet,
+            satin_alma_tarihi=lic.satin_alma_tarihi,
+            bitis_tarihi=lic.bitis_tarihi,
+            zimmetli_kisi=lic.zimmetli_kisi,
+            notlar=lic.notlar,
+            deleted_at=date.today(),
+        )
+        db.add(deleted)
+        db.delete(lic)
+    db.commit()
+    return {"message": "deleted"}
+
+
+@app.post("/license/restore/{item_id}")
+def restore_license(
+    item_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    item = (
+        db.query(DeletedLicenseInventory)
+        .filter(DeletedLicenseInventory.id == item_id)
+        .first()
+    )
+    if item:
+        restored = LicenseInventory(
+            id=item.id,
+            yazilim_adi=item.yazilim_adi,
+            lisans_anahtari=item.lisans_anahtari,
+            adet=item.adet,
+            satin_alma_tarihi=item.satin_alma_tarihi,
+            bitis_tarihi=item.bitis_tarihi,
+            zimmetli_kisi=item.zimmetli_kisi,
+            notlar=item.notlar,
+        )
+        db.add(restored)
+        db.delete(item)
+        db.commit()
+    return RedirectResponse("/trash", status_code=303)
 
 
 @app.post("/license/upload")
@@ -652,9 +775,71 @@ def delete_stock_form(
 ):
     st = db.query(StockItem).filter(StockItem.id == stock_id).first()
     if st:
+        deleted = DeletedStockItem(
+            id=st.id,
+            urun_adi=st.urun_adi,
+            kategori=st.kategori,
+            marka=st.marka,
+            adet=st.adet,
+            lokasyon=st.lokasyon,
+            guncelleme_tarihi=st.guncelleme_tarihi,
+            deleted_at=date.today(),
+        )
+        db.add(deleted)
         db.delete(st)
         db.commit()
     return RedirectResponse("/stock", status_code=303)
+
+
+@app.post("/stock/delete")
+def delete_stock(
+    ids: DeleteIds,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = db.query(StockItem).filter(StockItem.id.in_(ids.ids)).all()
+    for st in items:
+        deleted = DeletedStockItem(
+            id=st.id,
+            urun_adi=st.urun_adi,
+            kategori=st.kategori,
+            marka=st.marka,
+            adet=st.adet,
+            lokasyon=st.lokasyon,
+            guncelleme_tarihi=st.guncelleme_tarihi,
+            deleted_at=date.today(),
+        )
+        db.add(deleted)
+        db.delete(st)
+    db.commit()
+    return {"message": "deleted"}
+
+
+@app.post("/stock/restore/{item_id}")
+def restore_stock(
+    item_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    item = (
+        db.query(DeletedStockItem)
+        .filter(DeletedStockItem.id == item_id)
+        .first()
+    )
+    if item:
+        restored = StockItem(
+            id=item.id,
+            urun_adi=item.urun_adi,
+            kategori=item.kategori,
+            marka=item.marka,
+            adet=item.adet,
+            lokasyon=item.lokasyon,
+            guncelleme_tarihi=item.guncelleme_tarihi,
+        )
+        db.add(restored)
+        db.delete(item)
+        db.commit()
+    return RedirectResponse("/trash", status_code=303)
 
 
 @app.post("/stock/upload")
@@ -785,9 +970,78 @@ def delete_printer_form(
         .first()
     )
     if printer:
+        deleted = DeletedPrinterInventory(
+            id=printer.id,
+            yazici_markasi=printer.yazici_markasi,
+            yazici_modeli=printer.yazici_modeli,
+            kullanim_alani=printer.kullanim_alani,
+            ip_adresi=printer.ip_adresi,
+            mac=printer.mac,
+            hostname=printer.hostname,
+            notlar=printer.notlar,
+            deleted_at=date.today(),
+        )
+        db.add(deleted)
         db.delete(printer)
         db.commit()
     return RedirectResponse("/printer", status_code=303)
+
+
+@app.post("/printer/delete")
+def delete_printer(
+    ids: DeleteIds,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = (
+        db.query(PrinterInventory)
+        .filter(PrinterInventory.id.in_(ids.ids))
+        .all()
+    )
+    for printer in items:
+        deleted = DeletedPrinterInventory(
+            id=printer.id,
+            yazici_markasi=printer.yazici_markasi,
+            yazici_modeli=printer.yazici_modeli,
+            kullanim_alani=printer.kullanim_alani,
+            ip_adresi=printer.ip_adresi,
+            mac=printer.mac,
+            hostname=printer.hostname,
+            notlar=printer.notlar,
+            deleted_at=date.today(),
+        )
+        db.add(deleted)
+        db.delete(printer)
+    db.commit()
+    return {"message": "deleted"}
+
+
+@app.post("/printer/restore/{item_id}")
+def restore_printer(
+    item_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    item = (
+        db.query(DeletedPrinterInventory)
+        .filter(DeletedPrinterInventory.id == item_id)
+        .first()
+    )
+    if item:
+        restored = PrinterInventory(
+            id=item.id,
+            yazici_markasi=item.yazici_markasi,
+            yazici_modeli=item.yazici_modeli,
+            kullanim_alani=item.kullanim_alani,
+            ip_adresi=item.ip_adresi,
+            mac=item.mac,
+            hostname=item.hostname,
+            notlar=item.notlar,
+        )
+        db.add(restored)
+        db.delete(item)
+        db.commit()
+    return RedirectResponse("/trash", status_code=303)
 
 
 @app.post("/printer/upload")
