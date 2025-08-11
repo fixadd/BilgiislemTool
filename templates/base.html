@@ -56,16 +56,19 @@
       <li><a href="/printer"   class="{% if request.path.startswith('/printer') %}active{% endif %}">Yazıcı Takip</a></li>
       <li><a href="/stock"     class="{% if request.path.startswith('/stock') %}active{% endif %}">Stok Takip</a></li>
       <li><a href="/trash" class="{% if request.path.startswith('/trash') %}active{% endif %}">Çöp Kutusu</a></li>
-      <li><a href="/profile" class="{% if request.path.startswith('/profile') %}active{% endif %}">Profil</a></li>
       <li><a href="/lists" class="{% if request.path.startswith('/lists') %}active{% endif %}">Envanter Ekleme</a></li>
       {% if request.session.get('is_admin') %}
       <li><a href="/admin" class="{% if request.path.startswith('/admin') %}active{% endif %}">Admin Paneli</a></li>
       {% endif %}
     </ul>
-    <a href="/logout" class="text-center py-3" title="Çıkış"><i class="bi bi-door-closed-fill text-danger" style="font-size:1.5rem;"></i></a>
   </div>
 
   <div class="content">
+    <div class="d-flex justify-content-end align-items-center mb-3">
+      <span class="me-2">{{ request.session.get('username') }}</span>
+      <a href="/profile" class="me-2" title="Profil"><i class="bi bi-person-circle"></i></a>
+      <a href="/logout" title="Çıkış"><i class="bi bi-box-arrow-right"></i></a>
+    </div>
     {% block content %}{% endblock %}
   </div>
   <div class="modal fade" id="alertModal" tabindex="-1" aria-hidden="true">

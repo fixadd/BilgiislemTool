@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 from datetime import date, timedelta
-from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text, inspect, func
+from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, Text, Boolean, text, inspect, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -145,6 +145,14 @@ class LookupItem(Base):
     name = Column(String)
 
 
+class ActivityLog(Base):
+    __tablename__ = "activity_log"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String)
+    action = Column(String)
+    timestamp = Column(DateTime, default=func.now())
+
+
 def init_db():
     os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
     if not os.path.exists(DB_FILE):
@@ -226,6 +234,10 @@ def cleanup_deleted(db: Session):
     db.query(DeletedLicenseInventory).filter(DeletedLicenseInventory.deleted_at < cutoff).delete()
     db.query(DeletedStockItem).filter(DeletedStockItem.deleted_at < cutoff).delete()
     db.commit()
+
+
+def log_action(db: Session, username: str, action: str):
+    db.add(ActivityLog(username=username, action=action))
 
 # --- Pydantic Şemalar ---
 class HardwareItem(BaseModel):
@@ -424,9 +436,9 @@ def home_page(
             {"kategori": kategori, "adet": adet}
         )
 
-    recent = (
-        db.query(StockItem)
-        .order_by(StockItem.id.desc())
+    actions = (
+        db.query(ActivityLog)
+        .order_by(ActivityLog.timestamp.desc())
         .limit(5)
         .all()
     )
@@ -436,7 +448,7 @@ def home_page(
             "request": request,
             "username": username,
             "factories": factories,
-            "recent": recent,
+            "actions": actions,
         },
     )
 
@@ -493,6 +505,7 @@ def admin_create_user(
             must_change_password=True,
         )
     )
+    log_action(db, user.username, f"Kullanıcı oluşturuldu: {username}")
     db.commit()
     return RedirectResponse("/admin", status_code=303)
 
@@ -511,6 +524,7 @@ def admin_delete_user(
     if target.is_admin:
         raise HTTPException(status_code=400, detail="Admin kullanıcı silinemez")
     db.delete(target)
+    log_action(db, user.username, f"Kullanıcı silindi: {target.username}")
     db.commit()
     return RedirectResponse("/admin", status_code=303)
 
@@ -548,6 +562,7 @@ def add_list_item(
     db: Session = Depends(get_db),
 ):
     db.add(LookupItem(type=item_type, name=name))
+    log_action(db, user.username, f"Liste öğesi eklendi: {item_type} - {name}")
     db.commit()
     return RedirectResponse("/lists", status_code=303)
 
@@ -608,6 +623,7 @@ def add_inventory_form(
         item.lokasyon = lokasyon
         item.zimmetli_kisi = zimmetli_kisi
         item.notlar = notlar
+        log_action(db, user.username, f"Envanter güncellendi ({item_id})")
     else:
         db_item = HardwareInventory(
             demirbas_adi=demirbas_adi,
@@ -619,6 +635,7 @@ def add_inventory_form(
             notlar=notlar,
         )
         db.add(db_item)
+        log_action(db, user.username, "Envanter kaydı eklendi")
     db.commit()
     return RedirectResponse("/inventory", status_code=303)
 
@@ -648,6 +665,7 @@ def delete_inventory_form(
         )
         db.add(deleted)
         db.delete(item)
+        log_action(db, user.username, f"Envanter silindi ({item_id})")
         db.commit()
     return RedirectResponse("/inventory", status_code=303)
 
@@ -668,6 +686,7 @@ def delete_inventory(ids: DeleteIds, user: User = Depends(require_login), db: Se
         )
         db.add(deleted)
         db.delete(item)
+    log_action(db, user.username, f"Envanter silindi (toplu {len(items)} adet)")
     db.commit()
     return {"message": "deleted"}
 
@@ -710,6 +729,7 @@ def restore_inventory(item_id: int, user: User = Depends(require_login), db: Ses
         )
         db.add(restored)
         db.delete(item)
+        log_action(db, user.username, f"Envanter geri yüklendi ({item_id})")
         db.commit()
     return RedirectResponse("/trash", status_code=303)
 
@@ -772,6 +792,7 @@ async def upload_inventory_excel(
                 notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
             )
             db.add(item)
+    log_action(db, user.username, "Envanter Excel yüklendi")
     db.commit()
 
     return {"detail": "ok"}
@@ -869,6 +890,7 @@ def add_license_form(
         )
         item.zimmetli_kisi = zimmetli_kisi
         item.notlar = notlar
+        log_action(db, user.username, f"Lisans güncellendi ({license_id})")
     else:
         db_item = LicenseInventory(
             yazilim_adi=yazilim_adi,
@@ -881,6 +903,7 @@ def add_license_form(
             notlar=notlar,
         )
         db.add(db_item)
+        log_action(db, user.username, "Lisans kaydı eklendi")
     db.commit()
     return RedirectResponse("/license", status_code=303)
 
@@ -910,6 +933,7 @@ def delete_license_form(
         )
         db.add(deleted)
         db.delete(lic)
+        log_action(db, user.username, f"Lisans silindi ({license_id})")
         db.commit()
     return RedirectResponse("/license", status_code=303)
 
@@ -939,6 +963,7 @@ def delete_license(
         )
         db.add(deleted)
         db.delete(lic)
+    log_action(db, user.username, f"Lisans silindi (toplu {len(items)} adet)")
     db.commit()
     return {"message": "deleted"}
 
@@ -967,6 +992,7 @@ def restore_license(
         )
         db.add(restored)
         db.delete(item)
+        log_action(db, user.username, f"Lisans geri yüklendi ({item_id})")
         db.commit()
     return RedirectResponse("/trash", status_code=303)
 
@@ -1035,6 +1061,7 @@ async def upload_license_excel(
                 notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
             )
             db.add(lic)
+    log_action(db, user.username, "Lisans Excel yüklendi")
     db.commit()
 
     return {"detail": "ok"}
@@ -1132,6 +1159,7 @@ def add_stock_form(
         item.guncelleme_tarihi = (
             date.fromisoformat(guncelleme_tarihi) if guncelleme_tarihi else None
         )
+        log_action(db, user.username, f"Stok güncellendi ({stock_id})")
     else:
         db_item = StockItem(
             urun_adi=urun_adi,
@@ -1143,6 +1171,7 @@ def add_stock_form(
                 date.fromisoformat(guncelleme_tarihi) if guncelleme_tarihi else None,
         )
         db.add(db_item)
+        log_action(db, user.username, "Stok kaydı eklendi")
     db.commit()
     return RedirectResponse("/stock", status_code=303)
 
@@ -1167,6 +1196,7 @@ def delete_stock_form(
         )
         db.add(deleted)
         db.delete(st)
+        log_action(db, user.username, f"Stok silindi ({stock_id})")
         db.commit()
     return RedirectResponse("/stock", status_code=303)
 
@@ -1191,6 +1221,7 @@ def delete_stock(
         )
         db.add(deleted)
         db.delete(st)
+    log_action(db, user.username, f"Stok silindi (toplu {len(items)} adet)")
     db.commit()
     return {"message": "deleted"}
 
@@ -1218,6 +1249,7 @@ def restore_stock(
         )
         db.add(restored)
         db.delete(item)
+        log_action(db, user.username, f"Stok geri yüklendi ({item_id})")
         db.commit()
     return RedirectResponse("/trash", status_code=303)
 
@@ -1280,6 +1312,7 @@ async def upload_stock_excel(
                     else None,
             )
             db.add(st)
+    log_action(db, user.username, "Stok Excel yüklendi")
     db.commit()
 
     return {"detail": "ok"}
@@ -1375,6 +1408,7 @@ def add_printer_form(
         item.mac = mac
         item.hostname = hostname
         item.notlar = notlar
+        log_action(db, user.username, f"Yazıcı güncellendi ({printer_id})")
     else:
         db_item = PrinterInventory(
             yazici_markasi=yazici_markasi,
@@ -1386,6 +1420,7 @@ def add_printer_form(
             notlar=notlar,
         )
         db.add(db_item)
+        log_action(db, user.username, "Yazıcı kaydı eklendi")
     db.commit()
     return RedirectResponse("/printer", status_code=303)
 
@@ -1416,6 +1451,7 @@ def delete_printer_form(
         )
         db.add(deleted)
         db.delete(printer)
+        log_action(db, user.username, f"Yazıcı silindi ({printer_id})")
         db.commit()
     return RedirectResponse("/printer", status_code=303)
 
@@ -1445,6 +1481,7 @@ def delete_printer(
         )
         db.add(deleted)
         db.delete(printer)
+    log_action(db, user.username, f"Yazıcı silindi (toplu {len(items)} adet)")
     db.commit()
     return {"message": "deleted"}
 
@@ -1473,6 +1510,7 @@ def restore_printer(
         )
         db.add(restored)
         db.delete(item)
+        log_action(db, user.username, f"Yazıcı geri yüklendi ({item_id})")
         db.commit()
     return RedirectResponse("/trash", status_code=303)
 
@@ -1529,6 +1567,7 @@ async def upload_printer_excel(
                 notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
             )
             db.add(printer)
+    log_action(db, user.username, "Yazıcı Excel yüklendi")
     db.commit()
 
     return {"detail": "ok"}
