@@ -80,6 +80,8 @@ class User(Base):
 
 def init_db():
     os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+    if not os.path.exists(DB_FILE):
+        open(DB_FILE, "w").close()
     Base.metadata.create_all(bind=engine)
 
 
