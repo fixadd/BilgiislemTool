@@ -19,6 +19,7 @@ import os
 import json
 import base64
 from passlib.context import CryptContext
+from passlib.exc import UnknownHashError
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -312,9 +313,23 @@ def login_get(request: Request):
 
 
 @app.post("/login", response_class=HTMLResponse)
-def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+def login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
     user = db.query(User).filter(User.username == username).first()
-    if user and pwd_context.verify(password, user.password):
+    verified = False
+    if user:
+        try:
+            verified = pwd_context.verify(password, user.password)
+        except UnknownHashError:
+            verified = user.password == password
+            if verified:
+                user.password = pwd_context.hash(password)
+                db.commit()
+    if verified:
         request.session["username"] = user.username
         if user.must_change_password:
             return RedirectResponse(url="/change-password", status_code=303)
@@ -340,7 +355,11 @@ def change_password(
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
-    if not pwd_context.verify(old_password, user.password):
+    try:
+        valid_old = pwd_context.verify(old_password, user.password)
+    except UnknownHashError:
+        valid_old = user.password == old_password
+    if not valid_old:
         return templates.TemplateResponse(
             "change_password.html",
             {"request": request, "error": "Eski şifre hatalı"},
