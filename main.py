@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 from datetime import date, timedelta
-from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text, inspect
+from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text, inspect, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -306,12 +306,45 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 
 
 @app.get("/home", response_class=HTMLResponse)
-def home_page(request: Request):
+def home_page(
+    request: Request,
+    db: Session = Depends(get_db),
+):
     """Ana ekranı döndür, kullanıcı giriş yapmadıysa yönlendir."""
     username = request.session.get("username")
     if not username:
         return RedirectResponse(url="/login", status_code=303)
-    return templates.TemplateResponse("main.html", {"request": request, "username": username})
+
+    factory_rows = (
+        db.query(
+            StockItem.lokasyon,
+            StockItem.kategori,
+            func.sum(StockItem.adet).label("adet"),
+        )
+        .group_by(StockItem.lokasyon, StockItem.kategori)
+        .all()
+    )
+    factories: Dict[str, List[Dict[str, int]]] = {}
+    for lokasyon, kategori, adet in factory_rows:
+        factories.setdefault(lokasyon or "Bilinmiyor", []).append(
+            {"kategori": kategori, "adet": adet}
+        )
+
+    recent = (
+        db.query(StockItem)
+        .order_by(StockItem.id.desc())
+        .limit(5)
+        .all()
+    )
+    return templates.TemplateResponse(
+        "main.html",
+        {
+            "request": request,
+            "username": username,
+            "factories": factories,
+            "recent": recent,
+        },
+    )
 
 
 # --- Takip Sayfaları (HTML) ---
