@@ -5,55 +5,55 @@
 <div class="row">
   <div class="col-md-3">
     <h5>Marka</h5>
-    <ul class="list-group mb-3">
-      {% for b in brands %}
-      <li class="list-group-item">{{ b.name }}</li>
-      {% endfor %}
-    </ul>
-    <form action="/lists/add" method="post" class="d-flex gap-2">
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="marka">
       <input class="form-control" type="text" name="name" placeholder="Yeni marka" required>
       <button class="btn btn-success" type="submit">Ekle</button>
     </form>
+    <ul class="list-group">
+      {% for b in brands %}
+      <li class="list-group-item">{{ b.name }}</li>
+      {% endfor %}
+    </ul>
   </div>
   <div class="col-md-3">
     <h5>Lokasyon</h5>
-    <ul class="list-group mb-3">
-      {% for l in locations %}
-      <li class="list-group-item">{{ l.name }}</li>
-      {% endfor %}
-    </ul>
-    <form action="/lists/add" method="post" class="d-flex gap-2">
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="lokasyon">
       <input class="form-control" type="text" name="name" placeholder="Yeni lokasyon" required>
       <button class="btn btn-success" type="submit">Ekle</button>
     </form>
+    <ul class="list-group">
+      {% for l in locations %}
+      <li class="list-group-item">{{ l.name }}</li>
+      {% endfor %}
+    </ul>
   </div>
   <div class="col-md-3">
     <h5>Kategori</h5>
-    <ul class="list-group mb-3">
-      {% for c in categories %}
-      <li class="list-group-item">{{ c.name }}</li>
-      {% endfor %}
-    </ul>
-    <form action="/lists/add" method="post" class="d-flex gap-2">
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="kategori">
       <input class="form-control" type="text" name="name" placeholder="Yeni kategori" required>
       <button class="btn btn-success" type="submit">Ekle</button>
     </form>
+    <ul class="list-group">
+      {% for c in categories %}
+      <li class="list-group-item">{{ c.name }}</li>
+      {% endfor %}
+    </ul>
   </div>
   <div class="col-md-3">
     <h5>Yazılım</h5>
-    <ul class="list-group mb-3">
-      {% for s in softwares %}
-      <li class="list-group-item">{{ s.name }}</li>
-      {% endfor %}
-    </ul>
-    <form action="/lists/add" method="post" class="d-flex gap-2">
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="yazilim">
       <input class="form-control" type="text" name="name" placeholder="Yeni yazılım" required>
       <button class="btn btn-success" type="submit">Ekle</button>
     </form>
+    <ul class="list-group">
+      {% for s in softwares %}
+      <li class="list-group-item">{{ s.name }}</li>
+      {% endfor %}
+    </ul>
   </div>
 </div>
 {% endblock %}
