@@ -1,10 +1,54 @@
 {% extends "base.html" %}
 {% block title %}Lisans Takip{% endblock %}
 {% block content %}
-<h2>Burası Lisans Takip Sayfası</h2>
-<p>Lisans bilgilerini buradan takip edebilirsiniz.</p>
+<h2>Lisans Envanteri</h2>
+
+<form action="/license/add" method="post">
+    <input type="text" name="yazilim_adi" placeholder="Yazılım Adı" required>
+    <input type="text" name="lisans_anahtari" placeholder="Lisans Anahtarı" required>
+    <input type="number" name="adet" placeholder="Adet" required>
+    <input type="date" name="satin_alma_tarihi" placeholder="Satın Alma Tarihi">
+    <input type="date" name="bitis_tarihi" placeholder="Bitiş Tarihi">
+    <input type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
+    <input type="text" name="notlar" placeholder="Notlar">
+    <button type="submit">Ekle</button>
+    <br><br>
+</form>
+
+<form action="/license/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="excel_file" accept=".xls,.xlsx" required>
+    <button type="submit">Excel Yükle</button>
+    <br><br>
+</form>
+
 <table border="1">
-    <tr><th>ID</th><th>Örnek Lisans</th></tr>
-    <tr><td>1</td><td>Örnek Veri</td></tr>
+    <tr>
+        <th>ID</th>
+        <th>Yazılım Adı</th>
+        <th>Lisans Anahtarı</th>
+        <th>Adet</th>
+        <th>Satın Alma Tarihi</th>
+        <th>Bitiş Tarihi</th>
+        <th>Zimmetli Kişi</th>
+        <th>Notlar</th>
+        <th>Sil</th>
+    </tr>
+    {% for l in licenses %}
+    <tr>
+        <td>{{ l.id }}</td>
+        <td>{{ l.yazilim_adi }}</td>
+        <td>{{ l.lisans_anahtari }}</td>
+        <td>{{ l.adet }}</td>
+        <td>{{ l.satin_alma_tarihi }}</td>
+        <td>{{ l.bitis_tarihi }}</td>
+        <td>{{ l.zimmetli_kisi }}</td>
+        <td>{{ l.notlar }}</td>
+        <td>
+            <form action="/license/delete/{{ l.id }}" method="post" style="display:inline;">
+                <button type="submit">Sil</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
 </table>
 {% endblock %}

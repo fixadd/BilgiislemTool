@@ -1,38 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %}</title>
-    <style>
-        body { margin: 0; font-family: Arial, sans-serif; }
-        .sidebar {
-            width: 200px;
-            background: #333;
-            color: #fff;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding-top: 20px;
-        }
-        .sidebar ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar li { padding: 10px; }
-        .sidebar li a { color: #fff; text-decoration: none; display: block; }
-        .sidebar li a:hover { background: #444; }
-        .content { margin-left: 200px; padding: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>{% block title %}{% endblock %}</title>
+  <style>
+    :root{ --sidebar: #333; --sidebar-hover:#444; --active:#555; }
+    *{ box-sizing: border-box; }
+    body{ margin:0; font-family: Arial, sans-serif; color:#111; }
+
+    .sidebar{
+      width:200px; background:var(--sidebar); color:#fff;
+      height:100vh; position:fixed; top:0; left:0;
+      display:flex; flex-direction:column;
+    }
+    .sidebar-logo{
+      width:70px; height:auto;
+      margin:10px; border-radius:4px;
+    }
+    .sidebar ul{
+      list-style:none; margin:0; padding:0;
+    }
+    .sidebar li{}
+    .sidebar a{
+      color:#fff; text-decoration:none; display:block; padding:12px 16px;
+    }
+    .sidebar a:hover{ background:var(--sidebar-hover); }
+    .sidebar a.active{ background:var(--active); font-weight:600; }
+
+    .content{
+      margin-left:200px; padding:24px;
+    }
+  </style>
 </head>
 <body>
-    <div class="sidebar">
-        <ul>
-            <li><a href="/inventory">Envanter Takip</a></li>
-            <li><a href="/license">Lisans Takip</a></li>
-            <li><a href="/printer">Yazıcı Takip</a></li>
-            <li><a href="/stock">Stok Takip</a></li>
-        </ul>
-    </div>
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
+  <div class="sidebar">
+    <img src="/image/onurum.png" alt="Onurum" class="sidebar-logo"style="width: 150px">
+    <ul>
+      <li><a href="/inventory" class="{% if request.path.startswith('/inventory') %}active{% endif %}">Envanter Takip</a></li>
+      <li><a href="/license"   class="{% if request.path.startswith('/license') %}active{% endif %}">Lisans Takip</a></li>
+      <li><a href="/printer"   class="{% if request.path.startswith('/printer') %}active{% endif %}">Yazıcı Takip</a></li>
+      <li><a href="/stock"     class="{% if request.path.startswith('/stock') %}active{% endif %}">Stok Takip</a></li>
+    </ul>
+  </div>
+
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
 </body>
 </html>

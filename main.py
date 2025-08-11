@@ -3,20 +3,23 @@
 
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, status, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 import pandas as pd
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date
-from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.exc import SQLAlchemyError
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
-DB_FILE = os.getenv("DB_FILE", "./data/envanter.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.getenv("DB_FILE", os.path.join(BASE_DIR, "data", "envanter.db"))
 DATABASE_URL = f"sqlite:///{DB_FILE}"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -37,13 +40,12 @@ class HardwareInventory(Base):
 class PrinterInventory(Base):
     __tablename__ = "printer_inventory"
     id = Column(Integer, primary_key=True, index=True)
-    yazici_adi = Column(String)
-    marka = Column(String)
-    model = Column(String)
+    yazici_markasi = Column(String)
+    yazici_modeli = Column(String)
+    kullanim_alani = Column(String)
     ip_adresi = Column(String)
-    seri_no = Column(String)
-    lokasyon = Column(String)
-    zimmetli_kisi = Column(String)
+    mac = Column(String)
+    hostname = Column(String)
     notlar = Column(Text)
 
 class LicenseInventory(Base):
@@ -75,7 +77,10 @@ class User(Base):
     password = Column(String)
     is_admin = Column(Boolean, default=False)
 
-Base.metadata.create_all(bind=engine)
+
+def init_db():
+    os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+    Base.metadata.create_all(bind=engine)
 
 
 def init_admin():
@@ -89,6 +94,7 @@ def init_admin():
         db.close()
 
 
+init_db()
 init_admin()
 
 # --- Pydantic Şemalar ---
@@ -106,13 +112,12 @@ class HardwareItem(BaseModel):
 
 class PrinterItem(BaseModel):
     id: Optional[int]
-    yazici_adi: str
-    marka: str
-    model: str
+    yazici_markasi: str
+    yazici_modeli: str
+    kullanim_alani: str
     ip_adresi: str
-    seri_no: str
-    lokasyon: str
-    zimmetli_kisi: str
+    mac: str
+    hostname: str
     notlar: Optional[str]
     class Config:
         orm_mode = True
@@ -142,6 +147,7 @@ class StockItemSchema(BaseModel):
 
 # --- FastAPI Uygulaması ---
 app = FastAPI()
+app.mount("/image", StaticFiles(directory="image"), name="image")
 templates = Jinja2Templates(directory="templates")
 
 # --- Dependency ---
@@ -198,13 +204,362 @@ def home_page(request: Request, username: Optional[str] = None):
 
 # --- Takip Sayfaları (HTML) ---
 @app.get("/inventory", response_class=HTMLResponse)
-def inventory_page(request: Request):
-    return templates.TemplateResponse("envanter.html", {"request": request})
+def inventory_page(
+    request: Request,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    """Donanım envanterini listeleyen sayfa."""
+    items = db.query(HardwareInventory).all()
+    return templates.TemplateResponse(
+        "envanter.html", {"request": request, "items": items}
+    )
+
+
+@app.post("/inventory/add")
+def add_inventory_form(
+    demirbas_adi: str = Form(...),
+    marka: str = Form(...),
+    model: str = Form(...),
+    seri_no: str = Form(...),
+    lokasyon: str = Form(...),
+    zimmetli_kisi: str = Form(...),
+    notlar: str = Form(""),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    db_item = HardwareInventory(
+        demirbas_adi=demirbas_adi,
+        marka=marka,
+        model=model,
+        seri_no=seri_no,
+        lokasyon=lokasyon,
+        zimmetli_kisi=zimmetli_kisi,
+        notlar=notlar,
+    )
+    db.add(db_item)
+    db.commit()
+    return RedirectResponse("/inventory", status_code=303)
+
+
+@app.post("/inventory/delete/{item_id}")
+def delete_inventory_form(
+    item_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    item = (
+        db.query(HardwareInventory)
+        .filter(HardwareInventory.id == item_id)
+        .first()
+    )
+    if item:
+        db.delete(item)
+        db.commit()
+    return RedirectResponse("/inventory", status_code=303)
+
+
+@app.post("/inventory/upload")
+async def upload_inventory_excel(
+    excel_file: UploadFile = File(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not excel_file.filename.lower().endswith((".xls", ".xlsx")):
+        raise HTTPException(status_code=400, detail="Sadece Excel dosyaları yüklenebilir.")
+    contents = await excel_file.read()
+    try:
+        if excel_file.filename.lower().endswith(".xls"):
+            sheets = pd.read_excel(BytesIO(contents), sheet_name=None, engine="xlrd")
+        else:
+            sheets = pd.read_excel(BytesIO(contents), sheet_name=None, engine="openpyxl")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Excel dosyası okunamadı. Hata: {str(e)}")
+
+    for df in sheets.values():
+        df.columns = df.columns.str.strip()
+        df = df.rename(
+            columns={
+                "Demirbaş Adı": "demirbas_adi",
+                "Marka": "marka",
+                "Model": "model",
+                "Seri No": "seri_no",
+                "Lokasyon": "lokasyon",
+                "Zimmetli Kişi": "zimmetli_kisi",
+                "Notlar": "notlar",
+            }
+        )
+        expected_cols = [
+            "demirbas_adi",
+            "marka",
+            "model",
+            "seri_no",
+            "lokasyon",
+            "zimmetli_kisi",
+            "notlar",
+        ]
+        eksik_kolonlar = [col for col in expected_cols if col not in df.columns]
+        if eksik_kolonlar:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Excel başlıkları eksik veya yanlış: {eksik_kolonlar}",
+            )
+        df = df[expected_cols]
+
+        for _, row in df.iterrows():
+            item = HardwareInventory(
+                demirbas_adi=str(row["demirbas_adi"]),
+                marka=str(row["marka"]),
+                model=str(row["model"]),
+                seri_no=str(row["seri_no"]),
+                lokasyon=str(row["lokasyon"]),
+                zimmetli_kisi=str(row["zimmetli_kisi"]),
+                notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
+            )
+            db.add(item)
+    db.commit()
+
+    return RedirectResponse("/inventory", status_code=303)
 
 
 @app.get("/license", response_class=HTMLResponse)
-def license_page(request: Request):
-    return templates.TemplateResponse("lisans.html", {"request": request})
+def license_page(
+    request: Request,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    """Lisans envanterini listeleyen sayfa."""
+    licenses = db.query(LicenseInventory).all()
+    return templates.TemplateResponse(
+        "lisans.html", {"request": request, "licenses": licenses}
+    )
+
+
+@app.post("/license/add")
+def add_license_form(
+    yazilim_adi: str = Form(...),
+    lisans_anahtari: str = Form(...),
+    adet: int = Form(...),
+    satin_alma_tarihi: Optional[str] = Form(None),
+    bitis_tarihi: Optional[str] = Form(None),
+    zimmetli_kisi: str = Form(...),
+    notlar: str = Form(""),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    db_item = LicenseInventory(
+        yazilim_adi=yazilim_adi,
+        lisans_anahtari=lisans_anahtari,
+        adet=adet,
+        satin_alma_tarihi=
+            date.fromisoformat(satin_alma_tarihi) if satin_alma_tarihi else None,
+        bitis_tarihi=date.fromisoformat(bitis_tarihi) if bitis_tarihi else None,
+        zimmetli_kisi=zimmetli_kisi,
+        notlar=notlar,
+    )
+    db.add(db_item)
+    db.commit()
+    return RedirectResponse("/license", status_code=303)
+
+
+@app.post("/license/delete/{license_id}")
+def delete_license_form(
+    license_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    lic = (
+        db.query(LicenseInventory)
+        .filter(LicenseInventory.id == license_id)
+        .first()
+    )
+    if lic:
+        db.delete(lic)
+        db.commit()
+    return RedirectResponse("/license", status_code=303)
+
+
+@app.post("/license/upload")
+async def upload_license_excel(
+    excel_file: UploadFile = File(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not excel_file.filename.lower().endswith((".xls", ".xlsx")):
+        raise HTTPException(status_code=400, detail="Sadece Excel dosyaları yüklenebilir.")
+    contents = await excel_file.read()
+    try:
+        if excel_file.filename.lower().endswith(".xls"):
+            sheets = pd.read_excel(BytesIO(contents), sheet_name=None, engine="xlrd")
+        else:
+            sheets = pd.read_excel(BytesIO(contents), sheet_name=None, engine="openpyxl")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Excel dosyası okunamadı. Hata: {str(e)}")
+
+    for df in sheets.values():
+        df.columns = df.columns.str.strip()
+        df = df.rename(
+            columns={
+                "Yazılım Adı": "yazilim_adi",
+                "Lisans Anahtarı": "lisans_anahtari",
+                "Adet": "adet",
+                "Satın Alma Tarihi": "satin_alma_tarihi",
+                "Bitiş Tarihi": "bitis_tarihi",
+                "Zimmetli Kişi": "zimmetli_kisi",
+                "Notlar": "notlar",
+            }
+        )
+        expected_cols = [
+            "yazilim_adi",
+            "lisans_anahtari",
+            "adet",
+            "satin_alma_tarihi",
+            "bitis_tarihi",
+            "zimmetli_kisi",
+            "notlar",
+        ]
+        eksik_kolonlar = [col for col in expected_cols if col not in df.columns]
+        if eksik_kolonlar:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Excel başlıkları eksik veya yanlış: {eksik_kolonlar}",
+            )
+        df = df[expected_cols]
+
+        for _, row in df.iterrows():
+            lic = LicenseInventory(
+                yazilim_adi=str(row["yazilim_adi"]),
+                lisans_anahtari=str(row["lisans_anahtari"]),
+                adet=int(row["adet"]),
+                satin_alma_tarihi=
+                    pd.to_datetime(row["satin_alma_tarihi"]).date()
+                    if not pd.isnull(row["satin_alma_tarihi"])
+                    else None,
+                bitis_tarihi=
+                    pd.to_datetime(row["bitis_tarihi"]).date()
+                    if not pd.isnull(row["bitis_tarihi"])
+                    else None,
+                zimmetli_kisi=str(row["zimmetli_kisi"]),
+                notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
+            )
+            db.add(lic)
+    db.commit()
+
+    return RedirectResponse("/license", status_code=303)
+
+
+@app.get("/stock", response_class=HTMLResponse)
+def stock_page(
+    request: Request,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    """Stok kayıtlarını listeleyen sayfa."""
+    stocks = db.query(StockItem).all()
+    return templates.TemplateResponse(
+        "stok.html", {"request": request, "stocks": stocks}
+    )
+
+
+@app.post("/stock/add")
+def add_stock_form(
+    urun_adi: str = Form(...),
+    kategori: str = Form(...),
+    marka: str = Form(...),
+    adet: int = Form(...),
+    lokasyon: str = Form(...),
+    guncelleme_tarihi: Optional[str] = Form(None),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    db_item = StockItem(
+        urun_adi=urun_adi,
+        kategori=kategori,
+        marka=marka,
+        adet=adet,
+        lokasyon=lokasyon,
+        guncelleme_tarihi=
+            date.fromisoformat(guncelleme_tarihi) if guncelleme_tarihi else None,
+    )
+    db.add(db_item)
+    db.commit()
+    return RedirectResponse("/stock", status_code=303)
+
+
+@app.post("/stock/delete/{stock_id}")
+def delete_stock_form(
+    stock_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    st = db.query(StockItem).filter(StockItem.id == stock_id).first()
+    if st:
+        db.delete(st)
+        db.commit()
+    return RedirectResponse("/stock", status_code=303)
+
+
+@app.post("/stock/upload")
+async def upload_stock_excel(
+    excel_file: UploadFile = File(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not excel_file.filename.lower().endswith((".xls", ".xlsx")):
+        raise HTTPException(status_code=400, detail="Sadece Excel dosyaları yüklenebilir.")
+    contents = await excel_file.read()
+    try:
+        if excel_file.filename.lower().endswith(".xls"):
+            sheets = pd.read_excel(BytesIO(contents), sheet_name=None, engine="xlrd")
+        else:
+            sheets = pd.read_excel(BytesIO(contents), sheet_name=None, engine="openpyxl")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Excel dosyası okunamadı. Hata: {str(e)}")
+
+    for df in sheets.values():
+        df.columns = df.columns.str.strip()
+        df = df.rename(
+            columns={
+                "Ürün Adı": "urun_adi",
+                "Kategori": "kategori",
+                "Marka": "marka",
+                "Adet": "adet",
+                "Lokasyon": "lokasyon",
+                "Güncelleme Tarihi": "guncelleme_tarihi",
+            }
+        )
+        expected_cols = [
+            "urun_adi",
+            "kategori",
+            "marka",
+            "adet",
+            "lokasyon",
+            "guncelleme_tarihi",
+        ]
+        eksik_kolonlar = [col for col in expected_cols if col not in df.columns]
+        if eksik_kolonlar:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Excel başlıkları eksik veya yanlış: {eksik_kolonlar}",
+            )
+        df = df[expected_cols]
+
+        for _, row in df.iterrows():
+            st = StockItem(
+                urun_adi=str(row["urun_adi"]),
+                kategori=str(row["kategori"]),
+                marka=str(row["marka"]),
+                adet=int(row["adet"]),
+                lokasyon=str(row["lokasyon"]),
+                guncelleme_tarihi=
+                    pd.to_datetime(row["guncelleme_tarihi"]).date()
+                    if not pd.isnull(row["guncelleme_tarihi"])
+                    else None,
+            )
+            db.add(st)
+    db.commit()
+
+    return RedirectResponse("/stock", status_code=303)
 
 
 @app.get("/printer", response_class=HTMLResponse)
@@ -222,26 +577,24 @@ def printer_page(
 
 @app.post("/printer/add")
 def add_printer_form(
-    yazici_adi: str = Form(...),
-    marka: str = Form(...),
-    model: str = Form(...),
+    yazici_markasi: str = Form(...),
+    yazici_modeli: str = Form(...),
+    kullanim_alani: str = Form(...),
     ip_adresi: str = Form(...),
-    seri_no: str = Form(...),
-    lokasyon: str = Form(...),
-    zimmetli_kisi: str = Form(...),
+    mac: str = Form(...),
+    hostname: str = Form(...),
     notlar: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
     """Formdan gelen verilerle yeni yazıcı kaydı oluşturur."""
     db_item = PrinterInventory(
-        yazici_adi=yazici_adi,
-        marka=marka,
-        model=model,
+        yazici_markasi=yazici_markasi,
+        yazici_modeli=yazici_modeli,
+        kullanim_alani=kullanim_alani,
         ip_adresi=ip_adresi,
-        seri_no=seri_no,
-        lokasyon=lokasyon,
-        zimmetli_kisi=zimmetli_kisi,
+        mac=mac,
+        hostname=hostname,
         notlar=notlar,
     )
     db.add(db_item)
@@ -324,10 +677,6 @@ async def upload_printer_excel(
     return RedirectResponse("/printer", status_code=303)
 
 
-@app.get("/stock", response_class=HTMLResponse)
-def stock_page(request: Request):
-    return templates.TemplateResponse("stok.html", {"request": request})
-
 # --- Donanım ---
 @app.get("/hardware", response_model=List[HardwareItem])
 def get_hardware(
@@ -346,6 +695,54 @@ def add_hardware(
     db.commit()
     db.refresh(db_item)
     return db_item
+
+
+# --- DB Şema Yönetimi ---
+@app.post("/db/add-column")
+def add_column(
+    table_name: str = Form(...),
+    column_name: str = Form(...),
+    column_type: str = Form(...),
+    user: User = Depends(require_login),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
+                )
+            )
+        return {"message": "Kolon eklendi"}
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/db/remove-column")
+def remove_column(
+    table_name: str = Form(...),
+    column_name: str = Form(...),
+    user: User = Depends(require_login),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    with engine.connect() as conn:
+        count = conn.execute(
+            text(
+                f"SELECT COUNT(*) FROM {table_name} WHERE {column_name} IS NOT NULL AND TRIM({column_name}) != ''"
+            )
+        ).scalar()
+        if count and count > 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Kolon verisi içeriyor, silinemez",
+            )
+        try:
+            conn.execute(text(f"ALTER TABLE {table_name} DROP COLUMN {column_name}"))
+        except SQLAlchemyError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+    return {"message": "Kolon silindi"}
 
 # --- Yazıcı ---
 @app.get("/printers", response_model=List[PrinterItem])
