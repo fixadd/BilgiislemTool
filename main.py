@@ -17,7 +17,8 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
-DB_FILE = os.getenv("DB_FILE", "./data/envanter.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.getenv("DB_FILE", os.path.join(BASE_DIR, "data", "envanter.db"))
 DATABASE_URL = f"sqlite:///{DB_FILE}"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -75,7 +76,11 @@ class User(Base):
     password = Column(String)
     is_admin = Column(Boolean, default=False)
 
-Base.metadata.create_all(bind=engine)
+
+def init_db():
+    os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+    if not os.path.exists(DB_FILE):
+        Base.metadata.create_all(bind=engine)
 
 
 def init_admin():
@@ -89,6 +94,7 @@ def init_admin():
         db.close()
 
 
+init_db()
 init_admin()
 
 # --- Pydantic Şemalar ---
