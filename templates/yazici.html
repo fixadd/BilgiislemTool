@@ -3,7 +3,14 @@
 {% block content %}
 <h2>Yazıcı Envanteri</h2>
 
-<button class="btn btn-secondary mb-3" data-bs-toggle="modal" data-bs-target="#settingsModal">Ayarlar</button>
+<div class="d-flex gap-2 mb-3">
+  <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#settingsModal">
+    <i class="bi bi-gear"></i>
+  </button>
+  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+    <i class="bi bi-plus"></i>
+  </button>
+</div>
 
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -23,18 +30,30 @@
   </div>
 </div>
 
-<form action="/printer/add" method="post" class="mb-4">
-    <div class="row g-2">
-        <div class="col"><input class="form-control" type="text" name="yazici_markasi" placeholder="Yazıcı Markası" required></div>
-        <div class="col"><input class="form-control" type="text" name="yazici_modeli" placeholder="Yazıcı Modeli" required></div>
-        <div class="col"><input class="form-control" type="text" name="kullanim_alani" placeholder="Kullanım Alanı" required></div>
-        <div class="col"><input class="form-control" type="text" name="ip_adresi" placeholder="IP Adresi" required></div>
-        <div class="col"><input class="form-control" type="text" name="mac" placeholder="MAC" required></div>
-        <div class="col"><input class="form-control" type="text" name="hostname" placeholder="Hostname" required></div>
-        <div class="col"><input class="form-control" type="text" name="notlar" placeholder="Notlar"></div>
-        <div class="col-12"><button type="submit" class="btn btn-success">Ekle</button></div>
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addModalLabel">Yeni Kayıt</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <form id="addForm" action="/printer/add" method="post">
+        <div class="modal-body">
+          <input class="form-control mb-2" type="text" name="yazici_markasi" placeholder="Yazıcı Markası" required>
+          <input class="form-control mb-2" type="text" name="yazici_modeli" placeholder="Yazıcı Modeli" required>
+          <input class="form-control mb-2" type="text" name="kullanim_alani" placeholder="Kullanım Alanı" required>
+          <input class="form-control mb-2" type="text" name="ip_adresi" placeholder="IP Adresi" required>
+          <input class="form-control mb-2" type="text" name="mac" placeholder="MAC" required>
+          <input class="form-control mb-2" type="text" name="hostname" placeholder="Hostname" required>
+          <input class="form-control mb-2" type="text" name="notlar" placeholder="Notlar">
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Ekle</button>
+        </div>
+      </form>
     </div>
-</form>
+  </div>
+</div>
 
 <form action="/printer/upload" method="post" enctype="multipart/form-data" class="mb-4">
     <div class="input-group">
