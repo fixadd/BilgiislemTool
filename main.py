@@ -300,6 +300,7 @@ class ColumnSettings(BaseModel):
     order: List[str]
     visible: List[str]
     widths: Dict[str, int] = Field(default_factory=dict)
+    filters: Dict[str, str] = Field(default_factory=dict)
 
 class DeleteIds(BaseModel):
     ids: List[int]
@@ -574,13 +575,20 @@ def inventory_page(
     db: Session = Depends(get_db),
 ):
     """Donanım envanterini listeleyen sayfa."""
-    items = db.query(HardwareInventory).limit(50).all()
     table_name = HardwareInventory.__tablename__
     columns = get_table_columns(table_name)
     settings = get_user_settings(user.username, table_name)
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
+    filters = settings.get("filters", {})
+    query = db.query(HardwareInventory)
+    for col, val in filters.items():
+        if val:
+            attr = getattr(HardwareInventory, col, None)
+            if attr is not None:
+                query = query.filter(attr.like(f"%{val}%"))
+    items = query.limit(50).all()
     display_columns = [c for c in order if c in visible]
     brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
@@ -595,6 +603,7 @@ def inventory_page(
             "column_widths": widths,
             "brands": brands,
             "locations": locations,
+            "filters": filters,
         },
     )
 
@@ -839,13 +848,20 @@ def license_page(
     db: Session = Depends(get_db),
 ):
     """Lisans envanterini listeleyen sayfa."""
-    licenses = db.query(LicenseInventory).limit(50).all()
     table_name = LicenseInventory.__tablename__
     columns = get_table_columns(table_name)
     settings = get_user_settings(user.username, table_name)
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
+    filters = settings.get("filters", {})
+    query = db.query(LicenseInventory)
+    for col, val in filters.items():
+        if val:
+            attr = getattr(LicenseInventory, col, None)
+            if attr is not None:
+                query = query.filter(attr.like(f"%{val}%"))
+    licenses = query.limit(50).all()
     display_columns = [c for c in order if c in visible]
     softwares = db.query(LookupItem).filter(LookupItem.type == "yazilim").all()
     return templates.TemplateResponse(
@@ -858,6 +874,7 @@ def license_page(
             "table_name": table_name,
             "column_widths": widths,
             "softwares": softwares,
+            "filters": filters,
         },
     )
 
@@ -1108,13 +1125,20 @@ def stock_page(
     db: Session = Depends(get_db),
 ):
     """Stok kayıtlarını listeleyen sayfa."""
-    stocks = db.query(StockItem).limit(50).all()
     table_name = StockItem.__tablename__
     columns = get_table_columns(table_name)
     settings = get_user_settings(user.username, table_name)
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
+    filters = settings.get("filters", {})
+    query = db.query(StockItem)
+    for col, val in filters.items():
+        if val:
+            attr = getattr(StockItem, col, None)
+            if attr is not None:
+                query = query.filter(attr.like(f"%{val}%"))
+    stocks = query.limit(50).all()
     display_columns = [c for c in order if c in visible]
     brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
@@ -1131,6 +1155,7 @@ def stock_page(
             "brands": brands,
             "locations": locations,
             "categories": categories,
+            "filters": filters,
         },
     )
 
@@ -1358,13 +1383,20 @@ def printer_page(
     db: Session = Depends(get_db),
 ):
     """Yazıcı envanterini listeleyen sayfa."""
-    printers = db.query(PrinterInventory).limit(50).all()
     table_name = PrinterInventory.__tablename__
     columns = get_table_columns(table_name)
     settings = get_user_settings(user.username, table_name)
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
+    filters = settings.get("filters", {})
+    query = db.query(PrinterInventory)
+    for col, val in filters.items():
+        if val:
+            attr = getattr(PrinterInventory, col, None)
+            if attr is not None:
+                query = query.filter(attr.like(f"%{val}%"))
+    printers = query.limit(50).all()
     display_columns = [c for c in order if c in visible]
     brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
@@ -1379,6 +1411,7 @@ def printer_page(
             "column_widths": widths,
             "brands": brands,
             "locations": locations,
+            "filters": filters,
         },
     )
 
