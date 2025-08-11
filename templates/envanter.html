@@ -43,10 +43,18 @@
       <form id="addForm" action="/inventory/add" method="post">
         <div class="modal-body">
           <input class="form-control mb-2" type="text" name="demirbas_adi" placeholder="Demirbaş Adı" required>
-          <input class="form-control mb-2" type="text" name="marka" placeholder="Marka" required>
+          <select class="form-select mb-2" name="marka" required>
+            {% for b in brands %}
+            <option value="{{ b.name }}">{{ b.name }}</option>
+            {% endfor %}
+          </select>
           <input class="form-control mb-2" type="text" name="model" placeholder="Model" required>
           <input class="form-control mb-2" type="text" name="seri_no" placeholder="Seri No" required>
-          <input class="form-control mb-2" type="text" name="lokasyon" placeholder="Lokasyon" required>
+          <select class="form-select mb-2" name="lokasyon" required>
+            {% for l in locations %}
+            <option value="{{ l.name }}">{{ l.name }}</option>
+            {% endfor %}
+          </select>
           <input class="form-control mb-2" type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
           <input class="form-control mb-2" type="text" name="notlar" placeholder="Notlar">
         </div>

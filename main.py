@@ -127,6 +127,15 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
 
 
+class LookupItem(Base):
+    """Generic lookup table for dropdown values."""
+
+    __tablename__ = "lookup_items"
+    id = Column(Integer, primary_key=True, index=True)
+    type = Column(String)
+    name = Column(String)
+
+
 def init_db():
     os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
     if not os.path.exists(DB_FILE):
@@ -307,6 +316,42 @@ def home_page(request: Request, username: Optional[str] = None):
 
 
 # --- Takip Sayfaları (HTML) ---
+
+@app.get("/lists", response_class=HTMLResponse)
+def lists_page(
+    request: Request,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    """Lookup list management page."""
+    brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
+    locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
+    categories = db.query(LookupItem).filter(LookupItem.type == "kategori").all()
+    softwares = db.query(LookupItem).filter(LookupItem.type == "yazilim").all()
+    return templates.TemplateResponse(
+        "listeler.html",
+        {
+            "request": request,
+            "brands": brands,
+            "locations": locations,
+            "categories": categories,
+            "softwares": softwares,
+        },
+    )
+
+
+@app.post("/lists/add")
+def add_list_item(
+    item_type: str = Form(...),
+    name: str = Form(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    db.add(LookupItem(type=item_type, name=name))
+    db.commit()
+    return RedirectResponse("/lists", status_code=303)
+
+
 @app.get("/inventory", response_class=HTMLResponse)
 def inventory_page(
     request: Request,
@@ -322,6 +367,8 @@ def inventory_page(
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
     display_columns = [c for c in order if c in visible]
+    brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
+    locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
     return templates.TemplateResponse(
         "envanter.html",
         {
@@ -330,6 +377,8 @@ def inventory_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
+            "brands": brands,
+            "locations": locations,
         },
     )
 
@@ -529,6 +578,7 @@ def license_page(
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
     display_columns = [c for c in order if c in visible]
+    softwares = db.query(LookupItem).filter(LookupItem.type == "yazilim").all()
     return templates.TemplateResponse(
         "lisans.html",
         {
@@ -537,6 +587,7 @@ def license_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
+            "softwares": softwares,
         },
     )
 
@@ -738,6 +789,9 @@ def stock_page(
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
     display_columns = [c for c in order if c in visible]
+    brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
+    locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
+    categories = db.query(LookupItem).filter(LookupItem.type == "kategori").all()
     return templates.TemplateResponse(
         "stok.html",
         {
@@ -746,6 +800,9 @@ def stock_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
+            "brands": brands,
+            "locations": locations,
+            "categories": categories,
         },
     )
 
@@ -928,6 +985,8 @@ def printer_page(
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
     display_columns = [c for c in order if c in visible]
+    brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
+    locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
     return templates.TemplateResponse(
         "yazici.html",
         {
@@ -936,6 +995,8 @@ def printer_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
+            "brands": brands,
+            "locations": locations,
         },
     )
 

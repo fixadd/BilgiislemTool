@@ -43,10 +43,22 @@
       <form id="addForm" action="/stock/add" method="post">
         <div class="modal-body">
           <input class="form-control mb-2" type="text" name="urun_adi" placeholder="Ürün Adı" required>
-          <input class="form-control mb-2" type="text" name="kategori" placeholder="Kategori" required>
-          <input class="form-control mb-2" type="text" name="marka" placeholder="Marka" required>
+          <select class="form-select mb-2" name="kategori" required>
+            {% for c in categories %}
+            <option value="{{ c.name }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
+          <select class="form-select mb-2" name="marka" required>
+            {% for b in brands %}
+            <option value="{{ b.name }}">{{ b.name }}</option>
+            {% endfor %}
+          </select>
           <input class="form-control mb-2" type="number" name="adet" placeholder="Adet" required>
-          <input class="form-control mb-2" type="text" name="lokasyon" placeholder="Lokasyon" required>
+          <select class="form-select mb-2" name="lokasyon" required>
+            {% for l in locations %}
+            <option value="{{ l.name }}">{{ l.name }}</option>
+            {% endfor %}
+          </select>
           <input class="form-control mb-2" type="date" name="guncelleme_tarihi" placeholder="Güncelleme Tarihi">
         </div>
         <div class="modal-footer">
