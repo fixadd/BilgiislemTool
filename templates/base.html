@@ -32,16 +32,19 @@
     .content{
       margin-left:200px; padding:24px;
     }
+    .table-fixed{ table-layout:fixed; width:100%; }
+    .table-fixed td{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <img src="/image/onurum.png" alt="Onurum" class="sidebar-logo"style="width: 150px">
     <ul>
-      <li><a href="/inventory" class="{% if request.path.startswith('/inventory') %}active{% endif %}">Envanter Takip</a></li>
+      <li><a href="/inventory" class="{% if request.path.startswith('/inventory') and not request.path.startswith('/inventory/trash') %}active{% endif %}">Envanter Takip</a></li>
       <li><a href="/license"   class="{% if request.path.startswith('/license') %}active{% endif %}">Lisans Takip</a></li>
       <li><a href="/printer"   class="{% if request.path.startswith('/printer') %}active{% endif %}">Yazıcı Takip</a></li>
       <li><a href="/stock"     class="{% if request.path.startswith('/stock') %}active{% endif %}">Stok Takip</a></li>
+      <li><a href="/inventory/trash" class="{% if request.path.startswith('/inventory/trash') %}active{% endif %}">Çöp Kutusu</a></li>
     </ul>
   </div>
 

@@ -9,7 +9,7 @@ import pandas as pd
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import date
+from datetime import date, timedelta
 from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -38,6 +38,18 @@ class HardwareInventory(Base):
     lokasyon = Column(String)
     zimmetli_kisi = Column(String)
     notlar = Column(Text)
+
+class DeletedHardwareInventory(Base):
+    __tablename__ = "deleted_hardware_inventory"
+    id = Column(Integer, primary_key=True, index=True)
+    demirbas_adi = Column(String)
+    marka = Column(String)
+    model = Column(String)
+    seri_no = Column(String)
+    lokasyon = Column(String)
+    zimmetli_kisi = Column(String)
+    notlar = Column(Text)
+    deleted_at = Column(Date)
 
 class PrinterInventory(Base):
     __tablename__ = "printer_inventory"
@@ -129,6 +141,11 @@ def set_user_settings(username: str, table_name: str, settings: dict):
     data.setdefault(username, {})[table_name] = settings
     save_settings(data)
 
+def cleanup_deleted_inventory(db: Session):
+    cutoff = date.today() - timedelta(days=15)
+    db.query(DeletedHardwareInventory).filter(DeletedHardwareInventory.deleted_at < cutoff).delete()
+    db.commit()
+
 # --- Pydantic Şemalar ---
 class HardwareItem(BaseModel):
     id: Optional[int]
@@ -189,6 +206,9 @@ class CreateTableSchema(BaseModel):
 class ColumnSettings(BaseModel):
     order: List[str]
     visible: List[str]
+
+class DeleteIds(BaseModel):
+    ids: List[int]
 
 # --- FastAPI Uygulaması ---
 app = FastAPI()
@@ -311,9 +331,66 @@ def delete_inventory_form(
         .first()
     )
     if item:
+        deleted = DeletedHardwareInventory(
+            id=item.id,
+            demirbas_adi=item.demirbas_adi,
+            marka=item.marka,
+            model=item.model,
+            seri_no=item.seri_no,
+            lokasyon=item.lokasyon,
+            zimmetli_kisi=item.zimmetli_kisi,
+            notlar=item.notlar,
+            deleted_at=date.today(),
+        )
+        db.add(deleted)
         db.delete(item)
         db.commit()
     return RedirectResponse("/inventory", status_code=303)
+
+@app.post("/inventory/delete")
+def delete_inventory(ids: DeleteIds, user: User = Depends(require_login), db: Session = Depends(get_db)):
+    items = db.query(HardwareInventory).filter(HardwareInventory.id.in_(ids.ids)).all()
+    for item in items:
+        deleted = DeletedHardwareInventory(
+            id=item.id,
+            demirbas_adi=item.demirbas_adi,
+            marka=item.marka,
+            model=item.model,
+            seri_no=item.seri_no,
+            lokasyon=item.lokasyon,
+            zimmetli_kisi=item.zimmetli_kisi,
+            notlar=item.notlar,
+            deleted_at=date.today(),
+        )
+        db.add(deleted)
+        db.delete(item)
+    db.commit()
+    return {"message": "deleted"}
+
+@app.get("/inventory/trash", response_class=HTMLResponse)
+def inventory_trash(request: Request, user: User = Depends(require_login), db: Session = Depends(get_db)):
+    cleanup_deleted_inventory(db)
+    items = db.query(DeletedHardwareInventory).all()
+    return templates.TemplateResponse("envanter_trash.html", {"request": request, "items": items})
+
+@app.post("/inventory/restore/{item_id}")
+def restore_inventory(item_id: int, user: User = Depends(require_login), db: Session = Depends(get_db)):
+    item = db.query(DeletedHardwareInventory).filter(DeletedHardwareInventory.id == item_id).first()
+    if item:
+        restored = HardwareInventory(
+            id=item.id,
+            demirbas_adi=item.demirbas_adi,
+            marka=item.marka,
+            model=item.model,
+            seri_no=item.seri_no,
+            lokasyon=item.lokasyon,
+            zimmetli_kisi=item.zimmetli_kisi,
+            notlar=item.notlar,
+        )
+        db.add(restored)
+        db.delete(item)
+        db.commit()
+    return RedirectResponse("/inventory/trash", status_code=303)
 
 
 @app.post("/inventory/upload")
