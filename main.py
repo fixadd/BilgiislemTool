@@ -129,6 +129,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     password = Column(String)
     is_admin = Column(Boolean, default=False)
+    must_change_password = Column(Boolean, default=False)
 
 
 class LookupItem(Base):
@@ -145,6 +146,11 @@ def init_db():
     if not os.path.exists(DB_FILE):
         open(DB_FILE, "w").close()
     Base.metadata.create_all(bind=engine)
+    inspector = inspect(engine)
+    cols = [c["name"] for c in inspector.get_columns("users")]
+    if "must_change_password" not in cols:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 0"))
 
 
 def init_admin():
@@ -157,6 +163,7 @@ def init_admin():
                 username=username,
                 password=pwd_context.hash(password_plain),
                 is_admin=True,
+                must_change_password=True,
             )
             db.add(admin)
             db.commit()
@@ -309,10 +316,44 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     user = db.query(User).filter(User.username == username).first()
     if user and pwd_context.verify(password, user.password):
         request.session["username"] = user.username
+        if user.must_change_password:
+            return RedirectResponse(url="/change-password", status_code=303)
         return RedirectResponse(url="/home", status_code=303)
     return templates.TemplateResponse(
         "login.html", {"request": request, "error": "Hatalı kullanıcı adı veya şifre"}
     )
+
+
+@app.get("/change-password", response_class=HTMLResponse)
+def change_password_get(request: Request, user: User = Depends(require_login)):
+    if not user.must_change_password:
+        return RedirectResponse(url="/home", status_code=303)
+    return templates.TemplateResponse("change_password.html", {"request": request})
+
+
+@app.post("/change-password", response_class=HTMLResponse)
+def change_password(
+    request: Request,
+    old_password: str = Form(...),
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not pwd_context.verify(old_password, user.password):
+        return templates.TemplateResponse(
+            "change_password.html",
+            {"request": request, "error": "Eski şifre hatalı"},
+        )
+    if new_password != confirm_password:
+        return templates.TemplateResponse(
+            "change_password.html",
+            {"request": request, "error": "Yeni şifreler eşleşmiyor"},
+        )
+    user.password = pwd_context.hash(new_password)
+    user.must_change_password = False
+    db.commit()
+    return RedirectResponse(url="/home", status_code=303)
 
 
 @app.get("/logout")
@@ -397,7 +438,13 @@ def admin_create_user(
                 "error": "Kullanıcı zaten var",
             },
         )
-    db.add(User(username=username, password=pwd_context.hash(password)))
+    db.add(
+        User(
+            username=username,
+            password=pwd_context.hash(password),
+            must_change_password=True,
+        )
+    )
     db.commit()
     return RedirectResponse("/admin", status_code=303)
 
