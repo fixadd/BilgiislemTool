@@ -3,7 +3,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center">
   <h2>Stok Takibi</h2>
-  <span class="badge bg-secondary">{{ count }}</span>
+  <span class="badge bg-secondary">{{ count }} kayıt var</span>
 </div>
 
 <div class="d-flex gap-2 mb-3">
@@ -136,7 +136,7 @@
     <tr>
         <td><input class="form-check-input row-check" type="checkbox" value="{{ s.id }}"></td>
         {% for col in columns %}
-        <td{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px; white-space: normal; word-break: break-word;"{% else %} style="white-space: normal; word-break: break-word;"{% endif %}>{{ s|attr(col) }}</td>
+        <td data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px; white-space: normal; word-break: break-word;"{% else %} style="white-space: normal; word-break: break-word;"{% endif %}>{{ s|attr(col) }}</td>
         {% endfor %}
     </tr>
     {% endfor %}
@@ -243,12 +243,11 @@ document.getElementById('edit-selected').addEventListener('click', () => {
         return;
     }
     const row = checked[0].closest('tr');
-    const cells = row.querySelectorAll('td');
     const form = document.getElementById('editForm');
     form.stock_id.value = checked[0].value;
-    columns.forEach((col, idx) => {
-        const input = form.querySelector(`[name="${col}"]`);
-        if (input) input.value = cells[idx + 1].innerText.trim();
+    row.querySelectorAll('td[data-col]').forEach(cell => {
+        const input = form.querySelector(`[name="${cell.dataset.col}"]`);
+        if (input) input.value = cell.innerText.trim();
     });
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
     modal.show();
