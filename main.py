@@ -147,6 +147,14 @@ class StockItemSchema(BaseModel):
     class Config:
         orm_mode = True
 
+class ColumnDefinition(BaseModel):
+    name: str
+    type: str
+
+class CreateTableSchema(BaseModel):
+    table_name: str
+    columns: List[ColumnDefinition]
+
 # --- FastAPI Uygulaması ---
 app = FastAPI()
 app.mount("/image", StaticFiles(directory="image"), name="image")
@@ -745,6 +753,26 @@ def remove_column(
         except SQLAlchemyError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
     return {"message": "Kolon silindi"}
+
+@app.post("/db/create-table")
+def create_table(
+    schema: CreateTableSchema, user: User = Depends(require_login)
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    if not schema.columns:
+        raise HTTPException(status_code=400, detail="Kolon listesi boş olamaz")
+    columns_def = ", ".join(f"{col.name} {col.type}" for col in schema.columns)
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text(
+                    f"CREATE TABLE IF NOT EXISTS {schema.table_name} ({columns_def})"
+                )
+            )
+        return {"message": "Tablo oluşturuldu"}
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 # --- Yazıcı ---
 @app.get("/printers", response_model=List[PrinterItem])
