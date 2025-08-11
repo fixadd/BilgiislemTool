@@ -14,13 +14,13 @@
   </tr>
   {% for i in hardware %}
   <tr>
-    <td class="text-truncate" style="max-width:150px;" title="{{ i.demirbas_adi }}">{{ i.demirbas_adi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ i.marka }}">{{ i.marka }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ i.model }}">{{ i.model }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ i.seri_no }}">{{ i.seri_no }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ i.lokasyon }}">{{ i.lokasyon }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ i.zimmetli_kisi }}">{{ i.zimmetli_kisi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ i.notlar }}">{{ i.notlar }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ i.demirbas_adi }}">{{ i.demirbas_adi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ i.marka }}">{{ i.marka }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ i.model }}">{{ i.model }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ i.seri_no }}">{{ i.seri_no }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ i.lokasyon }}">{{ i.lokasyon }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ i.zimmetli_kisi }}">{{ i.zimmetli_kisi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ i.notlar }}">{{ i.notlar }}</td>
     <td>
       <form action="/inventory/restore/{{ i.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
@@ -40,13 +40,13 @@
   </tr>
   {% for l in licenses %}
   <tr>
-    <td class="text-truncate" style="max-width:150px;" title="{{ l.yazilim_adi }}">{{ l.yazilim_adi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ l.lisans_anahtari }}">{{ l.lisans_anahtari }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ l.adet }}">{{ l.adet }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ l.satin_alma_tarihi }}">{{ l.satin_alma_tarihi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ l.bitis_tarihi }}">{{ l.bitis_tarihi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ l.zimmetli_kisi }}">{{ l.zimmetli_kisi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ l.notlar }}">{{ l.notlar }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ l.yazilim_adi }}">{{ l.yazilim_adi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ l.lisans_anahtari }}">{{ l.lisans_anahtari }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ l.adet }}">{{ l.adet }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ l.satin_alma_tarihi }}">{{ l.satin_alma_tarihi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ l.bitis_tarihi }}">{{ l.bitis_tarihi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ l.zimmetli_kisi }}">{{ l.zimmetli_kisi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ l.notlar }}">{{ l.notlar }}</td>
     <td>
       <form action="/license/restore/{{ l.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
@@ -66,13 +66,13 @@
   </tr>
   {% for p in printers %}
   <tr>
-    <td class="text-truncate" style="max-width:150px;" title="{{ p.yazici_markasi }}">{{ p.yazici_markasi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ p.yazici_modeli }}">{{ p.yazici_modeli }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ p.kullanim_alani }}">{{ p.kullanim_alani }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ p.ip_adresi }}">{{ p.ip_adresi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ p.mac }}">{{ p.mac }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ p.hostname }}">{{ p.hostname }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ p.notlar }}">{{ p.notlar }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ p.yazici_markasi }}">{{ p.yazici_markasi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ p.yazici_modeli }}">{{ p.yazici_modeli }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ p.kullanim_alani }}">{{ p.kullanim_alani }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ p.ip_adresi }}">{{ p.ip_adresi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ p.mac }}">{{ p.mac }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ p.hostname }}">{{ p.hostname }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ p.notlar }}">{{ p.notlar }}</td>
     <td>
       <form action="/printer/restore/{{ p.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
@@ -92,12 +92,12 @@
   </tr>
   {% for s in stocks %}
   <tr>
-    <td class="text-truncate" style="max-width:150px;" title="{{ s.urun_adi }}">{{ s.urun_adi }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ s.kategori }}">{{ s.kategori }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ s.marka }}">{{ s.marka }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ s.adet }}">{{ s.adet }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ s.lokasyon }}">{{ s.lokasyon }}</td>
-    <td class="text-truncate" style="max-width:150px;" title="{{ s.guncelleme_tarihi }}">{{ s.guncelleme_tarihi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ s.urun_adi }}">{{ s.urun_adi }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ s.kategori }}">{{ s.kategori }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ s.marka }}">{{ s.marka }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ s.adet }}">{{ s.adet }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ s.lokasyon }}">{{ s.lokasyon }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ s.guncelleme_tarihi }}">{{ s.guncelleme_tarihi }}</td>
     <td>
       <form action="/stock/restore/{{ s.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>

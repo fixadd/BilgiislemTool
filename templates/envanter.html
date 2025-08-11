@@ -69,14 +69,14 @@
     <tr>
         <th><input type="checkbox" id="select-all"></th>
         {% for col in columns %}
-        <th>{{ col.replace('_', ' ').title() }}</th>
+        <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ col.replace('_', ' ').title() }}</th>
         {% endfor %}
     </tr>
     {% for i in items %}
     <tr>
         <td><input class="form-check-input row-check" type="checkbox" value="{{ i.id }}"></td>
         {% for col in columns %}
-        <td class="text-truncate" style="max-width:150px;" title="{{ i|attr(col) }}">{{ i|attr(col) }}</td>
+        <td{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px; white-space: normal; word-break: break-word;"{% else %} style="white-space: normal; word-break: break-word;"{% endif %}>{{ i|attr(col) }}</td>
         {% endfor %}
     </tr>
     {% endfor %}
@@ -107,6 +107,7 @@ settingsModal.addEventListener('show.bs.modal', async () => {
     const settings = await settingsRes.json();
     const order = settings.order || allCols;
     const visible = new Set(settings.visible || allCols);
+    const widths = settings.widths || {};
     const list = document.getElementById('columns-list');
     list.innerHTML = '';
     order.forEach(col => {
@@ -114,7 +115,7 @@ settingsModal.addEventListener('show.bs.modal', async () => {
         li.className = 'list-group-item d-flex align-items-center';
         li.draggable = true;
         li.dataset.col = col;
-        li.innerHTML = `<input class="form-check-input me-2" type="checkbox" ${visible.has(col) ? 'checked' : ''}> <span>${col}</span>`;
+        li.innerHTML = `<input class="form-check-input me-2" type="checkbox" ${visible.has(col) ? 'checked' : ''}> <span class="flex-grow-1">${col}</span><input type="number" class="form-control form-control-sm ms-2 width-input" style="width:80px" value="${widths[col] || ''}" placeholder="px">`;
         list.appendChild(li);
     });
     let drag;
@@ -133,12 +134,17 @@ document.getElementById('save-settings').addEventListener('click', async () => {
     const items = document.querySelectorAll('#columns-list li');
     const order = Array.from(items).map(li => li.dataset.col);
     const visible = Array.from(items)
-        .filter(li => li.querySelector('input').checked)
+        .filter(li => li.querySelector('input[type="checkbox"]').checked)
         .map(li => li.dataset.col);
+    const widths = {};
+    items.forEach(li => {
+        const val = parseInt(li.querySelector('.width-input').value);
+        if (!isNaN(val)) widths[li.dataset.col] = val;
+    });
     await fetch(`/column-settings?table_name=${tableName}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order, visible })
+        body: JSON.stringify({ order, visible, widths })
     });
     location.reload();
 });
