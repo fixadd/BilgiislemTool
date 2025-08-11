@@ -212,9 +212,23 @@ document.getElementById('save-settings').addEventListener('click', async () => {
     location.reload();
 });
 
+const editButton = document.getElementById('edit-selected');
+
+function updateEditButtonState(){
+    const checkedCount = document.querySelectorAll('.row-check:checked').length;
+    editButton.disabled = checkedCount > 1;
+}
+
 document.getElementById('select-all').addEventListener('change', function() {
     document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
+    updateEditButtonState();
 });
+
+document.querySelectorAll('.row-check').forEach(cb => {
+    cb.addEventListener('change', updateEditButtonState);
+});
+
+updateEditButtonState();
 
 document.getElementById('import-excel').addEventListener('click', () => {
     document.getElementById('excelInput').click();
@@ -232,14 +246,14 @@ document.getElementById('excelInput').addEventListener('change', async () => {
         location.reload();
     } else {
         const data = await res.json();
-        alert('Dosya yüklenemedi: ' + data.detail);
+        showAlert('Dosya yüklenemedi: ' + data.detail);
     }
 });
 
-document.getElementById('edit-selected').addEventListener('click', () => {
+editButton.addEventListener('click', () => {
     const checked = document.querySelectorAll('.row-check:checked');
     if (checked.length !== 1) {
-        alert('Lütfen yalnızca bir satır seçiniz.');
+        showAlert('Lütfen yalnızca bir satır seçiniz.');
         return;
     }
     const row = checked[0].closest('tr');
