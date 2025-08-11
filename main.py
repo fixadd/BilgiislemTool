@@ -2,7 +2,7 @@
 # FastAPI + SQLAlchemy + Docker uyumlu envanter sistemi backend yapisi
 
 from fastapi import FastAPI, Depends, Request, Form, HTTPException, status, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 import pandas as pd
@@ -574,7 +574,41 @@ async def upload_inventory_excel(
             db.add(item)
     db.commit()
 
-    return RedirectResponse("/inventory", status_code=303)
+    return {"detail": "ok"}
+
+
+@app.get("/inventory/export")
+def export_inventory_excel(
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = db.query(HardwareInventory).all()
+    data = [
+        {
+            "Demirbaş Adı": i.demirbas_adi,
+            "Marka": i.marka,
+            "Model": i.model,
+            "Seri No": i.seri_no,
+            "Lokasyon": i.lokasyon,
+            "Zimmetli Kişi": i.zimmetli_kisi,
+            "Notlar": i.notlar,
+        }
+        for i in items
+    ]
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    headers = {
+        "Content-Disposition": "attachment; filename=hardware_inventory.xlsx"
+    }
+    return StreamingResponse(
+        output,
+        media_type=
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
 
 
 @app.get("/license", response_class=HTMLResponse)
@@ -803,7 +837,41 @@ async def upload_license_excel(
             db.add(lic)
     db.commit()
 
-    return RedirectResponse("/license", status_code=303)
+    return {"detail": "ok"}
+
+
+@app.get("/license/export")
+def export_license_excel(
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = db.query(LicenseInventory).all()
+    data = [
+        {
+            "Yazılım Adı": i.yazilim_adi,
+            "Lisans Anahtarı": i.lisans_anahtari,
+            "Adet": i.adet,
+            "Satın Alma Tarihi": i.satin_alma_tarihi.isoformat() if i.satin_alma_tarihi else None,
+            "Bitiş Tarihi": i.bitis_tarihi.isoformat() if i.bitis_tarihi else None,
+            "Zimmetli Kişi": i.zimmetli_kisi,
+            "Notlar": i.notlar,
+        }
+        for i in items
+    ]
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    headers = {
+        "Content-Disposition": "attachment; filename=license_inventory.xlsx"
+    }
+    return StreamingResponse(
+        output,
+        media_type=
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
 
 
 @app.get("/stock", response_class=HTMLResponse)
@@ -1014,7 +1082,40 @@ async def upload_stock_excel(
             db.add(st)
     db.commit()
 
-    return RedirectResponse("/stock", status_code=303)
+    return {"detail": "ok"}
+
+
+@app.get("/stock/export")
+def export_stock_excel(
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = db.query(StockItem).all()
+    data = [
+        {
+            "Ürün Adı": i.urun_adi,
+            "Kategori": i.kategori,
+            "Marka": i.marka,
+            "Adet": i.adet,
+            "Lokasyon": i.lokasyon,
+            "Güncelleme Tarihi": i.guncelleme_tarihi.isoformat() if i.guncelleme_tarihi else None,
+        }
+        for i in items
+    ]
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    headers = {
+        "Content-Disposition": "attachment; filename=stock_items.xlsx"
+    }
+    return StreamingResponse(
+        output,
+        media_type=
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
 
 
 @app.get("/printer", response_class=HTMLResponse)
@@ -1230,7 +1331,41 @@ async def upload_printer_excel(
             db.add(printer)
     db.commit()
 
-    return RedirectResponse("/printer", status_code=303)
+    return {"detail": "ok"}
+
+
+@app.get("/printer/export")
+def export_printer_excel(
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = db.query(PrinterInventory).all()
+    data = [
+        {
+            "Yazıcı Markası": i.yazici_markasi,
+            "Yazıcı Modeli": i.yazici_modeli,
+            "Kullanım alanı": i.kullanim_alani,
+            "İp Adresi": i.ip_adresi,
+            "Mac": i.mac,
+            "Hostname": i.hostname,
+            "Notlar": i.notlar,
+        }
+        for i in items
+    ]
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    headers = {
+        "Content-Disposition": "attachment; filename=printer_inventory.xlsx"
+    }
+    return StreamingResponse(
+        output,
+        media_type=
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
 
 
 # --- Donanım ---
