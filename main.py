@@ -359,7 +359,7 @@ def inventory_page(
     db: Session = Depends(get_db),
 ):
     """Donanım envanterini listeleyen sayfa."""
-    items = db.query(HardwareInventory).all()
+    items = db.query(HardwareInventory).limit(50).all()
     table_name = HardwareInventory.__tablename__
     columns = get_table_columns(table_name)
     settings = get_user_settings(user.username, table_name)
@@ -374,6 +374,7 @@ def inventory_page(
         {
             "request": request,
             "items": items,
+            "count": len(items),
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
@@ -385,6 +386,7 @@ def inventory_page(
 
 @app.post("/inventory/add")
 def add_inventory_form(
+    item_id: Optional[int] = Form(None),
     demirbas_adi: str = Form(...),
     marka: str = Form(...),
     model: str = Form(...),
@@ -395,16 +397,28 @@ def add_inventory_form(
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
-    db_item = HardwareInventory(
-        demirbas_adi=demirbas_adi,
-        marka=marka,
-        model=model,
-        seri_no=seri_no,
-        lokasyon=lokasyon,
-        zimmetli_kisi=zimmetli_kisi,
-        notlar=notlar,
-    )
-    db.add(db_item)
+    if item_id:
+        item = db.query(HardwareInventory).get(item_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+        item.demirbas_adi = demirbas_adi
+        item.marka = marka
+        item.model = model
+        item.seri_no = seri_no
+        item.lokasyon = lokasyon
+        item.zimmetli_kisi = zimmetli_kisi
+        item.notlar = notlar
+    else:
+        db_item = HardwareInventory(
+            demirbas_adi=demirbas_adi,
+            marka=marka,
+            model=model,
+            seri_no=seri_no,
+            lokasyon=lokasyon,
+            zimmetli_kisi=zimmetli_kisi,
+            notlar=notlar,
+        )
+        db.add(db_item)
     db.commit()
     return RedirectResponse("/inventory", status_code=303)
 
@@ -570,7 +584,7 @@ def license_page(
     db: Session = Depends(get_db),
 ):
     """Lisans envanterini listeleyen sayfa."""
-    licenses = db.query(LicenseInventory).all()
+    licenses = db.query(LicenseInventory).limit(50).all()
     table_name = LicenseInventory.__tablename__
     columns = get_table_columns(table_name)
     settings = get_user_settings(user.username, table_name)
@@ -584,6 +598,7 @@ def license_page(
         {
             "request": request,
             "licenses": licenses,
+            "count": len(licenses),
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
@@ -594,6 +609,7 @@ def license_page(
 
 @app.post("/license/add")
 def add_license_form(
+    license_id: Optional[int] = Form(None),
     yazilim_adi: str = Form(...),
     lisans_anahtari: str = Form(...),
     adet: int = Form(...),
@@ -604,17 +620,33 @@ def add_license_form(
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
-    db_item = LicenseInventory(
-        yazilim_adi=yazilim_adi,
-        lisans_anahtari=lisans_anahtari,
-        adet=adet,
-        satin_alma_tarihi=
-            date.fromisoformat(satin_alma_tarihi) if satin_alma_tarihi else None,
-        bitis_tarihi=date.fromisoformat(bitis_tarihi) if bitis_tarihi else None,
-        zimmetli_kisi=zimmetli_kisi,
-        notlar=notlar,
-    )
-    db.add(db_item)
+    if license_id:
+        item = db.query(LicenseInventory).get(license_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+        item.yazilim_adi = yazilim_adi
+        item.lisans_anahtari = lisans_anahtari
+        item.adet = adet
+        item.satin_alma_tarihi = (
+            date.fromisoformat(satin_alma_tarihi) if satin_alma_tarihi else None
+        )
+        item.bitis_tarihi = (
+            date.fromisoformat(bitis_tarihi) if bitis_tarihi else None
+        )
+        item.zimmetli_kisi = zimmetli_kisi
+        item.notlar = notlar
+    else:
+        db_item = LicenseInventory(
+            yazilim_adi=yazilim_adi,
+            lisans_anahtari=lisans_anahtari,
+            adet=adet,
+            satin_alma_tarihi=
+                date.fromisoformat(satin_alma_tarihi) if satin_alma_tarihi else None,
+            bitis_tarihi=date.fromisoformat(bitis_tarihi) if bitis_tarihi else None,
+            zimmetli_kisi=zimmetli_kisi,
+            notlar=notlar,
+        )
+        db.add(db_item)
     db.commit()
     return RedirectResponse("/license", status_code=303)
 
@@ -781,7 +813,7 @@ def stock_page(
     db: Session = Depends(get_db),
 ):
     """Stok kayıtlarını listeleyen sayfa."""
-    stocks = db.query(StockItem).all()
+    stocks = db.query(StockItem).limit(50).all()
     table_name = StockItem.__tablename__
     columns = get_table_columns(table_name)
     settings = get_user_settings(user.username, table_name)
@@ -797,6 +829,7 @@ def stock_page(
         {
             "request": request,
             "stocks": stocks,
+            "count": len(stocks),
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
@@ -809,6 +842,7 @@ def stock_page(
 
 @app.post("/stock/add")
 def add_stock_form(
+    stock_id: Optional[int] = Form(None),
     urun_adi: str = Form(...),
     kategori: str = Form(...),
     marka: str = Form(...),
@@ -818,16 +852,29 @@ def add_stock_form(
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
-    db_item = StockItem(
-        urun_adi=urun_adi,
-        kategori=kategori,
-        marka=marka,
-        adet=adet,
-        lokasyon=lokasyon,
-        guncelleme_tarihi=
-            date.fromisoformat(guncelleme_tarihi) if guncelleme_tarihi else None,
-    )
-    db.add(db_item)
+    if stock_id:
+        item = db.query(StockItem).get(stock_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+        item.urun_adi = urun_adi
+        item.kategori = kategori
+        item.marka = marka
+        item.adet = adet
+        item.lokasyon = lokasyon
+        item.guncelleme_tarihi = (
+            date.fromisoformat(guncelleme_tarihi) if guncelleme_tarihi else None
+        )
+    else:
+        db_item = StockItem(
+            urun_adi=urun_adi,
+            kategori=kategori,
+            marka=marka,
+            adet=adet,
+            lokasyon=lokasyon,
+            guncelleme_tarihi=
+                date.fromisoformat(guncelleme_tarihi) if guncelleme_tarihi else None,
+        )
+        db.add(db_item)
     db.commit()
     return RedirectResponse("/stock", status_code=303)
 
@@ -977,7 +1024,7 @@ def printer_page(
     db: Session = Depends(get_db),
 ):
     """Yazıcı envanterini listeleyen sayfa."""
-    printers = db.query(PrinterInventory).all()
+    printers = db.query(PrinterInventory).limit(50).all()
     table_name = PrinterInventory.__tablename__
     columns = get_table_columns(table_name)
     settings = get_user_settings(user.username, table_name)
@@ -992,6 +1039,7 @@ def printer_page(
         {
             "request": request,
             "printers": printers,
+            "count": len(printers),
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
@@ -1003,6 +1051,7 @@ def printer_page(
 
 @app.post("/printer/add")
 def add_printer_form(
+    printer_id: Optional[int] = Form(None),
     yazici_markasi: str = Form(...),
     yazici_modeli: str = Form(...),
     kullanim_alani: str = Form(...),
@@ -1014,16 +1063,28 @@ def add_printer_form(
     db: Session = Depends(get_db),
 ):
     """Formdan gelen verilerle yeni yazıcı kaydı oluşturur."""
-    db_item = PrinterInventory(
-        yazici_markasi=yazici_markasi,
-        yazici_modeli=yazici_modeli,
-        kullanim_alani=kullanim_alani,
-        ip_adresi=ip_adresi,
-        mac=mac,
-        hostname=hostname,
-        notlar=notlar,
-    )
-    db.add(db_item)
+    if printer_id:
+        item = db.query(PrinterInventory).get(printer_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+        item.yazici_markasi = yazici_markasi
+        item.yazici_modeli = yazici_modeli
+        item.kullanim_alani = kullanim_alani
+        item.ip_adresi = ip_adresi
+        item.mac = mac
+        item.hostname = hostname
+        item.notlar = notlar
+    else:
+        db_item = PrinterInventory(
+            yazici_markasi=yazici_markasi,
+            yazici_modeli=yazici_modeli,
+            kullanim_alani=kullanim_alani,
+            ip_adresi=ip_adresi,
+            mac=mac,
+            hostname=hostname,
+            notlar=notlar,
+        )
+        db.add(db_item)
     db.commit()
     return RedirectResponse("/printer", status_code=303)
 

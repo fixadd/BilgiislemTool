@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Lisans Takip{% endblock %}
 {% block content %}
-<h2>Lisans Envanteri</h2>
+<div class="d-flex justify-content-between align-items-center">
+  <h2>Lisans Envanteri</h2>
+  <span class="badge bg-secondary">{{ count }}</span>
+</div>
 
 <div class="d-flex gap-2 mb-3">
   <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#settingsModal">
@@ -10,10 +13,20 @@
   <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
     <i class="bi bi-plus"></i>
   </button>
+  <button id="upload-btn" class="btn btn-success" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+    <i class="bi bi-upload"></i>
+  </button>
+  <button id="edit-selected" class="btn btn-warning" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+    <i class="bi bi-pencil"></i>
+  </button>
   <button id="delete-selected" class="btn btn-danger" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
     <i class="bi bi-trash"></i>
   </button>
 </div>
+
+<form id="uploadForm" action="/license/upload" method="post" enctype="multipart/form-data" style="display:none;">
+  <input id="excelInput" type="file" name="excel_file" accept=".xls,.xlsx" required>
+</form>
 
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -28,9 +41,39 @@
       <div class="modal-footer">
         <button id="save-settings" type="button" class="btn btn-primary">Kaydet</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+</div>
+</div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Kayıt Düzenle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
+      <form id="editForm" action="/license/add" method="post">
+        <input type="hidden" name="license_id">
+        <div class="modal-body">
+          <select class="form-select mb-2" name="yazilim_adi" required>
+            {% for s in softwares %}
+            <option value="{{ s.name }}">{{ s.name }}</option>
+            {% endfor %}
+          </select>
+          <input class="form-control mb-2" type="text" name="lisans_anahtari" placeholder="Lisans Anahtarı" required>
+          <input class="form-control mb-2" type="number" name="adet" placeholder="Adet" required>
+          <input class="form-control mb-2" type="date" name="satin_alma_tarihi" placeholder="Satın Alma Tarihi">
+          <input class="form-control mb-2" type="date" name="bitis_tarihi" placeholder="Bitiş Tarihi">
+          <input class="form-control mb-2" type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
+          <input class="form-control mb-2" type="text" name="notlar" placeholder="Notlar">
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-warning">Kaydet</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 </div>
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
@@ -61,13 +104,6 @@
     </div>
   </div>
 </div>
-
-<form action="/license/upload" method="post" enctype="multipart/form-data" class="mb-4">
-    <div class="input-group">
-        <input type="file" class="form-control" name="excel_file" accept=".xls,.xlsx" required>
-        <button class="btn btn-primary" type="submit">Excel Yükle</button>
-    </div>
-</form>
 
 <table class="table table-striped table-fixed table-resizable">
     <tr>
@@ -105,6 +141,7 @@
 {% block scripts %}
 <script>
 const tableName = "{{ table_name }}";
+const columns = {{ columns|tojson }};
 const settingsModal = document.getElementById('settingsModal');
 settingsModal.addEventListener('show.bs.modal', async () => {
     const res = await fetch(`/table-columns?table_name=${tableName}`);
@@ -157,6 +194,31 @@ document.getElementById('save-settings').addEventListener('click', async () => {
 
 document.getElementById('select-all').addEventListener('change', function() {
     document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
+});
+
+document.getElementById('upload-btn').addEventListener('click', () => {
+    document.getElementById('excelInput').click();
+});
+document.getElementById('excelInput').addEventListener('change', () => {
+    document.getElementById('uploadForm').submit();
+});
+
+document.getElementById('edit-selected').addEventListener('click', () => {
+    const checked = document.querySelectorAll('.row-check:checked');
+    if (checked.length !== 1) {
+        alert('Lütfen yalnızca bir satır seçiniz.');
+        return;
+    }
+    const row = checked[0].closest('tr');
+    const cells = row.querySelectorAll('td');
+    const form = document.getElementById('editForm');
+    form.license_id.value = checked[0].value;
+    columns.forEach((col, idx) => {
+        const input = form.querySelector(`[name="${col}"]`);
+        if (input) input.value = cells[idx + 1].innerText.trim();
+    });
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    modal.show();
 });
 
 const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
