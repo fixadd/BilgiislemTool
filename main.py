@@ -10,12 +10,13 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date
-from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text
+from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import os
+import json
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,6 +25,7 @@ DATABASE_URL = f"sqlite:///{DB_FILE}"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+SETTINGS_FILE = os.path.join(BASE_DIR, "data", "column_settings.json")
 
 # --- SQLALCHEMY MODELLER ---
 class HardwareInventory(Base):
@@ -99,6 +101,34 @@ def init_admin():
 init_db()
 init_admin()
 
+
+def load_settings():
+    if os.path.exists(SETTINGS_FILE):
+        with open(SETTINGS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def save_settings(data):
+    os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(data, f)
+
+
+def get_table_columns(table_name: str) -> List[str]:
+    return [col["name"] for col in inspect(engine).get_columns(table_name)]
+
+
+def get_user_settings(username: str, table_name: str):
+    data = load_settings()
+    return data.get(username, {}).get(table_name, {})
+
+
+def set_user_settings(username: str, table_name: str, settings: dict):
+    data = load_settings()
+    data.setdefault(username, {})[table_name] = settings
+    save_settings(data)
+
 # --- Pydantic Şemalar ---
 class HardwareItem(BaseModel):
     id: Optional[int]
@@ -154,6 +184,11 @@ class ColumnDefinition(BaseModel):
 class CreateTableSchema(BaseModel):
     table_name: str
     columns: List[ColumnDefinition]
+
+
+class ColumnSettings(BaseModel):
+    order: List[str]
+    visible: List[str]
 
 # --- FastAPI Uygulaması ---
 app = FastAPI()
@@ -221,8 +256,20 @@ def inventory_page(
 ):
     """Donanım envanterini listeleyen sayfa."""
     items = db.query(HardwareInventory).all()
+    table_name = HardwareInventory.__tablename__
+    columns = get_table_columns(table_name)
+    settings = get_user_settings(user.username, table_name)
+    order = settings.get("order", columns)
+    visible = settings.get("visible", columns)
+    display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
-        "envanter.html", {"request": request, "items": items}
+        "envanter.html",
+        {
+            "request": request,
+            "items": items,
+            "columns": display_columns,
+            "table_name": table_name,
+        },
     )
 
 
@@ -340,8 +387,20 @@ def license_page(
 ):
     """Lisans envanterini listeleyen sayfa."""
     licenses = db.query(LicenseInventory).all()
+    table_name = LicenseInventory.__tablename__
+    columns = get_table_columns(table_name)
+    settings = get_user_settings(user.username, table_name)
+    order = settings.get("order", columns)
+    visible = settings.get("visible", columns)
+    display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
-        "lisans.html", {"request": request, "licenses": licenses}
+        "lisans.html",
+        {
+            "request": request,
+            "licenses": licenses,
+            "columns": display_columns,
+            "table_name": table_name,
+        },
     )
 
 
@@ -466,8 +525,20 @@ def stock_page(
 ):
     """Stok kayıtlarını listeleyen sayfa."""
     stocks = db.query(StockItem).all()
+    table_name = StockItem.__tablename__
+    columns = get_table_columns(table_name)
+    settings = get_user_settings(user.username, table_name)
+    order = settings.get("order", columns)
+    visible = settings.get("visible", columns)
+    display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
-        "stok.html", {"request": request, "stocks": stocks}
+        "stok.html",
+        {
+            "request": request,
+            "stocks": stocks,
+            "columns": display_columns,
+            "table_name": table_name,
+        },
     )
 
 
@@ -580,8 +651,20 @@ def printer_page(
 ):
     """Yazıcı envanterini listeleyen sayfa."""
     printers = db.query(PrinterInventory).all()
+    table_name = PrinterInventory.__tablename__
+    columns = get_table_columns(table_name)
+    settings = get_user_settings(user.username, table_name)
+    order = settings.get("order", columns)
+    visible = settings.get("visible", columns)
+    display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
-        "yazici.html", {"request": request, "printers": printers}
+        "yazici.html",
+        {
+            "request": request,
+            "printers": printers,
+            "columns": display_columns,
+            "table_name": table_name,
+        },
     )
 
 
@@ -773,6 +856,32 @@ def create_table(
         return {"message": "Tablo oluşturuldu"}
     except SQLAlchemyError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/table-columns")
+def table_columns(
+    table_name: str,
+    user: User = Depends(require_login),
+):
+    return {"columns": get_table_columns(table_name)}
+
+
+@app.get("/column-settings")
+def column_settings_get(
+    table_name: str,
+    user: User = Depends(require_login),
+):
+    return get_user_settings(user.username, table_name)
+
+
+@app.post("/column-settings")
+def column_settings_post(
+    table_name: str,
+    settings: ColumnSettings,
+    user: User = Depends(require_login),
+):
+    set_user_settings(user.username, table_name, settings.dict())
+    return {"message": "kaydedildi"}
 
 # --- Yazıcı ---
 @app.get("/printers", response_model=List[PrinterItem])

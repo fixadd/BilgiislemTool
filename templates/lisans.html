@@ -3,6 +3,14 @@
 {% block content %}
 <h2>Lisans Envanteri</h2>
 
+<button id="settings-btn">Ayarlar</button>
+<div id="settings-modal" style="display:none; position:fixed; top:20%; left:30%; background:#fff; border:1px solid #000; padding:10px;">
+    <h3>Kolon Ayarları</h3>
+    <ul id="columns-list"></ul>
+    <button id="save-settings" type="button">Kaydet</button>
+    <button type="button" onclick="document.getElementById('settings-modal').style.display='none'">Kapat</button>
+</div>
+
 <form action="/license/add" method="post">
     <input type="text" name="yazilim_adi" placeholder="Yazılım Adı" required>
     <input type="text" name="lisans_anahtari" placeholder="Lisans Anahtarı" required>
@@ -23,26 +31,16 @@
 
 <table border="1">
     <tr>
-        <th>ID</th>
-        <th>Yazılım Adı</th>
-        <th>Lisans Anahtarı</th>
-        <th>Adet</th>
-        <th>Satın Alma Tarihi</th>
-        <th>Bitiş Tarihi</th>
-        <th>Zimmetli Kişi</th>
-        <th>Notlar</th>
+        {% for col in columns %}
+        <th>{{ col.replace('_', ' ').title() }}</th>
+        {% endfor %}
         <th>Sil</th>
     </tr>
     {% for l in licenses %}
     <tr>
-        <td>{{ l.id }}</td>
-        <td>{{ l.yazilim_adi }}</td>
-        <td>{{ l.lisans_anahtari }}</td>
-        <td>{{ l.adet }}</td>
-        <td>{{ l.satin_alma_tarihi }}</td>
-        <td>{{ l.bitis_tarihi }}</td>
-        <td>{{ l.zimmetli_kisi }}</td>
-        <td>{{ l.notlar }}</td>
+        {% for col in columns %}
+        <td>{{ l|attr(col) }}</td>
+        {% endfor %}
         <td>
             <form action="/license/delete/{{ l.id }}" method="post" style="display:inline;">
                 <button type="submit">Sil</button>
@@ -51,4 +49,50 @@
     </tr>
     {% endfor %}
 </table>
+
+<script>
+const tableName = "{{ table_name }}";
+document.getElementById('settings-btn').addEventListener('click', async () => {
+    const modal = document.getElementById('settings-modal');
+    modal.style.display = 'block';
+    const res = await fetch(`/table-columns?table_name=${tableName}`);
+    const allCols = (await res.json()).columns;
+    const settingsRes = await fetch(`/column-settings?table_name=${tableName}`);
+    const settings = await settingsRes.json();
+    const order = settings.order || allCols;
+    const visible = new Set(settings.visible || allCols);
+    const list = document.getElementById('columns-list');
+    list.innerHTML = '';
+    order.forEach(col => {
+        const li = document.createElement('li');
+        li.draggable = true;
+        li.dataset.col = col;
+        li.innerHTML = `<label><input type="checkbox" ${visible.has(col) ? 'checked' : ''}> ${col}</label>`;
+        list.appendChild(li);
+    });
+    let drag;
+    list.addEventListener('dragstart', e => { drag = e.target; });
+    list.addEventListener('dragover', e => e.preventDefault());
+    list.addEventListener('drop', e => {
+        e.preventDefault();
+        if (e.target.tagName === 'LI' && drag !== e.target) {
+            list.insertBefore(drag, e.target.nextSibling);
+        }
+    });
+});
+
+document.getElementById('save-settings').addEventListener('click', async () => {
+    const items = document.querySelectorAll('#columns-list li');
+    const order = Array.from(items).map(li => li.dataset.col);
+    const visible = Array.from(items)
+        .filter(li => li.querySelector('input').checked)
+        .map(li => li.dataset.col);
+    await fetch(`/column-settings?table_name=${tableName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order, visible })
+    });
+    location.reload();
+});
+</script>
 {% endblock %}
