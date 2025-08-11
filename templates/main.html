@@ -24,9 +24,9 @@
   <h2>Son İşlemler</h2>
   <div class="card">
     <ul class="list-group list-group-flush">
-      {% for item in recent %}
+      {% for log in actions %}
       <li class="list-group-item">
-        {{ item.guncelleme_tarihi }} - {{ item.urun_adi }} ({{ item.kategori }}) {{ item.adet }} adet
+        {{ log.timestamp }} - {{ log.username }} = {{ log.action }}
       </li>
       {% endfor %}
     </ul>
