@@ -42,7 +42,11 @@
       </div>
       <form id="addForm" action="/license/add" method="post">
         <div class="modal-body">
-          <input class="form-control mb-2" type="text" name="yazilim_adi" placeholder="Yazılım Adı" required>
+          <select class="form-select mb-2" name="yazilim_adi" required>
+            {% for s in softwares %}
+            <option value="{{ s.name }}">{{ s.name }}</option>
+            {% endfor %}
+          </select>
           <input class="form-control mb-2" type="text" name="lisans_anahtari" placeholder="Lisans Anahtarı" required>
           <input class="form-control mb-2" type="number" name="adet" placeholder="Adet" required>
           <input class="form-control mb-2" type="date" name="satin_alma_tarihi" placeholder="Satın Alma Tarihi">
