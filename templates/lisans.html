@@ -3,33 +3,47 @@
 {% block content %}
 <h2>Lisans Envanteri</h2>
 
-<button id="settings-btn">Ayarlar</button>
-<div id="settings-modal" style="display:none; position:fixed; top:20%; left:30%; background:#fff; border:1px solid #000; padding:10px;">
-    <h3>Kolon Ayarları</h3>
-    <ul id="columns-list"></ul>
-    <button id="save-settings" type="button">Kaydet</button>
-    <button type="button" onclick="document.getElementById('settings-modal').style.display='none'">Kapat</button>
+<button class="btn btn-secondary mb-3" data-bs-toggle="modal" data-bs-target="#settingsModal">Ayarlar</button>
+
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="settingsModalLabel">Kolon Ayarları</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <ul id="columns-list" class="list-group"></ul>
+      </div>
+      <div class="modal-footer">
+        <button id="save-settings" type="button" class="btn btn-primary">Kaydet</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<form action="/license/add" method="post">
-    <input type="text" name="yazilim_adi" placeholder="Yazılım Adı" required>
-    <input type="text" name="lisans_anahtari" placeholder="Lisans Anahtarı" required>
-    <input type="number" name="adet" placeholder="Adet" required>
-    <input type="date" name="satin_alma_tarihi" placeholder="Satın Alma Tarihi">
-    <input type="date" name="bitis_tarihi" placeholder="Bitiş Tarihi">
-    <input type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
-    <input type="text" name="notlar" placeholder="Notlar">
-    <button type="submit">Ekle</button>
-    <br><br>
+<form action="/license/add" method="post" class="mb-4">
+    <div class="row g-2">
+        <div class="col"><input class="form-control" type="text" name="yazilim_adi" placeholder="Yazılım Adı" required></div>
+        <div class="col"><input class="form-control" type="text" name="lisans_anahtari" placeholder="Lisans Anahtarı" required></div>
+        <div class="col"><input class="form-control" type="number" name="adet" placeholder="Adet" required></div>
+        <div class="col"><input class="form-control" type="date" name="satin_alma_tarihi" placeholder="Satın Alma Tarihi"></div>
+        <div class="col"><input class="form-control" type="date" name="bitis_tarihi" placeholder="Bitiş Tarihi"></div>
+        <div class="col"><input class="form-control" type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required></div>
+        <div class="col"><input class="form-control" type="text" name="notlar" placeholder="Notlar"></div>
+        <div class="col-12"><button type="submit" class="btn btn-success">Ekle</button></div>
+    </div>
 </form>
 
-<form action="/license/upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="excel_file" accept=".xls,.xlsx" required>
-    <button type="submit">Excel Yükle</button>
-    <br><br>
+<form action="/license/upload" method="post" enctype="multipart/form-data" class="mb-4">
+    <div class="input-group">
+        <input type="file" class="form-control" name="excel_file" accept=".xls,.xlsx" required>
+        <button class="btn btn-primary" type="submit">Excel Yükle</button>
+    </div>
 </form>
 
-<table border="1">
+<table class="table table-striped">
     <tr>
         {% for col in columns %}
         <th>{{ col.replace('_', ' ').title() }}</th>
@@ -43,7 +57,7 @@
         {% endfor %}
         <td>
             <form action="/license/delete/{{ l.id }}" method="post" style="display:inline;">
-                <button type="submit">Sil</button>
+                <button type="submit" class="btn btn-danger btn-sm">Sil</button>
             </form>
         </td>
     </tr>
@@ -52,9 +66,8 @@
 
 <script>
 const tableName = "{{ table_name }}";
-document.getElementById('settings-btn').addEventListener('click', async () => {
-    const modal = document.getElementById('settings-modal');
-    modal.style.display = 'block';
+const settingsModal = document.getElementById('settingsModal');
+settingsModal.addEventListener('show.bs.modal', async () => {
     const res = await fetch(`/table-columns?table_name=${tableName}`);
     const allCols = (await res.json()).columns;
     const settingsRes = await fetch(`/column-settings?table_name=${tableName}`);
@@ -65,18 +78,20 @@ document.getElementById('settings-btn').addEventListener('click', async () => {
     list.innerHTML = '';
     order.forEach(col => {
         const li = document.createElement('li');
+        li.className = 'list-group-item d-flex align-items-center';
         li.draggable = true;
         li.dataset.col = col;
-        li.innerHTML = `<label><input type="checkbox" ${visible.has(col) ? 'checked' : ''}> ${col}</label>`;
+        li.innerHTML = `<input class="form-check-input me-2" type="checkbox" ${visible.has(col) ? 'checked' : ''}> <span>${col}</span>`;
         list.appendChild(li);
     });
     let drag;
-    list.addEventListener('dragstart', e => { drag = e.target; });
+    list.addEventListener('dragstart', e => { drag = e.target.closest('li'); });
     list.addEventListener('dragover', e => e.preventDefault());
     list.addEventListener('drop', e => {
         e.preventDefault();
-        if (e.target.tagName === 'LI' && drag !== e.target) {
-            list.insertBefore(drag, e.target.nextSibling);
+        const target = e.target.closest('li');
+        if (target && drag !== target) {
+            list.insertBefore(drag, target.nextSibling);
         }
     });
 });
