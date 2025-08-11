@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boole
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from starlette.middleware.sessions import SessionMiddleware
 import os
 import json
 
@@ -263,6 +263,9 @@ app = FastAPI()
 app.mount("/image", StaticFiles(directory="image"), name="image")
 templates = Jinja2Templates(directory="templates")
 
+# Oturum yönetimi için SessionMiddleware ekle
+app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
+
 # --- Dependency ---
 def get_db():
     db = SessionLocal()
@@ -272,21 +275,13 @@ def get_db():
         db.close()
 
 # --- Authentication ---
-security = HTTPBasic()
-
-def require_login(
-    credentials: HTTPBasicCredentials = Depends(security),
-    db: Session = Depends(get_db),
-):
-    user = db.query(User).filter(
-        User.username == credentials.username,
-        User.password == credentials.password,
-    ).first()
+def require_login(request: Request, db: Session = Depends(get_db)):
+    username = request.session.get("username")
+    if not username:
+        raise HTTPException(status_code=303, headers={"Location": "/login"})
+    user = db.query(User).filter(User.username == username).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Geçersiz kullanıcı adı/şifre",
-        )
+        raise HTTPException(status_code=303, headers={"Location": "/login"})
     return user
 
 
@@ -303,13 +298,17 @@ def login_get(request: Request):
 def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username, User.password == password).first()
     if user:
-        return RedirectResponse(url=f"/home?username={username}", status_code=303)
-    return templates.TemplateResponse("login.html", {"request": request, "error": "Hatalı kullanıcı adı veya şifre"})
+        request.session["username"] = user.username
+        return RedirectResponse(url="/home", status_code=303)
+    return templates.TemplateResponse(
+        "login.html", {"request": request, "error": "Hatalı kullanıcı adı veya şifre"}
+    )
 
 
 @app.get("/home", response_class=HTMLResponse)
-def home_page(request: Request, username: Optional[str] = None):
-    """Ana ekranı döndür, kullanıcı adı yoksa girişe yönlendir."""
+def home_page(request: Request):
+    """Ana ekranı döndür, kullanıcı giriş yapmadıysa yönlendir."""
+    username = request.session.get("username")
     if not username:
         return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse("main.html", {"request": request, "username": username})

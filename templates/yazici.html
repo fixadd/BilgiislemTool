@@ -62,21 +62,42 @@
       <form id="editForm" action="/printer/add" method="post">
         <input type="hidden" name="printer_id">
         <div class="modal-body">
-          <select class="form-select mb-2" name="yazici_markasi" required>
-            {% for b in brands %}
-            <option value="{{ b.name }}">{{ b.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="text" name="yazici_modeli" placeholder="Yazıcı Modeli" required>
-          <select class="form-select mb-2" name="kullanim_alani" required>
-            {% for l in locations %}
-            <option value="{{ l.name }}">{{ l.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="text" name="ip_adresi" placeholder="IP Adresi" required>
-          <input class="form-control mb-2" type="text" name="mac" placeholder="MAC" required>
-          <input class="form-control mb-2" type="text" name="hostname" placeholder="Hostname" required>
-          <input class="form-control mb-2" type="text" name="notlar" placeholder="Notlar">
+          <div class="input-group mb-2">
+            <span class="input-group-text">Yazıcı Markası</span>
+            <select class="form-select" name="yazici_markasi" required>
+              {% for b in brands %}
+              <option value="{{ b.name }}">{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Yazıcı Modeli</span>
+            <input class="form-control" type="text" name="yazici_modeli" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Kullanım Alanı</span>
+            <select class="form-select" name="kullanim_alani" required>
+              {% for l in locations %}
+              <option value="{{ l.name }}">{{ l.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">IP Adresi</span>
+            <input class="form-control" type="text" name="ip_adresi" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">MAC</span>
+            <input class="form-control" type="text" name="mac" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Hostname</span>
+            <input class="form-control" type="text" name="hostname" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Notlar</span>
+            <input class="form-control" type="text" name="notlar">
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Kaydet</button>
@@ -95,21 +116,42 @@
       </div>
       <form id="addForm" action="/printer/add" method="post">
         <div class="modal-body">
-          <select class="form-select mb-2" name="yazici_markasi" required>
-            {% for b in brands %}
-            <option value="{{ b.name }}">{{ b.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="text" name="yazici_modeli" placeholder="Yazıcı Modeli" required>
-          <select class="form-select mb-2" name="kullanim_alani" required>
-            {% for l in locations %}
-            <option value="{{ l.name }}">{{ l.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="text" name="ip_adresi" placeholder="IP Adresi" required>
-          <input class="form-control mb-2" type="text" name="mac" placeholder="MAC" required>
-          <input class="form-control mb-2" type="text" name="hostname" placeholder="Hostname" required>
-          <input class="form-control mb-2" type="text" name="notlar" placeholder="Notlar">
+          <div class="input-group mb-2">
+            <span class="input-group-text">Yazıcı Markası</span>
+            <select class="form-select" name="yazici_markasi" required>
+              {% for b in brands %}
+              <option value="{{ b.name }}">{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Yazıcı Modeli</span>
+            <input class="form-control" type="text" name="yazici_modeli" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Kullanım Alanı</span>
+            <select class="form-select" name="kullanim_alani" required>
+              {% for l in locations %}
+              <option value="{{ l.name }}">{{ l.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">IP Adresi</span>
+            <input class="form-control" type="text" name="ip_adresi" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">MAC</span>
+            <input class="form-control" type="text" name="mac" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Hostname</span>
+            <input class="form-control" type="text" name="hostname" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Notlar</span>
+            <input class="form-control" type="text" name="notlar">
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>

@@ -62,24 +62,42 @@
       <form id="editForm" action="/stock/add" method="post">
         <input type="hidden" name="stock_id">
         <div class="modal-body">
-          <input class="form-control mb-2" type="text" name="urun_adi" placeholder="Ürün Adı" required>
-          <select class="form-select mb-2" name="kategori" required>
-            {% for c in categories %}
-            <option value="{{ c.name }}">{{ c.name }}</option>
-            {% endfor %}
-          </select>
-          <select class="form-select mb-2" name="marka" required>
-            {% for b in brands %}
-            <option value="{{ b.name }}">{{ b.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="number" name="adet" placeholder="Adet" required>
-          <select class="form-select mb-2" name="lokasyon" required>
-            {% for l in locations %}
-            <option value="{{ l.name }}">{{ l.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="date" name="guncelleme_tarihi" placeholder="Güncelleme Tarihi">
+          <div class="input-group mb-2">
+            <span class="input-group-text">Ürün Adı</span>
+            <input class="form-control" type="text" name="urun_adi" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Kategori</span>
+            <select class="form-select" name="kategori" required>
+              {% for c in categories %}
+              <option value="{{ c.name }}">{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Marka</span>
+            <select class="form-select" name="marka" required>
+              {% for b in brands %}
+              <option value="{{ b.name }}">{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Adet</span>
+            <input class="form-control" type="number" name="adet" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Lokasyon</span>
+            <select class="form-select" name="lokasyon" required>
+              {% for l in locations %}
+              <option value="{{ l.name }}">{{ l.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Güncelleme Tarihi</span>
+            <input class="form-control" type="date" name="guncelleme_tarihi">
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Kaydet</button>
@@ -98,24 +116,42 @@
       </div>
       <form id="addForm" action="/stock/add" method="post">
         <div class="modal-body">
-          <input class="form-control mb-2" type="text" name="urun_adi" placeholder="Ürün Adı" required>
-          <select class="form-select mb-2" name="kategori" required>
-            {% for c in categories %}
-            <option value="{{ c.name }}">{{ c.name }}</option>
-            {% endfor %}
-          </select>
-          <select class="form-select mb-2" name="marka" required>
-            {% for b in brands %}
-            <option value="{{ b.name }}">{{ b.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="number" name="adet" placeholder="Adet" required>
-          <select class="form-select mb-2" name="lokasyon" required>
-            {% for l in locations %}
-            <option value="{{ l.name }}">{{ l.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="date" name="guncelleme_tarihi" placeholder="Güncelleme Tarihi">
+          <div class="input-group mb-2">
+            <span class="input-group-text">Ürün Adı</span>
+            <input class="form-control" type="text" name="urun_adi" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Kategori</span>
+            <select class="form-select" name="kategori" required>
+              {% for c in categories %}
+              <option value="{{ c.name }}">{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Marka</span>
+            <select class="form-select" name="marka" required>
+              {% for b in brands %}
+              <option value="{{ b.name }}">{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Adet</span>
+            <input class="form-control" type="number" name="adet" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Lokasyon</span>
+            <select class="form-select" name="lokasyon" required>
+              {% for l in locations %}
+              <option value="{{ l.name }}">{{ l.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Güncelleme Tarihi</span>
+            <input class="form-control" type="date" name="guncelleme_tarihi">
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>

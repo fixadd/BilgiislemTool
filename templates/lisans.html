@@ -62,17 +62,38 @@
       <form id="editForm" action="/license/add" method="post">
         <input type="hidden" name="license_id">
         <div class="modal-body">
-          <select class="form-select mb-2" name="yazilim_adi" required>
-            {% for s in softwares %}
-            <option value="{{ s.name }}">{{ s.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="text" name="lisans_anahtari" placeholder="Lisans Anahtarı" required>
-          <input class="form-control mb-2" type="number" name="adet" placeholder="Adet" required>
-          <input class="form-control mb-2" type="date" name="satin_alma_tarihi" placeholder="Satın Alma Tarihi">
-          <input class="form-control mb-2" type="date" name="bitis_tarihi" placeholder="Bitiş Tarihi">
-          <input class="form-control mb-2" type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
-          <input class="form-control mb-2" type="text" name="notlar" placeholder="Notlar">
+          <div class="input-group mb-2">
+            <span class="input-group-text">Yazılım Adı</span>
+            <select class="form-select" name="yazilim_adi" required>
+              {% for s in softwares %}
+              <option value="{{ s.name }}">{{ s.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Lisans Anahtarı</span>
+            <input class="form-control" type="text" name="lisans_anahtari" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Adet</span>
+            <input class="form-control" type="number" name="adet" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Satın Alma Tarihi</span>
+            <input class="form-control" type="date" name="satin_alma_tarihi">
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Bitiş Tarihi</span>
+            <input class="form-control" type="date" name="bitis_tarihi">
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Zimmetli Kişi</span>
+            <input class="form-control" type="text" name="zimmetli_kisi" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Notlar</span>
+            <input class="form-control" type="text" name="notlar">
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Kaydet</button>
@@ -91,17 +112,38 @@
       </div>
       <form id="addForm" action="/license/add" method="post">
         <div class="modal-body">
-          <select class="form-select mb-2" name="yazilim_adi" required>
-            {% for s in softwares %}
-            <option value="{{ s.name }}">{{ s.name }}</option>
-            {% endfor %}
-          </select>
-          <input class="form-control mb-2" type="text" name="lisans_anahtari" placeholder="Lisans Anahtarı" required>
-          <input class="form-control mb-2" type="number" name="adet" placeholder="Adet" required>
-          <input class="form-control mb-2" type="date" name="satin_alma_tarihi" placeholder="Satın Alma Tarihi">
-          <input class="form-control mb-2" type="date" name="bitis_tarihi" placeholder="Bitiş Tarihi">
-          <input class="form-control mb-2" type="text" name="zimmetli_kisi" placeholder="Zimmetli Kişi" required>
-          <input class="form-control mb-2" type="text" name="notlar" placeholder="Notlar">
+          <div class="input-group mb-2">
+            <span class="input-group-text">Yazılım Adı</span>
+            <select class="form-select" name="yazilim_adi" required>
+              {% for s in softwares %}
+              <option value="{{ s.name }}">{{ s.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Lisans Anahtarı</span>
+            <input class="form-control" type="text" name="lisans_anahtari" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Adet</span>
+            <input class="form-control" type="number" name="adet" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Satın Alma Tarihi</span>
+            <input class="form-control" type="date" name="satin_alma_tarihi">
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Bitiş Tarihi</span>
+            <input class="form-control" type="date" name="bitis_tarihi">
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Zimmetli Kişi</span>
+            <input class="form-control" type="text" name="zimmetli_kisi" required>
+          </div>
+          <div class="input-group mb-2">
+            <span class="input-group-text">Notlar</span>
+            <input class="form-control" type="text" name="notlar">
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>
