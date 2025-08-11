@@ -7,8 +7,8 @@ from fastapi.staticfiles import StaticFiles
 from io import BytesIO
 import pandas as pd
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
-from typing import Optional, List
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict
 from datetime import date, timedelta
 from sqlalchemy import create_engine, Column, Integer, String, Date, Text, Boolean, text, inspect
 from sqlalchemy.ext.declarative import declarative_base
@@ -244,6 +244,7 @@ class CreateTableSchema(BaseModel):
 class ColumnSettings(BaseModel):
     order: List[str]
     visible: List[str]
+    widths: Dict[str, int] = Field(default_factory=dict)
 
 class DeleteIds(BaseModel):
     ids: List[int]
@@ -319,6 +320,7 @@ def inventory_page(
     settings = get_user_settings(user.username, table_name)
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
+    widths = settings.get("widths", {})
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "envanter.html",
@@ -327,6 +329,7 @@ def inventory_page(
             "items": items,
             "columns": display_columns,
             "table_name": table_name,
+            "column_widths": widths,
         },
     )
 
@@ -523,6 +526,7 @@ def license_page(
     settings = get_user_settings(user.username, table_name)
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
+    widths = settings.get("widths", {})
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "lisans.html",
@@ -531,6 +535,7 @@ def license_page(
             "licenses": licenses,
             "columns": display_columns,
             "table_name": table_name,
+            "column_widths": widths,
         },
     )
 
@@ -730,6 +735,7 @@ def stock_page(
     settings = get_user_settings(user.username, table_name)
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
+    widths = settings.get("widths", {})
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "stok.html",
@@ -738,6 +744,7 @@ def stock_page(
             "stocks": stocks,
             "columns": display_columns,
             "table_name": table_name,
+            "column_widths": widths,
         },
     )
 
@@ -918,6 +925,7 @@ def printer_page(
     settings = get_user_settings(user.username, table_name)
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
+    widths = settings.get("widths", {})
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "yazici.html",
@@ -926,6 +934,7 @@ def printer_page(
             "printers": printers,
             "columns": display_columns,
             "table_name": table_name,
+            "column_widths": widths,
         },
     )
 
