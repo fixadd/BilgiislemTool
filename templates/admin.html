@@ -14,13 +14,20 @@
 </form>
 <table class="table">
   <thead>
-    <tr><th>Kullanıcı Adı</th><th>Admin</th></tr>
+    <tr><th>Kullanıcı Adı</th><th>Admin</th><th>İşlem</th></tr>
   </thead>
   <tbody>
     {% for u in users %}
     <tr>
       <td>{{ u.username }}</td>
       <td>{{ "Evet" if u.is_admin else "Hayır" }}</td>
+      <td>
+        {% if not u.is_admin %}
+        <form method="post" action="/admin/delete/{{ u.id }}" style="display:inline">
+          <button type="submit" class="btn btn-danger btn-sm">Sil</button>
+        </form>
+        {% else %}-{% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>

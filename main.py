@@ -402,6 +402,24 @@ def admin_create_user(
     return RedirectResponse("/admin", status_code=303)
 
 
+@app.post("/admin/delete/{user_id}")
+def admin_delete_user(
+    user_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    if target.is_admin:
+        raise HTTPException(status_code=400, detail="Admin kullanıcı silinemez")
+    db.delete(target)
+    db.commit()
+    return RedirectResponse("/admin", status_code=303)
+
+
 # --- Takip Sayfaları (HTML) ---
 
 @app.get("/lists", response_class=HTMLResponse)
