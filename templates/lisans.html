@@ -13,9 +13,15 @@
   <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
     <i class="bi bi-plus"></i>
   </button>
-  <button id="upload-btn" class="btn btn-success" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-    <i class="bi bi-upload"></i>
-  </button>
+  <div class="dropdown">
+    <button class="btn btn-success dropdown-toggle" type="button" id="uploadDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+      <i class="bi bi-upload"></i>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="uploadDropdown">
+      <li><a class="dropdown-item" href="#" id="import-excel">İçe Aktar</a></li>
+      <li><a class="dropdown-item" href="#" id="export-excel">Dışa Aktar</a></li>
+    </ul>
+  </div>
   <button id="edit-selected" class="btn btn-warning" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
     <i class="bi bi-pencil"></i>
   </button>
@@ -196,11 +202,24 @@ document.getElementById('select-all').addEventListener('change', function() {
     document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
 });
 
-document.getElementById('upload-btn').addEventListener('click', () => {
+document.getElementById('import-excel').addEventListener('click', () => {
     document.getElementById('excelInput').click();
 });
-document.getElementById('excelInput').addEventListener('change', () => {
-    document.getElementById('uploadForm').submit();
+document.getElementById('export-excel').addEventListener('click', () => {
+    window.location.href = '/license/export';
+});
+document.getElementById('excelInput').addEventListener('change', async () => {
+    const input = document.getElementById('excelInput');
+    if (!input.files.length) return;
+    const formData = new FormData();
+    formData.append('excel_file', input.files[0]);
+    const res = await fetch('/license/upload', { method: 'POST', body: formData });
+    if (res.ok) {
+        location.reload();
+    } else {
+        const data = await res.json();
+        alert('Dosya yüklenemedi: ' + data.detail);
+    }
 });
 
 document.getElementById('edit-selected').addEventListener('click', () => {
