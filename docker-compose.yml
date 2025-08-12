@@ -7,6 +7,23 @@ services:
       - "${HOST_PORT:-5000}:5000"
     environment:
       - DATABASE_URL=sqlite:////app/data/envanter.db
+      - SENTRY_DSN=${SENTRY_DSN:-}
     volumes:
       - ./data:/app/data
       - ./image:/app/image     # hosttaki image klasörünü container’a bağla
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - envanter
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus

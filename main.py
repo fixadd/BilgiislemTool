@@ -21,6 +21,9 @@ import base64
 import sqlite3
 from passlib.context import CryptContext
 from passlib.exc import UnknownHashError
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,6 +35,13 @@ Base = declarative_base()
 SETTINGS_FILE = os.path.join(BASE_DIR, "data", "column_settings.json")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Initialize Sentry for error tracking if a DSN is provided
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    integrations=[FastApiIntegration()],
+    traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0")),
+)
 
 # --- SQLALCHEMY MODELLER ---
 class HardwareInventory(Base):
@@ -468,6 +478,9 @@ class DeleteIds(BaseModel):
 # --- FastAPI Uygulaması ---
 app = FastAPI()
 app.mount("/image", StaticFiles(directory="image"), name="image")
+
+# Expose Prometheus metrics at /metrics
+Instrumentator().instrument(app).expose(app)
 templates = Jinja2Templates(directory="templates")
 
 # Oturum yönetimi için SessionMiddleware ekle
