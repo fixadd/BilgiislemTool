@@ -200,10 +200,31 @@ def init_db():
         if "no" not in hw_cols:
             conn.execute(text("ALTER TABLE hardware_inventory ADD COLUMN no TEXT"))
 
-        # ensure deleted hardware inventory 'no' column exists
+        # ensure deleted hardware inventory columns exist
         deleted_hw_cols = [c["name"] for c in inspector.get_columns("deleted_hardware_inventory")]
-        if "no" not in deleted_hw_cols:
-            conn.execute(text("ALTER TABLE deleted_hardware_inventory ADD COLUMN no TEXT"))
+        deleted_hw_required = {
+            "no": "TEXT",
+            "fabrika": "TEXT",
+            "blok": "TEXT",
+            "departman": "TEXT",
+            "donanim_tipi": "TEXT",
+            "bilgisayar_adi": "TEXT",
+            "marka": "TEXT",
+            "model": "TEXT",
+            "seri_no": "TEXT",
+            "sorumlu_personel": "TEXT",
+            "kullanim_alani": "TEXT",
+            "bagli_makina_no": "TEXT",
+            "notlar": "TEXT",
+            "deleted_at": "DATE",
+        }
+        for col, col_type in deleted_hw_required.items():
+            if col not in deleted_hw_cols:
+                conn.execute(
+                    text(
+                        f"ALTER TABLE deleted_hardware_inventory ADD COLUMN {col} {col_type}"
+                    )
+                )
 
         # ensure stock tracking new columns exist
         stock_cols = [c["name"] for c in inspector.get_columns("stock_tracking")]
