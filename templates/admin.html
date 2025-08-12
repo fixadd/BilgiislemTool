@@ -51,4 +51,34 @@
     {% endfor %}
   </tbody>
 </table>
+
+<h2>Tablo Yönetimi</h2>
+{% if table_error %}<div class="alert alert-danger">{{ table_error }}</div>{% endif %}
+<form method="post" action="/admin/tables/create" class="mb-3">
+  <div class="mb-3">
+    <input type="text" name="table_name" class="form-control" placeholder="Tablo Adı" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Tablo Oluştur</button>
+  </form>
+<table class="table">
+  <thead>
+    <tr><th>Tablo Adı</th><th>Kayıt Sayısı</th><th>İşlem</th></tr>
+  </thead>
+  <tbody>
+    {% for t in tables %}
+    <tr>
+      <td>{{ t.name }}</td>
+      <td>{{ t.count }}</td>
+      <td>
+        {% if t.count == 0 %}
+        <form method="post" action="/admin/tables/delete" style="display:inline">
+          <input type="hidden" name="table_name" value="{{ t.name }}">
+          <button type="submit" class="btn btn-danger btn-sm">Sil</button>
+        </form>
+        {% else %}-{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}
