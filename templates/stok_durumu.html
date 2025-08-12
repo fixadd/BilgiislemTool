@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Stok Durumu{% endblock %}
+{% block content %}
+<h2>Stok Durumu</h2>
+<table class="table table-striped">
+  <tr><th>Ürün Adı</th><th>Stok</th></tr>
+  {% for name, qty in summary %}
+  <tr><td>{{ name }}</td><td>{{ qty }}</td></tr>
+  {% endfor %}
+</table>
+<a class="btn btn-secondary" href="/stock">Geri Dön</a>
+{% endblock %}

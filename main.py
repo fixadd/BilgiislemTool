@@ -36,23 +36,35 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class HardwareInventory(Base):
     __tablename__ = "hardware_inventory"
     id = Column(Integer, primary_key=True, index=True)
-    demirbas_adi = Column(String)
+    no = Column(String)
+    fabrika = Column(String)
+    blok = Column(String)
+    departman = Column(String)
+    donanim_tipi = Column(String)
+    bilgisayar_adi = Column(String)
     marka = Column(String)
     model = Column(String)
     seri_no = Column(String)
-    lokasyon = Column(String)
-    zimmetli_kisi = Column(String)
+    sorumlu_personel = Column(String)
+    kullanim_alani = Column(String)
+    bagli_makina_no = Column(String)
     notlar = Column(Text)
 
 class DeletedHardwareInventory(Base):
     __tablename__ = "deleted_hardware_inventory"
     id = Column(Integer, primary_key=True, index=True)
-    demirbas_adi = Column(String)
+    no = Column(String)
+    fabrika = Column(String)
+    blok = Column(String)
+    departman = Column(String)
+    donanim_tipi = Column(String)
+    bilgisayar_adi = Column(String)
     marka = Column(String)
     model = Column(String)
     seri_no = Column(String)
-    lokasyon = Column(String)
-    zimmetli_kisi = Column(String)
+    sorumlu_personel = Column(String)
+    kullanim_alani = Column(String)
+    bagli_makina_no = Column(String)
     notlar = Column(Text)
     deleted_at = Column(Date)
 
@@ -71,12 +83,12 @@ class DeletedPrinterInventory(Base):
 class DeletedLicenseInventory(Base):
     __tablename__ = "deleted_license_inventory"
     id = Column(Integer, primary_key=True, index=True)
+    departman = Column(String)
+    kullanici = Column(String)
     yazilim_adi = Column(String)
     lisans_anahtari = Column(String)
-    adet = Column(Integer)
-    satin_alma_tarihi = Column(Date)
-    bitis_tarihi = Column(Date)
-    zimmetli_kisi = Column(String)
+    mail_adresi = Column(String)
+    envanter_no = Column(String)
     notlar = Column(Text)
     deleted_at = Column(Date)
 
@@ -84,11 +96,13 @@ class DeletedStockItem(Base):
     __tablename__ = "deleted_stock_items"
     id = Column(Integer, primary_key=True, index=True)
     urun_adi = Column(String)
-    kategori = Column(String)
-    marka = Column(String)
+    islem = Column(String)
     adet = Column(Integer)
+    tarih = Column(Date)
     lokasyon = Column(String)
-    guncelleme_tarihi = Column(Date)
+    ifs_no = Column(String)
+    aciklama = Column(String)
+    islem_yapan = Column(String)
     deleted_at = Column(Date)
 
 class PrinterInventory(Base):
@@ -105,23 +119,25 @@ class PrinterInventory(Base):
 class LicenseInventory(Base):
     __tablename__ = "license_inventory"
     id = Column(Integer, primary_key=True, index=True)
+    departman = Column(String)
+    kullanici = Column(String)
     yazilim_adi = Column(String)
     lisans_anahtari = Column(String)
-    adet = Column(Integer)
-    satin_alma_tarihi = Column(Date)
-    bitis_tarihi = Column(Date)
-    zimmetli_kisi = Column(String)
+    mail_adresi = Column(String)
+    envanter_no = Column(String)
     notlar = Column(Text)
 
 class StockItem(Base):
     __tablename__ = "stock_tracking"
     id = Column(Integer, primary_key=True, index=True)
     urun_adi = Column(String)
-    kategori = Column(String)
-    marka = Column(String)
+    islem = Column(String)
     adet = Column(Integer)
+    tarih = Column(Date)
     lokasyon = Column(String)
-    guncelleme_tarihi = Column(Date)
+    ifs_no = Column(String)
+    aciklama = Column(String)
+    islem_yapan = Column(String)
 
 
 class User(Base):
@@ -213,7 +229,47 @@ def save_settings(data):
         json.dump(data, f)
 
 
+COLUMN_OVERRIDES = {
+    "license_inventory": [
+        "departman",
+        "kullanici",
+        "yazilim_adi",
+        "lisans_anahtari",
+        "mail_adresi",
+        "envanter_no",
+        "notlar",
+    ],
+    "hardware_inventory": [
+        "no",
+        "fabrika",
+        "blok",
+        "departman",
+        "donanim_tipi",
+        "bilgisayar_adi",
+        "marka",
+        "model",
+        "seri_no",
+        "sorumlu_personel",
+        "kullanim_alani",
+        "bagli_makina_no",
+        "notlar",
+    ],
+    "stock_tracking": [
+        "urun_adi",
+        "islem",
+        "adet",
+        "tarih",
+        "lokasyon",
+        "ifs_no",
+        "aciklama",
+        "islem_yapan",
+    ],
+}
+
+
 def get_table_columns(table_name: str) -> List[str]:
+    if table_name in COLUMN_OVERRIDES:
+        return COLUMN_OVERRIDES[table_name]
     return [col["name"] for col in inspect(engine).get_columns(table_name)]
 
 
@@ -590,8 +646,6 @@ def inventory_page(
                 query = query.filter(attr.like(f"%{val}%"))
     items = query.limit(50).all()
     display_columns = [c for c in order if c in visible]
-    brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
-    locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
     return templates.TemplateResponse(
         "envanter.html",
         {
@@ -601,8 +655,6 @@ def inventory_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
-            "brands": brands,
-            "locations": locations,
             "filters": filters,
         },
     )
@@ -611,12 +663,18 @@ def inventory_page(
 @app.post("/inventory/add")
 def add_inventory_form(
     item_id: Optional[int] = Form(None),
-    demirbas_adi: str = Form(...),
+    no: str = Form(...),
+    fabrika: str = Form(...),
+    blok: str = Form(...),
+    departman: str = Form(...),
+    donanim_tipi: str = Form(...),
+    bilgisayar_adi: str = Form(...),
     marka: str = Form(...),
     model: str = Form(...),
     seri_no: str = Form(...),
-    lokasyon: str = Form(...),
-    zimmetli_kisi: str = Form(...),
+    sorumlu_personel: str = Form(...),
+    kullanim_alani: str = Form(...),
+    bagli_makina_no: str = Form(...),
     notlar: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
@@ -625,22 +683,34 @@ def add_inventory_form(
         item = db.query(HardwareInventory).get(item_id)
         if not item:
             raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
-        item.demirbas_adi = demirbas_adi
+        item.no = no
+        item.fabrika = fabrika
+        item.blok = blok
+        item.departman = departman
+        item.donanim_tipi = donanim_tipi
+        item.bilgisayar_adi = bilgisayar_adi
         item.marka = marka
         item.model = model
         item.seri_no = seri_no
-        item.lokasyon = lokasyon
-        item.zimmetli_kisi = zimmetli_kisi
+        item.sorumlu_personel = sorumlu_personel
+        item.kullanim_alani = kullanim_alani
+        item.bagli_makina_no = bagli_makina_no
         item.notlar = notlar
         log_action(db, user.username, f"Envanter güncellendi ({item_id})")
     else:
         db_item = HardwareInventory(
-            demirbas_adi=demirbas_adi,
+            no=no,
+            fabrika=fabrika,
+            blok=blok,
+            departman=departman,
+            donanim_tipi=donanim_tipi,
+            bilgisayar_adi=bilgisayar_adi,
             marka=marka,
             model=model,
             seri_no=seri_no,
-            lokasyon=lokasyon,
-            zimmetli_kisi=zimmetli_kisi,
+            sorumlu_personel=sorumlu_personel,
+            kullanim_alani=kullanim_alani,
+            bagli_makina_no=bagli_makina_no,
             notlar=notlar,
         )
         db.add(db_item)
@@ -663,12 +733,18 @@ def delete_inventory_form(
     if item:
         deleted = DeletedHardwareInventory(
             id=item.id,
-            demirbas_adi=item.demirbas_adi,
+            no=item.no,
+            fabrika=item.fabrika,
+            blok=item.blok,
+            departman=item.departman,
+            donanim_tipi=item.donanim_tipi,
+            bilgisayar_adi=item.bilgisayar_adi,
             marka=item.marka,
             model=item.model,
             seri_no=item.seri_no,
-            lokasyon=item.lokasyon,
-            zimmetli_kisi=item.zimmetli_kisi,
+            sorumlu_personel=item.sorumlu_personel,
+            kullanim_alani=item.kullanim_alani,
+            bagli_makina_no=item.bagli_makina_no,
             notlar=item.notlar,
             deleted_at=date.today(),
         )
@@ -684,12 +760,18 @@ def delete_inventory(ids: DeleteIds, user: User = Depends(require_login), db: Se
     for item in items:
         deleted = DeletedHardwareInventory(
             id=item.id,
-            demirbas_adi=item.demirbas_adi,
+            no=item.no,
+            fabrika=item.fabrika,
+            blok=item.blok,
+            departman=item.departman,
+            donanim_tipi=item.donanim_tipi,
+            bilgisayar_adi=item.bilgisayar_adi,
             marka=item.marka,
             model=item.model,
             seri_no=item.seri_no,
-            lokasyon=item.lokasyon,
-            zimmetli_kisi=item.zimmetli_kisi,
+            sorumlu_personel=item.sorumlu_personel,
+            kullanim_alani=item.kullanim_alani,
+            bagli_makina_no=item.bagli_makina_no,
             notlar=item.notlar,
             deleted_at=date.today(),
         )
@@ -728,12 +810,18 @@ def restore_inventory(item_id: int, user: User = Depends(require_login), db: Ses
     if item:
         restored = HardwareInventory(
             id=item.id,
-            demirbas_adi=item.demirbas_adi,
+            no=item.no,
+            fabrika=item.fabrika,
+            blok=item.blok,
+            departman=item.departman,
+            donanim_tipi=item.donanim_tipi,
+            bilgisayar_adi=item.bilgisayar_adi,
             marka=item.marka,
             model=item.model,
             seri_no=item.seri_no,
-            lokasyon=item.lokasyon,
-            zimmetli_kisi=item.zimmetli_kisi,
+            sorumlu_personel=item.sorumlu_personel,
+            kullanim_alani=item.kullanim_alani,
+            bagli_makina_no=item.bagli_makina_no,
             notlar=item.notlar,
         )
         db.add(restored)
@@ -863,7 +951,6 @@ def license_page(
                 query = query.filter(attr.like(f"%{val}%"))
     licenses = query.limit(50).all()
     display_columns = [c for c in order if c in visible]
-    softwares = db.query(LookupItem).filter(LookupItem.type == "yazilim").all()
     return templates.TemplateResponse(
         "lisans.html",
         {
@@ -873,7 +960,6 @@ def license_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
-            "softwares": softwares,
             "filters": filters,
         },
     )
@@ -882,12 +968,12 @@ def license_page(
 @app.post("/license/add")
 def add_license_form(
     license_id: Optional[int] = Form(None),
+    departman: str = Form(...),
+    kullanici: str = Form(...),
     yazilim_adi: str = Form(...),
     lisans_anahtari: str = Form(...),
-    adet: int = Form(...),
-    satin_alma_tarihi: Optional[str] = Form(None),
-    bitis_tarihi: Optional[str] = Form(None),
-    zimmetli_kisi: str = Form(...),
+    mail_adresi: str = Form(...),
+    envanter_no: str = Form(...),
     notlar: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
@@ -896,27 +982,22 @@ def add_license_form(
         item = db.query(LicenseInventory).get(license_id)
         if not item:
             raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+        item.departman = departman
+        item.kullanici = kullanici
         item.yazilim_adi = yazilim_adi
         item.lisans_anahtari = lisans_anahtari
-        item.adet = adet
-        item.satin_alma_tarihi = (
-            date.fromisoformat(satin_alma_tarihi) if satin_alma_tarihi else None
-        )
-        item.bitis_tarihi = (
-            date.fromisoformat(bitis_tarihi) if bitis_tarihi else None
-        )
-        item.zimmetli_kisi = zimmetli_kisi
+        item.mail_adresi = mail_adresi
+        item.envanter_no = envanter_no
         item.notlar = notlar
         log_action(db, user.username, f"Lisans güncellendi ({license_id})")
     else:
         db_item = LicenseInventory(
+            departman=departman,
+            kullanici=kullanici,
             yazilim_adi=yazilim_adi,
             lisans_anahtari=lisans_anahtari,
-            adet=adet,
-            satin_alma_tarihi=
-                date.fromisoformat(satin_alma_tarihi) if satin_alma_tarihi else None,
-            bitis_tarihi=date.fromisoformat(bitis_tarihi) if bitis_tarihi else None,
-            zimmetli_kisi=zimmetli_kisi,
+            mail_adresi=mail_adresi,
+            envanter_no=envanter_no,
             notlar=notlar,
         )
         db.add(db_item)
@@ -939,12 +1020,12 @@ def delete_license_form(
     if lic:
         deleted = DeletedLicenseInventory(
             id=lic.id,
+            departman=lic.departman,
+            kullanici=lic.kullanici,
             yazilim_adi=lic.yazilim_adi,
             lisans_anahtari=lic.lisans_anahtari,
-            adet=lic.adet,
-            satin_alma_tarihi=lic.satin_alma_tarihi,
-            bitis_tarihi=lic.bitis_tarihi,
-            zimmetli_kisi=lic.zimmetli_kisi,
+            mail_adresi=lic.mail_adresi,
+            envanter_no=lic.envanter_no,
             notlar=lic.notlar,
             deleted_at=date.today(),
         )
@@ -969,12 +1050,12 @@ def delete_license(
     for lic in items:
         deleted = DeletedLicenseInventory(
             id=lic.id,
+            departman=lic.departman,
+            kullanici=lic.kullanici,
             yazilim_adi=lic.yazilim_adi,
             lisans_anahtari=lic.lisans_anahtari,
-            adet=lic.adet,
-            satin_alma_tarihi=lic.satin_alma_tarihi,
-            bitis_tarihi=lic.bitis_tarihi,
-            zimmetli_kisi=lic.zimmetli_kisi,
+            mail_adresi=lic.mail_adresi,
+            envanter_no=lic.envanter_no,
             notlar=lic.notlar,
             deleted_at=date.today(),
         )
@@ -999,12 +1080,12 @@ def restore_license(
     if item:
         restored = LicenseInventory(
             id=item.id,
+            departman=item.departman,
+            kullanici=item.kullanici,
             yazilim_adi=item.yazilim_adi,
             lisans_anahtari=item.lisans_anahtari,
-            adet=item.adet,
-            satin_alma_tarihi=item.satin_alma_tarihi,
-            bitis_tarihi=item.bitis_tarihi,
-            zimmetli_kisi=item.zimmetli_kisi,
+            mail_adresi=item.mail_adresi,
+            envanter_no=item.envanter_no,
             notlar=item.notlar,
         )
         db.add(restored)
@@ -1140,9 +1221,6 @@ def stock_page(
                 query = query.filter(attr.like(f"%{val}%"))
     stocks = query.limit(50).all()
     display_columns = [c for c in order if c in visible]
-    brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
-    locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
-    categories = db.query(LookupItem).filter(LookupItem.type == "kategori").all()
     return templates.TemplateResponse(
         "stok.html",
         {
@@ -1152,9 +1230,6 @@ def stock_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
-            "brands": brands,
-            "locations": locations,
-            "categories": categories,
             "filters": filters,
         },
     )
@@ -1164,11 +1239,13 @@ def stock_page(
 def add_stock_form(
     stock_id: Optional[int] = Form(None),
     urun_adi: str = Form(...),
-    kategori: str = Form(...),
-    marka: str = Form(...),
+    islem: str = Form(...),
     adet: int = Form(...),
+    tarih: Optional[str] = Form(None),
     lokasyon: str = Form(...),
-    guncelleme_tarihi: Optional[str] = Form(None),
+    ifs_no: str = Form(...),
+    aciklama: str = Form(""),
+    islem_yapan: str = Form(...),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1177,23 +1254,24 @@ def add_stock_form(
         if not item:
             raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
         item.urun_adi = urun_adi
-        item.kategori = kategori
-        item.marka = marka
+        item.islem = islem
         item.adet = adet
+        item.tarih = date.fromisoformat(tarih) if tarih else None
         item.lokasyon = lokasyon
-        item.guncelleme_tarihi = (
-            date.fromisoformat(guncelleme_tarihi) if guncelleme_tarihi else None
-        )
+        item.ifs_no = ifs_no
+        item.aciklama = aciklama
+        item.islem_yapan = islem_yapan
         log_action(db, user.username, f"Stok güncellendi ({stock_id})")
     else:
         db_item = StockItem(
             urun_adi=urun_adi,
-            kategori=kategori,
-            marka=marka,
+            islem=islem,
             adet=adet,
+            tarih=date.fromisoformat(tarih) if tarih else None,
             lokasyon=lokasyon,
-            guncelleme_tarihi=
-                date.fromisoformat(guncelleme_tarihi) if guncelleme_tarihi else None,
+            ifs_no=ifs_no,
+            aciklama=aciklama,
+            islem_yapan=islem_yapan,
         )
         db.add(db_item)
         log_action(db, user.username, "Stok kaydı eklendi")
@@ -1212,11 +1290,13 @@ def delete_stock_form(
         deleted = DeletedStockItem(
             id=st.id,
             urun_adi=st.urun_adi,
-            kategori=st.kategori,
-            marka=st.marka,
+            islem=st.islem,
             adet=st.adet,
+            tarih=st.tarih,
             lokasyon=st.lokasyon,
-            guncelleme_tarihi=st.guncelleme_tarihi,
+            ifs_no=st.ifs_no,
+            aciklama=st.aciklama,
+            islem_yapan=st.islem_yapan,
             deleted_at=date.today(),
         )
         db.add(deleted)
@@ -1237,11 +1317,13 @@ def delete_stock(
         deleted = DeletedStockItem(
             id=st.id,
             urun_adi=st.urun_adi,
-            kategori=st.kategori,
-            marka=st.marka,
+            islem=st.islem,
             adet=st.adet,
+            tarih=st.tarih,
             lokasyon=st.lokasyon,
-            guncelleme_tarihi=st.guncelleme_tarihi,
+            ifs_no=st.ifs_no,
+            aciklama=st.aciklama,
+            islem_yapan=st.islem_yapan,
             deleted_at=date.today(),
         )
         db.add(deleted)
@@ -1266,17 +1348,40 @@ def restore_stock(
         restored = StockItem(
             id=item.id,
             urun_adi=item.urun_adi,
-            kategori=item.kategori,
-            marka=item.marka,
+            islem=item.islem,
             adet=item.adet,
+            tarih=item.tarih,
             lokasyon=item.lokasyon,
-            guncelleme_tarihi=item.guncelleme_tarihi,
+            ifs_no=item.ifs_no,
+            aciklama=item.aciklama,
+            islem_yapan=item.islem_yapan,
         )
         db.add(restored)
         db.delete(item)
         log_action(db, user.username, f"Stok geri yüklendi ({item_id})")
         db.commit()
     return RedirectResponse("/trash", status_code=303)
+
+
+@app.get("/stock/status", response_class=HTMLResponse)
+def stock_status(
+    request: Request,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = db.query(StockItem).all()
+    summary: Dict[str, int] = {}
+    for it in items:
+        qty = summary.get(it.urun_adi, 0)
+        if it.islem == "giriş":
+            qty += it.adet
+        elif it.islem == "çıkış":
+            qty -= it.adet
+        summary[it.urun_adi] = qty
+    sorted_items = sorted(summary.items(), key=lambda x: x[1], reverse=True)
+    return templates.TemplateResponse(
+        "stok_durumu.html", {"request": request, "summary": sorted_items}
+    )
 
 
 @app.post("/stock/upload")
