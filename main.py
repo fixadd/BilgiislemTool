@@ -593,6 +593,7 @@ def admin_create_user(
     first_name: str = Form(""),
     last_name: str = Form(""),
     email: str = Form(""),
+    is_admin: bool = Form(False),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -615,6 +616,7 @@ def admin_create_user(
             first_name=first_name,
             last_name=last_name,
             email=email,
+            is_admin=is_admin,
             must_change_password=True,
         )
     )
@@ -638,6 +640,23 @@ def admin_delete_user(
         raise HTTPException(status_code=400, detail="Admin kullanıcı silinemez")
     db.delete(target)
     log_action(db, user.username, f"Kullanıcı silindi: {target.username}")
+    db.commit()
+    return RedirectResponse("/admin", status_code=303)
+
+
+@app.post("/admin/make_admin/{user_id}")
+def admin_make_admin(
+    user_id: int,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    target.is_admin = True
+    log_action(db, user.username, f"Kullanıcı admin yapıldı: {target.username}")
     db.commit()
     return RedirectResponse("/admin", status_code=303)
 
@@ -693,14 +712,7 @@ def inventory_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    filters = settings.get("filters", {})
-    query = db.query(HardwareInventory)
-    for col, val in filters.items():
-        if val:
-            attr = getattr(HardwareInventory, col, None)
-            if attr is not None:
-                query = query.filter(attr.like(f"%{val}%"))
-    items = query.limit(50).all()
+    items = db.query(HardwareInventory).limit(50).all()
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "envanter.html",
@@ -711,7 +723,6 @@ def inventory_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
-            "filters": filters,
         },
     )
 
@@ -998,14 +1009,7 @@ def license_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    filters = settings.get("filters", {})
-    query = db.query(LicenseInventory)
-    for col, val in filters.items():
-        if val:
-            attr = getattr(LicenseInventory, col, None)
-            if attr is not None:
-                query = query.filter(attr.like(f"%{val}%"))
-    licenses = query.limit(50).all()
+    licenses = db.query(LicenseInventory).limit(50).all()
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "lisans.html",
@@ -1016,7 +1020,6 @@ def license_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
-            "filters": filters,
         },
     )
 
@@ -1268,14 +1271,7 @@ def stock_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    filters = settings.get("filters", {})
-    query = db.query(StockItem)
-    for col, val in filters.items():
-        if val:
-            attr = getattr(StockItem, col, None)
-            if attr is not None:
-                query = query.filter(attr.like(f"%{val}%"))
-    stocks = query.limit(50).all()
+    stocks = db.query(StockItem).limit(50).all()
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "stok.html",
@@ -1286,7 +1282,6 @@ def stock_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
-            "filters": filters,
         },
     )
 
@@ -1550,14 +1545,7 @@ def printer_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    filters = settings.get("filters", {})
-    query = db.query(PrinterInventory)
-    for col, val in filters.items():
-        if val:
-            attr = getattr(PrinterInventory, col, None)
-            if attr is not None:
-                query = query.filter(attr.like(f"%{val}%"))
-    printers = query.limit(50).all()
+    printers = db.query(PrinterInventory).limit(50).all()
     display_columns = [c for c in order if c in visible]
     brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
@@ -1572,7 +1560,6 @@ def printer_page(
             "column_widths": widths,
             "brands": brands,
             "locations": locations,
-            "filters": filters,
         },
     )
 

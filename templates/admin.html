@@ -19,6 +19,10 @@
   <div class="mb-3">
     <input type="email" name="email" class="form-control" placeholder="Mail Adresi">
   </div>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" name="is_admin" id="is_admin">
+    <label class="form-check-label" for="is_admin">Admin</label>
+  </div>
   <button type="submit" class="btn btn-primary">Ekle</button>
 </form>
 <table class="table">
@@ -35,6 +39,9 @@
       <td>{{ "Evet" if u.is_admin else "Hayır" }}</td>
       <td>
         {% if not u.is_admin %}
+        <form method="post" action="/admin/make_admin/{{ u.id }}" style="display:inline">
+          <button type="submit" class="btn btn-secondary btn-sm">Admin Yap</button>
+        </form>
         <form method="post" action="/admin/delete/{{ u.id }}" style="display:inline">
           <button type="submit" class="btn btn-danger btn-sm">Sil</button>
         </form>
