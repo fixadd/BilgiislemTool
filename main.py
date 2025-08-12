@@ -200,6 +200,11 @@ def init_db():
         if "no" not in hw_cols:
             conn.execute(text("ALTER TABLE hardware_inventory ADD COLUMN no TEXT"))
 
+        # ensure deleted hardware inventory 'no' column exists
+        deleted_hw_cols = [c["name"] for c in inspector.get_columns("deleted_hardware_inventory")]
+        if "no" not in deleted_hw_cols:
+            conn.execute(text("ALTER TABLE deleted_hardware_inventory ADD COLUMN no TEXT"))
+
         # ensure stock tracking new columns exist
         stock_cols = [c["name"] for c in inspector.get_columns("stock_tracking")]
         if "kategori" not in stock_cols:
