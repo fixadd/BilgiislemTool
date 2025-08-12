@@ -984,11 +984,8 @@ async def upload_inventory_excel(
             "bagli_makina_no",
         ]
         eksik_kolonlar = [col for col in expected_cols if col not in df.columns]
-        if eksik_kolonlar:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Excel başlıkları eksik veya yanlış: {eksik_kolonlar}",
-            )
+        for col in eksik_kolonlar:
+            df[col] = ""
         df = df[expected_cols]
 
         for _, row in df.iterrows():
