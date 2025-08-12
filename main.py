@@ -13,7 +13,7 @@ from datetime import date, timedelta
 from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, Text, Boolean, text, inspect, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from starlette.middleware.sessions import SessionMiddleware
 import os
 import json
@@ -657,6 +657,11 @@ def admin_create_user(
             must_change_password=True,
         )
     )
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        return render_admin_page(request, db, error="Kullanıcı zaten var")
     log_action(db, user.username, f"Kullanıcı oluşturuldu: {username}")
     db.commit()
     return RedirectResponse("/admin", status_code=303)
