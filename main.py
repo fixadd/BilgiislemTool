@@ -49,7 +49,6 @@ class HardwareInventory(Base):
     sorumlu_personel = Column(String)
     kullanim_alani = Column(String)
     bagli_makina_no = Column(String)
-    notlar = Column(Text)
 
 class DeletedHardwareInventory(Base):
     __tablename__ = "deleted_hardware_inventory"
@@ -66,7 +65,6 @@ class DeletedHardwareInventory(Base):
     sorumlu_personel = Column(String)
     kullanim_alani = Column(String)
     bagli_makina_no = Column(String)
-    notlar = Column(Text)
     deleted_at = Column(Date)
 
 class DeletedPrinterInventory(Base):
@@ -221,7 +219,6 @@ def init_db():
             "sorumlu_personel": "TEXT",
             "kullanim_alani": "TEXT",
             "bagli_makina_no": "TEXT",
-            "notlar": "TEXT",
         }
         for col, col_type in hw_required.items():
             if col not in hw_cols:
@@ -245,7 +242,6 @@ def init_db():
             "sorumlu_personel": "TEXT",
             "kullanim_alani": "TEXT",
             "bagli_makina_no": "TEXT",
-            "notlar": "TEXT",
             "deleted_at": "DATE",
         }
         for col, col_type in deleted_hw_required.items():
@@ -338,7 +334,6 @@ COLUMN_OVERRIDES = {
         "sorumlu_personel",
         "kullanim_alani",
         "bagli_makina_no",
-        "notlar",
     ],
     "stock_tracking": [
         "urun_adi",
@@ -413,7 +408,6 @@ class HardwareItem(BaseModel):
     sorumlu_personel: str
     kullanim_alani: str
     bagli_makina_no: str
-    notlar: Optional[str]
 
     class Config:
         orm_mode = True
@@ -785,7 +779,6 @@ def add_inventory_form(
     sorumlu_personel: str = Form(...),
     kullanim_alani: str = Form(...),
     bagli_makina_no: str = Form(...),
-    notlar: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -805,7 +798,6 @@ def add_inventory_form(
         item.sorumlu_personel = sorumlu_personel
         item.kullanim_alani = kullanim_alani
         item.bagli_makina_no = bagli_makina_no
-        item.notlar = notlar
         log_action(db, user.username, f"Envanter güncellendi ({item_id})")
     else:
         db_item = HardwareInventory(
@@ -821,7 +813,6 @@ def add_inventory_form(
             sorumlu_personel=sorumlu_personel,
             kullanim_alani=kullanim_alani,
             bagli_makina_no=bagli_makina_no,
-            notlar=notlar,
         )
         db.add(db_item)
         log_action(db, user.username, "Envanter kaydı eklendi")
@@ -855,7 +846,6 @@ def delete_inventory_form(
             sorumlu_personel=item.sorumlu_personel,
             kullanim_alani=item.kullanim_alani,
             bagli_makina_no=item.bagli_makina_no,
-            notlar=item.notlar,
             deleted_at=date.today(),
         )
         db.add(deleted)
@@ -882,7 +872,6 @@ def delete_inventory(ids: DeleteIds, user: User = Depends(require_login), db: Se
             sorumlu_personel=item.sorumlu_personel,
             kullanim_alani=item.kullanim_alani,
             bagli_makina_no=item.bagli_makina_no,
-            notlar=item.notlar,
             deleted_at=date.today(),
         )
         db.add(deleted)
@@ -932,7 +921,6 @@ def restore_inventory(item_id: int, user: User = Depends(require_login), db: Ses
             sorumlu_personel=item.sorumlu_personel,
             kullanim_alani=item.kullanim_alani,
             bagli_makina_no=item.bagli_makina_no,
-            notlar=item.notlar,
         )
         db.add(restored)
         db.delete(item)
@@ -974,8 +962,6 @@ async def upload_inventory_excel(
                 "Sorumlu Personel": "sorumlu_personel",
                 "Kullanım Alanı": "kullanim_alani",
                 "Bağlı Olduğu Makina No": "bagli_makina_no",
-                "Not": "notlar",
-                "Notlar": "notlar",
             }
         )
         expected_cols = [
@@ -991,7 +977,6 @@ async def upload_inventory_excel(
             "sorumlu_personel",
             "kullanim_alani",
             "bagli_makina_no",
-            "notlar",
         ]
         eksik_kolonlar = [col for col in expected_cols if col not in df.columns]
         if eksik_kolonlar:
@@ -1015,7 +1000,6 @@ async def upload_inventory_excel(
                 sorumlu_personel=str(row["sorumlu_personel"]),
                 kullanim_alani=str(row["kullanim_alani"]),
                 bagli_makina_no=str(row["bagli_makina_no"]),
-                notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
             )
             db.add(item)
     log_action(db, user.username, "Envanter Excel yüklendi")
@@ -1044,7 +1028,6 @@ def export_inventory_excel(
             "Sorumlu Personel": i.sorumlu_personel,
             "Kullanım Alanı": i.kullanim_alani,
             "Bağlı Olduğu Makina No": i.bagli_makina_no,
-            "Not": i.notlar,
         }
         for i in items
     ]
