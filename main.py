@@ -359,6 +359,37 @@ def cleanup_deleted(db: Session):
 def log_action(db: Session, username: str, action: str):
     db.add(ActivityLog(username=username, action=action))
 
+
+def list_tables():
+    """Return all database tables with row counts."""
+    inspector = inspect(engine)
+    tables = []
+    with engine.connect() as conn:
+        for name in inspector.get_table_names():
+            count = conn.execute(text(f"SELECT COUNT(*) FROM {name}")).scalar()
+            tables.append({"name": name, "count": count})
+    return tables
+
+
+def render_admin_page(
+    request: Request,
+    db: Session,
+    error: str = "",
+    table_error: str = "",
+):
+    """Utility to render admin panel with user and table info."""
+    users = db.query(User).all()
+    return templates.TemplateResponse(
+        "admin.html",
+        {
+            "request": request,
+            "users": users,
+            "tables": list_tables(),
+            "error": error,
+            "table_error": table_error,
+        },
+    )
+
 # --- Pydantic Şemalar ---
 class HardwareItem(BaseModel):
     id: Optional[int]
@@ -587,10 +618,7 @@ def admin_page(
 ):
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Yetkisiz")
-    users = db.query(User).all()
-    return templates.TemplateResponse(
-        "admin.html", {"request": request, "users": users}
-    )
+    return render_admin_page(request, db)
 
 
 @app.post("/admin/create")
@@ -608,15 +636,7 @@ def admin_create_user(
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Yetkisiz")
     if db.query(User).filter(User.username == username).first():
-        users = db.query(User).all()
-        return templates.TemplateResponse(
-            "admin.html",
-            {
-                "request": request,
-                "users": users,
-                "error": "Kullanıcı zaten var",
-            },
-        )
+        return render_admin_page(request, db, error="Kullanıcı zaten var")
     db.add(
         User(
             username=username,
@@ -665,6 +685,49 @@ def admin_make_admin(
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
     target.is_admin = True
     log_action(db, user.username, f"Kullanıcı admin yapıldı: {target.username}")
+    db.commit()
+    return RedirectResponse("/admin", status_code=303)
+
+
+@app.post("/admin/tables/create")
+def admin_create_table(
+    request: Request,
+    table_name: str = Form(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    if not table_name.isidentifier():
+        return render_admin_page(request, db, table_error="Geçersiz tablo adı")
+    try:
+        with engine.connect() as conn:
+            conn.execute(text(f"CREATE TABLE {table_name} (id INTEGER PRIMARY KEY)"))
+        log_action(db, user.username, f"Tablo oluşturuldu: {table_name}")
+        db.commit()
+        return RedirectResponse("/admin", status_code=303)
+    except SQLAlchemyError:
+        return render_admin_page(request, db, table_error="Tablo oluşturulamadı")
+
+
+@app.post("/admin/tables/delete")
+def admin_delete_table(
+    request: Request,
+    table_name: str = Form(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    inspector = inspect(engine)
+    if table_name not in inspector.get_table_names():
+        return render_admin_page(request, db, table_error="Tablo bulunamadı")
+    with engine.connect() as conn:
+        count = conn.execute(text(f"SELECT COUNT(*) FROM {table_name}")).scalar()
+        if count > 0:
+            return render_admin_page(request, db, table_error="Tablo boş değil")
+        conn.execute(text(f"DROP TABLE {table_name}"))
+    log_action(db, user.username, f"Tablo silindi: {table_name}")
     db.commit()
     return RedirectResponse("/admin", status_code=303)
 
