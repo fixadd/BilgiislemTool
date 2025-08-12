@@ -43,9 +43,7 @@
         <h5 class="modal-title" id="settingsModalLabel">Kolon Ayarları</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
-      <div class="modal-body">
-        <ul id="columns-list" class="list-group"></ul>
-      </div>
+        <div class="modal-body"></div>
         <div class="modal-footer">
           <button id="save-settings" type="button" class="btn btn-primary">Kaydet</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
@@ -63,16 +61,7 @@
       </div>
       <form id="editForm" action="/stock/add" method="post">
         <input type="hidden" name="stock_id">
-        <div class="modal-body">
-          <div class="input-group mb-2"><span class="input-group-text">Ürün Adı</span><input class="form-control" type="text" name="urun_adi" required></div>
-          <div class="input-group mb-2"><span class="input-group-text">İşlem</span><select class="form-select" name="islem" required><option value="giriş">giriş</option><option value="çıkış">çıkış</option><option value="talep">talep</option></select></div>
-          <div class="input-group mb-2"><span class="input-group-text">Adet</span><input class="form-control" type="number" name="adet" required></div>
-          <div class="input-group mb-2"><span class="input-group-text">Tarih</span><input class="form-control" type="date" name="tarih"></div>
-          <div class="input-group mb-2"><span class="input-group-text">Lokasyon</span><input class="form-control" type="text" name="lokasyon" required></div>
-          <div class="input-group mb-2"><span class="input-group-text">IFS No</span><input class="form-control" type="text" name="ifs_no" required></div>
-          <div class="input-group mb-2"><span class="input-group-text">Açıklama</span><input class="form-control" type="text" name="aciklama"></div>
-          <div class="input-group mb-2"><span class="input-group-text">İşlem Yapan</span><input class="form-control" type="text" name="islem_yapan" required></div>
-        </div>
+          <div class="modal-body"></div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Kaydet</button>
         </div>
@@ -89,16 +78,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
       <form id="addForm" action="/stock/add" method="post">
-        <div class="modal-body">
-          <div class="input-group mb-2"><span class="input-group-text">Ürün Adı</span><input class="form-control" type="text" name="urun_adi" required></div>
-          <div class="input-group mb-2"><span class="input-group-text">İşlem</span><select class="form-select" name="islem" required><option value="giriş">giriş</option><option value="çıkış">çıkış</option><option value="talep">talep</option></select></div>
-          <div class="input-group mb-2"><span class="input-group-text">Adet</span><input class="form-control" type="number" name="adet" required></div>
-          <div class="input-group mb-2"><span class="input-group-text">Tarih</span><input class="form-control" type="date" name="tarih"></div>
-          <div class="input-group mb-2"><span class="input-group-text">Lokasyon</span><input class="form-control" type="text" name="lokasyon" required></div>
-          <div class="input-group mb-2"><span class="input-group-text">IFS No</span><input class="form-control" type="text" name="ifs_no" required></div>
-          <div class="input-group mb-2"><span class="input-group-text">Açıklama</span><input class="form-control" type="text" name="aciklama"></div>
-          <div class="input-group mb-2"><span class="input-group-text">İşlem Yapan</span><input class="form-control" type="text" name="islem_yapan" required></div>
-        </div>
+        <div class="modal-body"></div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>
         </div>
@@ -130,7 +110,7 @@
       <div class="modal-header">
         <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Silme Onayı</h5>
       </div>
-      <div class="modal-body">Seçili kayıtları silmek istediğinizden emin misiniz?</div>
+        <div class="modal-body"></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
         <button id="confirm-delete" type="button" class="btn btn-danger">Sil</button>
