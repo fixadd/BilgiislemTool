@@ -203,7 +203,10 @@ def init_db():
         if "email" not in user_cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN email TEXT"))
 
-        # ensure hardware inventory 'no' column exists
+        # ensure hardware inventory table and columns exist
+        if not inspector.has_table("hardware_inventory"):
+            HardwareInventory.__table__.create(bind=engine)
+            inspector = inspect(engine)
         hw_cols = [c["name"] for c in inspector.get_columns("hardware_inventory")]
         if "no" not in hw_cols:
             conn.execute(text("ALTER TABLE hardware_inventory ADD COLUMN no TEXT"))
