@@ -131,10 +131,14 @@ class StockItem(Base):
     __tablename__ = "stock_tracking"
     id = Column(Integer, primary_key=True, index=True)
     urun_adi = Column(String)
-    islem = Column(String)
+    kategori = Column(String)
+    marka = Column(String)
     adet = Column(Integer)
-    tarih = Column(Date)
     lokasyon = Column(String)
+    guncelleme_tarihi = Column(Date)
+    # Legacy fields preserved for backward compatibility
+    islem = Column(String)
+    tarih = Column(Date)
     ifs_no = Column(String)
     aciklama = Column(String)
     islem_yapan = Column(String)
@@ -175,20 +179,35 @@ def init_db():
         open(DB_FILE, "w").close()
     Base.metadata.create_all(bind=engine)
     inspector = inspect(engine)
-    cols = [c["name"] for c in inspector.get_columns("users")]
     with engine.connect() as conn:
-        if "must_change_password" not in cols:
+        # ensure user table columns
+        user_cols = [c["name"] for c in inspector.get_columns("users")]
+        if "must_change_password" not in user_cols:
             conn.execute(
                 text(
                     "ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 0"
                 )
             )
-        if "first_name" not in cols:
+        if "first_name" not in user_cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN first_name TEXT"))
-        if "last_name" not in cols:
+        if "last_name" not in user_cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN last_name TEXT"))
-        if "email" not in cols:
+        if "email" not in user_cols:
             conn.execute(text("ALTER TABLE users ADD COLUMN email TEXT"))
+
+        # ensure hardware inventory 'no' column exists
+        hw_cols = [c["name"] for c in inspector.get_columns("hardware_inventory")]
+        if "no" not in hw_cols:
+            conn.execute(text("ALTER TABLE hardware_inventory ADD COLUMN no TEXT"))
+
+        # ensure stock tracking new columns exist
+        stock_cols = [c["name"] for c in inspector.get_columns("stock_tracking")]
+        if "kategori" not in stock_cols:
+            conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN kategori TEXT"))
+        if "marka" not in stock_cols:
+            conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN marka TEXT"))
+        if "guncelleme_tarihi" not in stock_cols:
+            conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN guncelleme_tarihi DATE"))
 
 
 def init_admin():
