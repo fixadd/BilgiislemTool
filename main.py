@@ -18,6 +18,7 @@ from starlette.middleware.sessions import SessionMiddleware
 import os
 import json
 import base64
+import sqlite3
 from passlib.context import CryptContext
 from passlib.exc import UnknownHashError
 
@@ -175,6 +176,13 @@ class ActivityLog(Base):
 
 def init_db():
     os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+    if os.path.exists(DB_FILE):
+        try:
+            conn = sqlite3.connect(DB_FILE)
+            conn.execute("PRAGMA schema_version;")
+            conn.close()
+        except sqlite3.DatabaseError:
+            os.remove(DB_FILE)
     if not os.path.exists(DB_FILE):
         open(DB_FILE, "w").close()
     Base.metadata.create_all(bind=engine)
