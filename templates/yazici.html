@@ -42,9 +42,7 @@
         <h5 class="modal-title" id="settingsModalLabel">Kolon Ayarları</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
-      <div class="modal-body">
-        <ul id="columns-list" class="list-group"></ul>
-      </div>
+        <div class="modal-body"></div>
         <div class="modal-footer">
           <button id="save-settings" type="button" class="btn btn-primary">Kaydet</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
@@ -62,44 +60,7 @@
       </div>
       <form id="editForm" action="/printer/add" method="post">
         <input type="hidden" name="printer_id">
-        <div class="modal-body">
-          <div class="input-group mb-2">
-            <span class="input-group-text">Yazıcı Markası</span>
-            <select class="form-select" name="yazici_markasi" required>
-              {% for b in brands %}
-              <option value="{{ b.name }}">{{ b.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">Yazıcı Modeli</span>
-            <input class="form-control" type="text" name="yazici_modeli" required>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">Kullanım Alanı</span>
-            <select class="form-select" name="kullanim_alani" required>
-              {% for l in locations %}
-              <option value="{{ l.name }}">{{ l.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">IP Adresi</span>
-            <input class="form-control" type="text" name="ip_adresi" required>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">MAC</span>
-            <input class="form-control" type="text" name="mac" required>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">Hostname</span>
-            <input class="form-control" type="text" name="hostname" required>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">Notlar</span>
-            <input class="form-control" type="text" name="notlar">
-          </div>
-        </div>
+          <div class="modal-body"></div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Kaydet</button>
         </div>
@@ -116,44 +77,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
       <form id="addForm" action="/printer/add" method="post">
-        <div class="modal-body">
-          <div class="input-group mb-2">
-            <span class="input-group-text">Yazıcı Markası</span>
-            <select class="form-select" name="yazici_markasi" required>
-              {% for b in brands %}
-              <option value="{{ b.name }}">{{ b.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">Yazıcı Modeli</span>
-            <input class="form-control" type="text" name="yazici_modeli" required>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">Kullanım Alanı</span>
-            <select class="form-select" name="kullanim_alani" required>
-              {% for l in locations %}
-              <option value="{{ l.name }}">{{ l.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">IP Adresi</span>
-            <input class="form-control" type="text" name="ip_adresi" required>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">MAC</span>
-            <input class="form-control" type="text" name="mac" required>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">Hostname</span>
-            <input class="form-control" type="text" name="hostname" required>
-          </div>
-          <div class="input-group mb-2">
-            <span class="input-group-text">Notlar</span>
-            <input class="form-control" type="text" name="notlar">
-          </div>
-        </div>
+          <div class="modal-body"></div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>
         </div>
@@ -185,7 +109,7 @@
       <div class="modal-header">
         <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Silme Onayı</h5>
       </div>
-      <div class="modal-body">Seçili kayıtları silmek istediğinizden emin misiniz?</div>
+        <div class="modal-body"></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
         <button id="confirm-delete" type="button" class="btn btn-danger">Sil</button>
