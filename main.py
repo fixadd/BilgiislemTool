@@ -208,9 +208,28 @@ def init_db():
             HardwareInventory.__table__.create(bind=engine)
             inspector = inspect(engine)
         hw_cols = [c["name"] for c in inspector.get_columns("hardware_inventory")]
-        if "no" not in hw_cols:
-            conn.execute(text("ALTER TABLE hardware_inventory ADD COLUMN no TEXT"))
-
+        hw_required = {
+            "no": "TEXT",
+            "fabrika": "TEXT",
+            "blok": "TEXT",
+            "departman": "TEXT",
+            "donanim_tipi": "TEXT",
+            "bilgisayar_adi": "TEXT",
+            "marka": "TEXT",
+            "model": "TEXT",
+            "seri_no": "TEXT",
+            "sorumlu_personel": "TEXT",
+            "kullanim_alani": "TEXT",
+            "bagli_makina_no": "TEXT",
+            "notlar": "TEXT",
+        }
+        for col, col_type in hw_required.items():
+            if col not in hw_cols:
+                conn.execute(
+                    text(
+                        f"ALTER TABLE hardware_inventory ADD COLUMN {col} {col_type}"
+                    )
+                )
         # ensure deleted hardware inventory columns exist
         deleted_hw_cols = [c["name"] for c in inspector.get_columns("deleted_hardware_inventory")]
         deleted_hw_required = {
@@ -382,13 +401,20 @@ def render_admin_page(
 # --- Pydantic Şemalar ---
 class HardwareItem(BaseModel):
     id: Optional[int]
-    demirbas_adi: str
+    no: str
+    fabrika: str
+    blok: str
+    departman: str
+    donanim_tipi: str
+    bilgisayar_adi: str
     marka: str
     model: str
     seri_no: str
-    lokasyon: str
-    zimmetli_kisi: str
+    sorumlu_personel: str
+    kullanim_alani: str
+    bagli_makina_no: str
     notlar: Optional[str]
+
     class Config:
         orm_mode = True
 
@@ -936,22 +962,35 @@ async def upload_inventory_excel(
         df.columns = df.columns.str.strip()
         df = df.rename(
             columns={
-                "Demirbaş Adı": "demirbas_adi",
+                "No": "no",
+                "Fabrika": "fabrika",
+                "Blok": "blok",
+                "Departman": "departman",
+                "Donanım Tipi": "donanim_tipi",
+                "Bilgisayar Adı": "bilgisayar_adi",
                 "Marka": "marka",
                 "Model": "model",
                 "Seri No": "seri_no",
-                "Lokasyon": "lokasyon",
-                "Zimmetli Kişi": "zimmetli_kisi",
+                "Sorumlu Personel": "sorumlu_personel",
+                "Kullanım Alanı": "kullanim_alani",
+                "Bağlı Olduğu Makina No": "bagli_makina_no",
+                "Not": "notlar",
                 "Notlar": "notlar",
             }
         )
         expected_cols = [
-            "demirbas_adi",
+            "no",
+            "fabrika",
+            "blok",
+            "departman",
+            "donanim_tipi",
+            "bilgisayar_adi",
             "marka",
             "model",
             "seri_no",
-            "lokasyon",
-            "zimmetli_kisi",
+            "sorumlu_personel",
+            "kullanim_alani",
+            "bagli_makina_no",
             "notlar",
         ]
         eksik_kolonlar = [col for col in expected_cols if col not in df.columns]
@@ -964,12 +1003,18 @@ async def upload_inventory_excel(
 
         for _, row in df.iterrows():
             item = HardwareInventory(
-                demirbas_adi=str(row["demirbas_adi"]),
+                no=str(row["no"]),
+                fabrika=str(row["fabrika"]),
+                blok=str(row["blok"]),
+                departman=str(row["departman"]),
+                donanim_tipi=str(row["donanim_tipi"]),
+                bilgisayar_adi=str(row["bilgisayar_adi"]),
                 marka=str(row["marka"]),
                 model=str(row["model"]),
                 seri_no=str(row["seri_no"]),
-                lokasyon=str(row["lokasyon"]),
-                zimmetli_kisi=str(row["zimmetli_kisi"]),
+                sorumlu_personel=str(row["sorumlu_personel"]),
+                kullanim_alani=str(row["kullanim_alani"]),
+                bagli_makina_no=str(row["bagli_makina_no"]),
                 notlar=None if pd.isnull(row["notlar"]) else str(row["notlar"]),
             )
             db.add(item)
@@ -987,13 +1032,19 @@ def export_inventory_excel(
     items = db.query(HardwareInventory).all()
     data = [
         {
-            "Demirbaş Adı": i.demirbas_adi,
+            "No": i.no,
+            "Fabrika": i.fabrika,
+            "Blok": i.blok,
+            "Departman": i.departman,
+            "Donanım Tipi": i.donanim_tipi,
+            "Bilgisayar Adı": i.bilgisayar_adi,
             "Marka": i.marka,
             "Model": i.model,
             "Seri No": i.seri_no,
-            "Lokasyon": i.lokasyon,
-            "Zimmetli Kişi": i.zimmetli_kisi,
-            "Notlar": i.notlar,
+            "Sorumlu Personel": i.sorumlu_personel,
+            "Kullanım Alanı": i.kullanim_alani,
+            "Bağlı Olduğu Makina No": i.bagli_makina_no,
+            "Not": i.notlar,
         }
         for i in items
     ]
