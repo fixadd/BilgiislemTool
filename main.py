@@ -338,7 +338,6 @@ COLUMN_OVERRIDES = {
         "sorumlu_personel",
         "kullanim_alani",
         "bagli_makina_no",
-        "notlar",
     ],
     "stock_tracking": [
         "urun_adi",
