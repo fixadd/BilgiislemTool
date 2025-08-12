@@ -691,8 +691,8 @@ def admin_delete_user(
     target = db.query(User).filter(User.id == user_id).first()
     if not target:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
-    if target.is_admin:
-        raise HTTPException(status_code=400, detail="Admin kullanıcı silinemez")
+    if target.username == "admin":
+        raise HTTPException(status_code=400, detail="Admin kullanıcısı silinemez")
     db.delete(target)
     log_action(db, user.username, f"Kullanıcı silindi: {target.username}")
     db.commit()
@@ -712,6 +712,56 @@ def admin_make_admin(
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
     target.is_admin = True
     log_action(db, user.username, f"Kullanıcı admin yapıldı: {target.username}")
+    db.commit()
+    return RedirectResponse("/admin", status_code=303)
+
+
+@app.get("/admin/edit/{user_id}", response_class=HTMLResponse)
+def admin_edit_user_page(
+    user_id: int,
+    request: Request,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    if target.username == "admin":
+        raise HTTPException(status_code=400, detail="Admin kullanıcısı düzenlenemez")
+    return templates.TemplateResponse(
+        "admin_edit.html",
+        {"request": request, "target": target},
+    )
+
+
+@app.post("/admin/edit/{user_id}")
+def admin_edit_user(
+    user_id: int,
+    password: str = Form(""),
+    first_name: str = Form(""),
+    last_name: str = Form(""),
+    email: str = Form(""),
+    is_admin: bool = Form(False),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    if target.username == "admin":
+        raise HTTPException(status_code=400, detail="Admin kullanıcısı düzenlenemez")
+    target.first_name = first_name
+    target.last_name = last_name
+    target.email = email
+    target.is_admin = is_admin
+    if password:
+        target.password = pwd_context.hash(password)
+        target.must_change_password = True
+    log_action(db, user.username, f"Kullanıcı güncellendi: {target.username}")
     db.commit()
     return RedirectResponse("/admin", status_code=303)
 
@@ -757,6 +807,7 @@ def add_list_item(
 @app.get("/inventory", response_class=HTMLResponse)
 def inventory_page(
     request: Request,
+    page: int = 1,
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -767,17 +818,26 @@ def inventory_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    items = db.query(HardwareInventory).limit(50).all()
+    limit = 50
+    page = max(page, 1)
+    offset = (page - 1) * limit
+    query = db.query(HardwareInventory)
+    total = query.count()
+    rows = query.offset(offset).limit(limit + 1).all()
+    has_next = len(rows) > limit
+    items = rows[:limit]
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "envanter.html",
         {
             "request": request,
             "items": items,
-            "count": len(items),
+            "count": total,
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
+            "page": page,
+            "has_next": has_next,
         },
     )
 
@@ -1065,6 +1125,7 @@ def export_inventory_excel(
 @app.get("/license", response_class=HTMLResponse)
 def license_page(
     request: Request,
+    page: int = 1,
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1075,17 +1136,26 @@ def license_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    licenses = db.query(LicenseInventory).limit(50).all()
+    limit = 50
+    page = max(page, 1)
+    offset = (page - 1) * limit
+    query = db.query(LicenseInventory)
+    total = query.count()
+    rows = query.offset(offset).limit(limit + 1).all()
+    has_next = len(rows) > limit
+    licenses = rows[:limit]
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "lisans.html",
         {
             "request": request,
             "licenses": licenses,
-            "count": len(licenses),
+            "count": total,
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
+            "page": page,
+            "has_next": has_next,
         },
     )
 
@@ -1327,6 +1397,7 @@ def export_license_excel(
 @app.get("/stock", response_class=HTMLResponse)
 def stock_page(
     request: Request,
+    page: int = 1,
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1337,17 +1408,26 @@ def stock_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    stocks = db.query(StockItem).limit(50).all()
+    limit = 50
+    page = max(page, 1)
+    offset = (page - 1) * limit
+    query = db.query(StockItem)
+    total = query.count()
+    rows = query.offset(offset).limit(limit + 1).all()
+    has_next = len(rows) > limit
+    stocks = rows[:limit]
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "stok.html",
         {
             "request": request,
             "stocks": stocks,
-            "count": len(stocks),
+            "count": total,
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
+            "page": page,
+            "has_next": has_next,
         },
     )
 
@@ -1601,6 +1681,7 @@ def export_stock_excel(
 @app.get("/printer", response_class=HTMLResponse)
 def printer_page(
     request: Request,
+    page: int = 1,
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1611,7 +1692,14 @@ def printer_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    printers = db.query(PrinterInventory).limit(50).all()
+    limit = 50
+    page = max(page, 1)
+    offset = (page - 1) * limit
+    query = db.query(PrinterInventory)
+    total = query.count()
+    rows = query.offset(offset).limit(limit + 1).all()
+    has_next = len(rows) > limit
+    printers = rows[:limit]
     display_columns = [c for c in order if c in visible]
     brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
@@ -1620,12 +1708,14 @@ def printer_page(
         {
             "request": request,
             "printers": printers,
-            "count": len(printers),
+            "count": total,
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
             "brands": brands,
             "locations": locations,
+            "page": page,
+            "has_next": has_next,
         },
     )
 

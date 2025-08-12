@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Kullanıcı Düzenle{% endblock %}
+{% block content %}
+<h2>Kullanıcı Düzenle</h2>
+<form method="post" action="/admin/edit/{{ target.id }}">
+  <div class="mb-3">
+    <label class="form-label">Kullanıcı Adı</label>
+    <input type="text" class="form-control" value="{{ target.username }}" disabled>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Yeni Şifre</label>
+    <input type="password" class="form-control" name="password">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">İsim</label>
+    <input type="text" class="form-control" name="first_name" value="{{ target.first_name }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Soyisim</label>
+    <input type="text" class="form-control" name="last_name" value="{{ target.last_name }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Mail</label>
+    <input type="email" class="form-control" name="email" value="{{ target.email }}">
+  </div>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" name="is_admin" id="is_admin" {% if target.is_admin %}checked{% endif %}>
+    <label class="form-check-label" for="is_admin">Admin</label>
+  </div>
+  <button type="submit" class="btn btn-primary">Kaydet</button>
+  <a href="/admin" class="btn btn-secondary">İptal</a>
+</form>
+{% endblock %}

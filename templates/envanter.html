@@ -74,7 +74,14 @@
       </div>
       <form id="editForm" action="/inventory/add" method="post">
         <input type="hidden" name="item_id">
-          <div class="modal-body"></div>
+          <div class="modal-body">
+            {% for col in columns %}
+            <div class="mb-3">
+              <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
+              <input type="text" class="form-control" name="{{ col }}" required>
+            </div>
+            {% endfor %}
+          </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Kaydet</button>
         </div>
@@ -90,7 +97,14 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
       <form id="addForm" action="/inventory/add" method="post">
-          <div class="modal-body"></div>
+          <div class="modal-body">
+            {% for col in columns %}
+            <div class="mb-3">
+              <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
+              <input type="text" class="form-control" name="{{ col }}" required>
+            </div>
+            {% endfor %}
+          </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>
         </div>
@@ -115,6 +129,17 @@
     </tr>
     {% endfor %}
 </table>
+
+<nav aria-label="Sayfalar">
+  <ul class="pagination justify-content-center">
+    {% if page > 1 %}
+    <li class="page-item"><a class="page-link" href="/inventory?page={{ page - 1 }}">Önceki</a></li>
+    {% endif %}
+    {% if has_next %}
+    <li class="page-item"><a class="page-link" href="/inventory?page={{ page + 1 }}">Sonraki</a></li>
+    {% endif %}
+  </ul>
+</nav>
 
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">

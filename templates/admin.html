@@ -38,10 +38,13 @@
       <td>{{ u.email }}</td>
       <td>{{ "Evet" if u.is_admin else "Hayır" }}</td>
       <td>
+        {% if u.username != 'admin' %}
         {% if not u.is_admin %}
         <form method="post" action="/admin/make_admin/{{ u.id }}" style="display:inline">
           <button type="submit" class="btn btn-secondary btn-sm">Admin Yap</button>
         </form>
+        {% endif %}
+        <a href="/admin/edit/{{ u.id }}" class="btn btn-warning btn-sm">Düzenle</a>
         <form method="post" action="/admin/delete/{{ u.id }}" style="display:inline">
           <button type="submit" class="btn btn-danger btn-sm">Sil</button>
         </form>
