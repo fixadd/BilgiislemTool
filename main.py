@@ -208,6 +208,17 @@ def init_db():
             conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN marka TEXT"))
         if "guncelleme_tarihi" not in stock_cols:
             conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN guncelleme_tarihi DATE"))
+        # legacy fields to support older databases
+        if "islem" not in stock_cols:
+            conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN islem TEXT"))
+        if "tarih" not in stock_cols:
+            conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN tarih DATE"))
+        if "ifs_no" not in stock_cols:
+            conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN ifs_no TEXT"))
+        if "aciklama" not in stock_cols:
+            conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN aciklama TEXT"))
+        if "islem_yapan" not in stock_cols:
+            conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN islem_yapan TEXT"))
 
 
 def init_admin():
