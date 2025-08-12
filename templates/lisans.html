@@ -147,20 +147,30 @@
 </div>
 
 <table class="table table-striped table-fixed table-resizable">
-    <tr>
-        <th><input type="checkbox" id="select-all"></th>
-        {% for col in columns %}
-        <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ col.replace('_', ' ').title() }}</th>
-        {% endfor %}
-    </tr>
-    {% for l in licenses %}
-    <tr>
-        <td><input class="form-check-input row-check" type="checkbox" value="{{ l.id }}"></td>
-        {% for col in columns %}
-        <td data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px; white-space: normal; word-break: break-word;"{% else %} style="white-space: normal; word-break: break-word;"{% endif %}>{{ l|attr(col) }}</td>
-        {% endfor %}
-    </tr>
-    {% endfor %}
+{% set column_labels = {
+    'departman': 'Departman',
+    'kullanici': 'Kullanıcı',
+    'yazilim_adi': 'Yazılım Adı',
+    'lisans_anahtari': 'Lisans Anahtarı',
+    'mail_adresi': 'Bulunduğu Mail Adresi',
+    'envanter_no': 'Envanter No',
+    'notlar': 'Notlar'
+} %}
+
+  <tr>
+      <th><input type="checkbox" id="select-all"></th>
+      {% for col in columns %}
+      <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ column_labels.get(col, col.replace('_', ' ').title()) }}</th>
+      {% endfor %}
+  </tr>
+  {% for l in licenses %}
+  <tr>
+      <td><input class="form-check-input row-check" type="checkbox" value="{{ l.id }}"></td>
+      {% for col in columns %}
+      <td data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px; white-space: normal; word-break: break-word;"{% else %} style="white-space: normal; word-break: break-word;"{% endif %}>{{ l|attr(col) }}</td>
+      {% endfor %}
+  </tr>
+  {% endfor %}
 </table>
 
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
