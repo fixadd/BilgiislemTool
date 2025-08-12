@@ -410,7 +410,7 @@ class HardwareItem(BaseModel):
     bagli_makina_no: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PrinterItem(BaseModel):
     id: Optional[int]
@@ -422,7 +422,7 @@ class PrinterItem(BaseModel):
     hostname: str
     notlar: Optional[str]
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class LicenseItem(BaseModel):
     id: Optional[int]
@@ -434,7 +434,7 @@ class LicenseItem(BaseModel):
     zimmetli_kisi: str
     notlar: Optional[str]
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class StockItemSchema(BaseModel):
     id: Optional[int]
@@ -445,7 +445,7 @@ class StockItemSchema(BaseModel):
     lokasyon: str
     guncelleme_tarihi: Optional[date]
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ColumnDefinition(BaseModel):
     name: str
