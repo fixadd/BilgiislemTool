@@ -1,6 +1,123 @@
 {% extends "base.html" %}
 {% block title %}Talep Takip{% endblock %}
 {% block content %}
-<h2>Talep Takip</h2>
-<p>Bu sayfa talepleri takip etmek için kullanılacaktır.</p>
+<div class="d-flex justify-content-between align-items-center">
+  <h2>Talep Takibi</h2>
+</div>
+
+<div class="d-flex gap-2 mb-3">
+  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+    <i class="bi bi-plus"></i>
+  </button>
+  <button id="transfer-selected" type="button" class="btn btn-primary" style="height:40px;">Giriş</button>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addModalLabel">Talep Aç</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <form action="/requests/add" method="post">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Ürün Adı</label>
+            <input type="text" class="form-control" name="urun_adi" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Adet</label>
+            <input type="number" class="form-control" name="adet" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tarih</label>
+            <input type="date" class="form-control" name="tarih" value="{{ today }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">IFS No</label>
+            <input type="text" class="form-control" name="ifs_no" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <textarea class="form-control" name="aciklama"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Ekle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<table class="table table-striped" id="request-table">
+  <tr>
+    <th><input type="checkbox" id="select-all"></th>
+    <th>Ürün Adı</th>
+    <th>Adet</th>
+    <th>Tarih</th>
+    <th>IFS No</th>
+    <th>Açıklama</th>
+    <th>Talep Açan</th>
+  </tr>
+  {% for ifs, items in groups.items() %}
+    <tr>
+      <td><input class="form-check-input row-check" type="checkbox" value="{{ items[0].id }}"></td>
+      <td>
+        <button type="button" class="btn btn-link p-0 toggle-group" data-group="{{ ifs }}">
+          <i class="bi bi-caret-right-fill"></i>
+        </button>
+        {{ items[0].urun_adi }}
+      </td>
+      <td>{{ items[0].adet }}</td>
+      <td>{{ items[0].tarih }}</td>
+      <td>{{ items[0].ifs_no }}</td>
+      <td>{{ items[0].aciklama }}</td>
+      <td>{{ items[0].talep_acan }}</td>
+    </tr>
+    {% for item in items[1:] %}
+    <tr class="group-{{ ifs }} d-none">
+      <td><input class="form-check-input row-check" type="checkbox" value="{{ item.id }}"></td>
+      <td>{{ item.urun_adi }}</td>
+      <td>{{ item.adet }}</td>
+      <td>{{ item.tarih }}</td>
+      <td>{{ item.ifs_no }}</td>
+      <td>{{ item.aciklama }}</td>
+      <td>{{ item.talep_acan }}</td>
+    </tr>
+    {% endfor %}
+  {% endfor %}
+</table>
 {% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('select-all').addEventListener('change', function(){
+  document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
+});
+document.getElementById('transfer-selected').addEventListener('click', function(){
+  const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(cb => parseInt(cb.value));
+  if(!ids.length){
+    showAlert('Lütfen kayıt seçin');
+    return;
+  }
+  fetch('/requests/transfer', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ids: ids})
+  }).then(r => r.json()).then(() => location.reload());
+});
+document.querySelectorAll('.toggle-group').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.group;
+    document.querySelectorAll('.group-' + group).forEach(row => {
+      row.classList.toggle('d-none');
+    });
+    const icon = btn.querySelector('i');
+    icon.classList.toggle('bi-caret-right-fill');
+    icon.classList.toggle('bi-caret-down-fill');
+  });
+});
+</script>
+{% endblock %}
+
