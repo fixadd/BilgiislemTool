@@ -491,6 +491,7 @@ class TransferItem(BaseModel):
     id: int
     kategori: Optional[str] = ""
     departman: Optional[str] = ""
+    adet: Optional[int] = None
 
 
 class TransferItems(BaseModel):
@@ -1958,7 +1959,7 @@ def transfer_requests(
             urun_adi=it.urun_adi,
             kategori=inp.kategori,
             marka="",
-            adet=it.adet,
+            adet=inp.adet if inp.adet is not None else it.adet,
             departman=inp.departman,
             guncelleme_tarihi=date.today(),
             islem="Giriş",
