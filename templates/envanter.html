@@ -45,8 +45,12 @@
   <button id="delete-selected" type="button" class="btn btn-danger" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
     <i class="bi bi-trash"></i>
   </button>
-  <form id="search-form" method="get" class="ms-auto d-flex gap-2">
-    <input id="search-input" name="q" type="text" class="form-control" placeholder="Ara..." value="{{ q }}" style="max-width: 200px;">
+  <form id="search-form" method="get" class="d-flex gap-2 align-items-center">
+    <input id="search-input" name="q" type="text" class="form-control search-input" placeholder="Ara..." value="{{ q }}" style="max-width: 200px;">
+    <button id="add-filter" type="button" class="btn btn-primary" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+      <i class="bi bi-search"></i>
+    </button>
+    <input id="search-input-2" name="q2" type="text" class="form-control search-input {% if not q2 %}d-none{% endif %}" placeholder="Ara..." value="{{ q2 }}" style="max-width: 200px;">
     <select id="per-page" name="per_page" class="form-select" style="max-width: 100px;">
       {% for opt in [25,50,100] %}
       <option value="{{ opt }}" {% if per_page == opt %}selected{% endif %}>{{ opt }}</option>

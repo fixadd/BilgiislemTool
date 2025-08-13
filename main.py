@@ -1029,6 +1029,7 @@ def inventory_page(
     page: int = 1,
     per_page: int = 50,
     q: str = "",
+    q2: str = "",
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1046,6 +1047,9 @@ def inventory_page(
     if q:
         pattern = f"%{q}%"
         query = query.filter(or_(*(getattr(HardwareInventory, c).ilike(pattern) for c in columns)))
+    if q2:
+        pattern2 = f"%{q2}%"
+        query = query.filter(or_(*(getattr(HardwareInventory, c).ilike(pattern2) for c in columns)))
     total = query.count()
     total_pages = (total + per_page - 1) // per_page or 1
     if page > total_pages:
@@ -1087,6 +1091,7 @@ def inventory_page(
             "total_pages": total_pages,
             "per_page": per_page,
             "q": q,
+            "q2": q2,
             "offset": offset,
             "lookups": lookups,
         },
@@ -1430,6 +1435,7 @@ def license_page(
     page: int = 1,
     per_page: int = 50,
     q: str = "",
+    q2: str = "",
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1447,6 +1453,9 @@ def license_page(
     if q:
         pattern = f"%{q}%"
         query = query.filter(or_(*(getattr(LicenseInventory, c).ilike(pattern) for c in columns)))
+    if q2:
+        pattern2 = f"%{q2}%"
+        query = query.filter(or_(*(getattr(LicenseInventory, c).ilike(pattern2) for c in columns)))
     total = query.count()
     total_pages = (total + per_page - 1) // per_page or 1
     if page > total_pages:
@@ -1483,6 +1492,7 @@ def license_page(
             "total_pages": total_pages,
             "per_page": per_page,
             "q": q,
+            "q2": q2,
             "offset": offset,
             "lookups": lookups,
         },
@@ -1750,6 +1760,7 @@ def stock_page(
     page: int = 0,
     per_page: int = 50,
     q: str = "",
+    q2: str = "",
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1766,6 +1777,9 @@ def stock_page(
     if q:
         pattern = f"%{q}%"
         query = query.filter(or_(*(getattr(StockItem, c).ilike(pattern) for c in columns)))
+    if q2:
+        pattern2 = f"%{q2}%"
+        query = query.filter(or_(*(getattr(StockItem, c).ilike(pattern2) for c in columns)))
     total = query.count()
     total_pages = (total + per_page - 1) // per_page or 1
     if page < 1:
@@ -1798,6 +1812,7 @@ def stock_page(
             "total_pages": total_pages,
             "per_page": per_page,
             "q": q,
+            "q2": q2,
             "offset": offset,
             "lookups": lookups,
         },
@@ -2059,6 +2074,7 @@ def printer_page(
     page: int = 1,
     per_page: int = 50,
     q: str = "",
+    q2: str = "",
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -2076,6 +2092,9 @@ def printer_page(
     if q:
         pattern = f"%{q}%"
         query = query.filter(or_(*(getattr(PrinterInventory, c).ilike(pattern) for c in columns)))
+    if q2:
+        pattern2 = f"%{q2}%"
+        query = query.filter(or_(*(getattr(PrinterInventory, c).ilike(pattern2) for c in columns)))
     total = query.count()
     total_pages = (total + per_page - 1) // per_page or 1
     if page > total_pages:
@@ -2111,6 +2130,7 @@ def printer_page(
             "total_pages": total_pages,
             "per_page": per_page,
             "q": q,
+            "q2": q2,
             "offset": offset,
             "lookups": lookups,
         },

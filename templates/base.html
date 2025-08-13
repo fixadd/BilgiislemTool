@@ -96,12 +96,28 @@
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('table.table-resizable').forEach(makeTableResizable);
       const searchForm = document.getElementById('search-form');
-      const searchInput = document.getElementById('search-input');
-      if (searchForm && searchInput) {
+      const searchInputs = document.querySelectorAll('.search-input');
+      if (searchForm && searchInputs.length) {
         let searchTimeout;
-        searchInput.addEventListener('input', () => {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => searchForm.submit(), 500);
+        searchInputs.forEach(inp => {
+          inp.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchForm.submit(), 500);
+          });
+        });
+      }
+      const addFilterBtn = document.getElementById('add-filter');
+      if (addFilterBtn) {
+        addFilterBtn.addEventListener('click', () => {
+          const second = document.getElementById('search-input-2');
+          if (second.classList.contains('d-none')) {
+            second.classList.remove('d-none');
+            second.focus();
+          } else {
+            second.value = '';
+            second.classList.add('d-none');
+            if (searchForm) searchForm.submit();
+          }
         });
       }
       const perPage = document.getElementById('per-page');
