@@ -21,6 +21,11 @@
 </div>
 
 <div class="mt-4">
+  <h2>Donanım Dağılımı</h2>
+  <canvas id="hardwareChart"></canvas>
+</div>
+
+<div class="mt-4">
   <h2>Son İşlemler</h2>
   <div class="card">
     <ol class="list-group list-group-flush list-group-numbered">
@@ -32,5 +37,24 @@
     </ol>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('hardwareChart');
+new Chart(ctx, {
+  type: 'pie',
+  data: {
+    labels: {{ type_labels | tojson }},
+    datasets: [{
+      data: {{ type_counts | tojson }},
+      backgroundColor: [
+        '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#ff9f40'
+      ],
+    }]
+  }
+});
+</script>
 {% endblock %}
 

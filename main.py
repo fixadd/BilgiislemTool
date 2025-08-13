@@ -597,18 +597,29 @@ def home_page(
 
     factory_rows = (
         db.query(
-            StockItem.lokasyon,
-            StockItem.kategori,
-            func.sum(StockItem.adet).label("adet"),
+            HardwareInventory.fabrika,
+            HardwareInventory.donanim_tipi,
+            func.count(HardwareInventory.id).label("adet"),
         )
-        .group_by(StockItem.lokasyon, StockItem.kategori)
+        .group_by(HardwareInventory.fabrika, HardwareInventory.donanim_tipi)
         .all()
     )
     factories: Dict[str, List[Dict[str, int]]] = {}
-    for lokasyon, kategori, adet in factory_rows:
-        factories.setdefault(lokasyon or "Bilinmiyor", []).append(
-            {"kategori": kategori, "adet": adet}
+    for fabrika, donanim_tipi, adet in factory_rows:
+        factories.setdefault(fabrika or "Bilinmiyor", []).append(
+            {"kategori": donanim_tipi, "adet": adet}
         )
+
+    type_rows = (
+        db.query(
+            HardwareInventory.donanim_tipi,
+            func.count(HardwareInventory.id).label("adet"),
+        )
+        .group_by(HardwareInventory.donanim_tipi)
+        .all()
+    )
+    type_labels = [t or "Bilinmiyor" for t, _ in type_rows]
+    type_counts = [c for _, c in type_rows]
 
     actions = (
         db.query(ActivityLog)
@@ -623,6 +634,8 @@ def home_page(
             "username": username,
             "factories": factories,
             "actions": actions,
+            "type_labels": type_labels,
+            "type_counts": type_counts,
         },
     )
 

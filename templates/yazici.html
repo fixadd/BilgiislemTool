@@ -72,12 +72,12 @@
             <div class="mb-3">
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% if lookups.get(col) %}
-              <input type="text" class="form-control" name="{{ col }}" list="{{ col }}-list" required>
-              <datalist id="{{ col }}-list">
+              <select class="form-select" name="{{ col }}" required>
+                <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
-                <option value="{{ val }}">
+                <option value="{{ val }}">{{ val }}</option>
                 {% endfor %}
-              </datalist>
+              </select>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
@@ -105,12 +105,12 @@
             <div class="mb-3">
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% if lookups.get(col) %}
-              <input type="text" class="form-control" name="{{ col }}" list="{{ col }}-list" required>
-              <datalist id="{{ col }}-list">
+              <select class="form-select" name="{{ col }}" required>
+                <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
-                <option value="{{ val }}">
+                <option value="{{ val }}">{{ val }}</option>
                 {% endfor %}
-              </datalist>
+              </select>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
