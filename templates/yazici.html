@@ -1,4 +1,15 @@
 {% extends "base.html" %}
+{% set column_labels = {
+  'yazici_markasi': 'Yazıcı Markası',
+  'yazici_modeli': 'Yazıcı Modeli',
+  'kullanim_alani': 'Kullanım Alanı',
+  'ip_adresi': 'IP Adresi',
+  'mac': 'MAC',
+  'hostname': 'Hostname',
+  'tarih': 'Tarih',
+  'islem_yapan': 'İşlem Yapan',
+  'notlar': 'Notlar'
+} %}
 {% block title %}Yazıcı Takip{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center">
