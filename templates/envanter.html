@@ -45,17 +45,19 @@
   <button id="delete-selected" type="button" class="btn btn-danger" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
     <i class="bi bi-trash"></i>
   </button>
-  <form id="search-form" method="get" class="d-flex gap-2 align-items-center flex-wrap position-relative">
-    <div id="filters-container" class="filters-popup d-none flex-column gap-2">
-      <div id="filter-rows" class="d-flex flex-column gap-2"></div>
-      <button type="button" id="add-filter-row" class="btn btn-success" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">+</button>
+  <form id="search-form" method="get" class="d-flex gap-2 align-items-center flex-nowrap">
+    <div class="position-relative d-flex gap-2">
+      <div id="filters-container" class="filters-popup d-none flex-column gap-2">
+        <div id="filter-rows" class="d-flex flex-column gap-2"></div>
+        <button type="button" id="add-filter-row" class="btn btn-success" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">+</button>
+      </div>
+      <button id="add-filter" type="button" class="btn btn-primary" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-search"></i>
+      </button>
+      <button id="clear-filter" type="button" class="btn btn-secondary d-none" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-x"></i>
+      </button>
     </div>
-    <button id="add-filter" type="button" class="btn btn-primary" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-      <i class="bi bi-search"></i>
-    </button>
-    <button id="clear-filter" type="button" class="btn btn-secondary d-none" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-      <i class="bi bi-x"></i>
-    </button>
     <select id="per-page" name="per_page" class="form-select" style="max-width: 100px;">
       {% for opt in [25,50,100] %}
       <option value="{{ opt }}" {% if per_page == opt %}selected{% endif %}>{{ opt }}</option>
