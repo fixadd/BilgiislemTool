@@ -115,7 +115,7 @@
   </tr>
   {% for ifs, items in groups.items() %}
     <tr>
-      <td><input class="form-check-input row-check" type="checkbox" value="{{ items[0].id }}"></td>
+      <td><input class="form-check-input row-check" type="checkbox" value="{{ items[0].id }}" data-kategori="{{ items[0].kategori }}"></td>
       <td>
         {% if items|length > 1 %}
         <button type="button" class="btn btn-link p-0 toggle-group" data-group="{{ ifs }}">
@@ -132,7 +132,7 @@
     </tr>
     {% for item in items[1:] %}
     <tr class="group-{{ ifs }} d-none">
-      <td><input class="form-check-input row-check" type="checkbox" value="{{ item.id }}"></td>
+      <td><input class="form-check-input row-check" type="checkbox" value="{{ item.id }}" data-kategori="{{ item.kategori }}"></td>
       <td>{{ item.urun_adi }}</td>
       <td>{{ item.adet }}</td>
       <td>{{ item.tarih }}</td>
@@ -147,6 +147,7 @@
 
 {% block scripts %}
 <script>
+let transferCategory = null;
 document.getElementById('select-all').addEventListener('change', function(){
   document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
 });
@@ -156,6 +157,7 @@ document.getElementById('transfer-selected').addEventListener('click', function(
     showAlert('Lütfen kayıt seçin');
     return;
   }
+  transferCategory = checks[0].dataset.kategori;
   const container = document.getElementById('transfer-rows');
   container.innerHTML = '';
   checks.forEach(cb => {
@@ -185,7 +187,17 @@ document.getElementById('confirm-transfer').addEventListener('click', function()
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({items: items})
-  }).then(r => r.json()).then(() => location.reload());
+  }).then(r => r.json()).then(() => {
+    if(transferCategory === 'lisans'){
+      window.location.href = '/license';
+    } else if(transferCategory === 'donanim'){
+      window.location.href = '/inventory';
+    } else if(transferCategory === 'aksesuar'){
+      window.location.href = '/accessories';
+    } else {
+      location.reload();
+    }
+  });
 });
 document.getElementById('delete-selected').addEventListener('click', function(){
   const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(cb => parseInt(cb.value));
