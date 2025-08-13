@@ -202,7 +202,7 @@ document.getElementById('transfer-selected').addEventListener('click', function(
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
         <div>${urun}</div>
-        <input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}">
+        <input type="number" class="form-control adet" placeholder="Adet" min="1" max="${maxQty}">
         <input type="text" class="form-control departman" placeholder="Departman">
         <input type="text" class="form-control kullanici" placeholder="Kullanıcı">
         <input type="text" class="form-control lisans_anahtari" placeholder="Lisans Anahtarı">
@@ -214,7 +214,7 @@ document.getElementById('transfer-selected').addEventListener('click', function(
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
         <div>${urun}</div>
-        <input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}">
+        <input type="number" class="form-control adet" placeholder="Adet" min="1" max="${maxQty}">
         <input type="text" class="form-control fabrika" placeholder="Fabrika">
         <input type="text" class="form-control blok" placeholder="Blok">
         <input type="text" class="form-control departman" placeholder="Departman">
@@ -242,7 +242,7 @@ document.getElementById('transfer-selected').addEventListener('click', function(
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
         <div>${urun}</div>
-        <input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}">
+        <input type="number" class="form-control adet" placeholder="Adet" min="1" max="${maxQty}">
         <input type="text" class="form-control departman" placeholder="Departman">
       `;
     }
@@ -348,7 +348,7 @@ document.getElementById('stock-transfer-selected').addEventListener('click', fun
     div.innerHTML = `
       <input type="hidden" name="id" value="${cb.value}">
       <div class="col">${urun}</div>
-      <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}"></div>
+      <div class="col"><input type="number" class="form-control adet" placeholder="Adet" min="1" max="${maxQty}"></div>
     `;
     container.appendChild(div);
   });
