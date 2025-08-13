@@ -11,7 +11,10 @@
   'seri_no': 'Seri No',
   'sorumlu_personel': 'Sorumlu Personel',
   'kullanim_alani': 'Kullanım Alanı',
-  'bagli_makina_no': 'Bağlı Olduğu Makina No'
+  'bagli_makina_no': 'Bağlı Olduğu Makina No',
+  'ifs_no': 'IFS No',
+  'tarih': 'Tarih',
+  'islem_yapan': 'İşlem Yapan'
 } %}
 {% block title %}Envanter Takip{% endblock %}
 {% block content %}
@@ -93,6 +96,8 @@
                 <option value="{{ val }}">{{ val }}</option>
                 {% endfor %}
               </select>
+              {% elif col == 'tarih' %}
+              <input type="date" class="form-control" name="{{ col }}" required>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
@@ -127,6 +132,8 @@
                 <option value="{{ val }}">{{ val }}</option>
                 {% endfor %}
               </select>
+              {% elif col == 'tarih' %}
+              <input type="date" class="form-control" name="{{ col }}" required>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}

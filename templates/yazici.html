@@ -78,6 +78,8 @@
                 <option value="{{ val }}">{{ val }}</option>
                 {% endfor %}
               </select>
+              {% elif col == 'tarih' %}
+              <input type="date" class="form-control" name="{{ col }}" required>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
@@ -111,6 +113,8 @@
                 <option value="{{ val }}">{{ val }}</option>
                 {% endfor %}
               </select>
+              {% elif col == 'tarih' %}
+              <input type="date" class="form-control" name="{{ col }}" required>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}

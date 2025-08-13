@@ -73,8 +73,9 @@
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% if col == 'notlar' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
-              {% else %}
-              {% if lookups.get(col) %}
+              {% elif col == 'tarih' %}
+              <input type="date" class="form-control" name="{{ col }}" required>
+              {% elif lookups.get(col) %}
               <select class="form-select" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
@@ -83,7 +84,6 @@
               </select>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
-              {% endif %}
               {% endif %}
             </div>
             {% endfor %}
@@ -110,8 +110,9 @@
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% if col == 'notlar' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
-              {% else %}
-              {% if lookups.get(col) %}
+              {% elif col == 'tarih' %}
+              <input type="date" class="form-control" name="{{ col }}" required>
+              {% elif lookups.get(col) %}
               <select class="form-select" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
@@ -120,7 +121,6 @@
               </select>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
-              {% endif %}
               {% endif %}
             </div>
             {% endfor %}
@@ -141,6 +141,9 @@
     'lisans_anahtari': 'Lisans Anahtarı',
     'mail_adresi': 'Bulunduğu Mail Adresi',
     'envanter_no': 'Envanter No',
+    'ifs_no': 'IFS No',
+    'tarih': 'Tarih',
+    'islem_yapan': 'İşlem Yapan',
     'notlar': 'Notlar'
 } %}
 

@@ -59,6 +59,9 @@ class HardwareInventory(Base):
     sorumlu_personel = Column(String)
     kullanim_alani = Column(String)
     bagli_makina_no = Column(String)
+    ifs_no = Column(String)
+    tarih = Column(Date)
+    islem_yapan = Column(String)
 
 class DeletedHardwareInventory(Base):
     __tablename__ = "deleted_hardware_inventory"
@@ -75,6 +78,9 @@ class DeletedHardwareInventory(Base):
     sorumlu_personel = Column(String)
     kullanim_alani = Column(String)
     bagli_makina_no = Column(String)
+    ifs_no = Column(String)
+    tarih = Column(Date)
+    islem_yapan = Column(String)
     deleted_at = Column(Date)
 
 class DeletedPrinterInventory(Base):
@@ -86,6 +92,8 @@ class DeletedPrinterInventory(Base):
     ip_adresi = Column(String)
     mac = Column(String)
     hostname = Column(String)
+    tarih = Column(Date)
+    islem_yapan = Column(String)
     notlar = Column(Text)
     deleted_at = Column(Date)
 
@@ -98,6 +106,9 @@ class DeletedLicenseInventory(Base):
     lisans_anahtari = Column(String)
     mail_adresi = Column(String)
     envanter_no = Column(String)
+    ifs_no = Column(String)
+    tarih = Column(Date)
+    islem_yapan = Column(String)
     notlar = Column(Text)
     deleted_at = Column(Date)
 
@@ -123,6 +134,8 @@ class PrinterInventory(Base):
     ip_adresi = Column(String)
     mac = Column(String)
     hostname = Column(String)
+    tarih = Column(Date)
+    islem_yapan = Column(String)
     notlar = Column(Text)
 
 class LicenseInventory(Base):
@@ -134,6 +147,9 @@ class LicenseInventory(Base):
     lisans_anahtari = Column(String)
     mail_adresi = Column(String)
     envanter_no = Column(String)
+    ifs_no = Column(String)
+    tarih = Column(Date)
+    islem_yapan = Column(String)
     notlar = Column(Text)
 
 class StockItem(Base):
@@ -163,6 +179,7 @@ class AccessoryInventory(Base):
     departman = Column(String)
     kullanici = Column(String)
     aciklama = Column(String)
+    islem_yapan = Column(String)
 
 
 class RequestItem(Base):
@@ -257,6 +274,9 @@ def init_db():
             "sorumlu_personel": "TEXT",
             "kullanim_alani": "TEXT",
             "bagli_makina_no": "TEXT",
+            "ifs_no": "TEXT",
+            "tarih": "DATE",
+            "islem_yapan": "TEXT",
         }
         for col, col_type in hw_required.items():
             if col not in hw_cols:
@@ -280,6 +300,9 @@ def init_db():
             "sorumlu_personel": "TEXT",
             "kullanim_alani": "TEXT",
             "bagli_makina_no": "TEXT",
+            "ifs_no": "TEXT",
+            "tarih": "DATE",
+            "islem_yapan": "TEXT",
             "deleted_at": "DATE",
         }
         for col, col_type in deleted_hw_required.items():
@@ -289,6 +312,81 @@ def init_db():
                         f"ALTER TABLE deleted_hardware_inventory ADD COLUMN {col} {col_type}"
                     )
                 )
+
+        # ensure license inventory columns exist
+        lic_cols = [c["name"] for c in inspector.get_columns("license_inventory")]
+        lic_required = {
+            "departman": "TEXT",
+            "kullanici": "TEXT",
+            "yazilim_adi": "TEXT",
+            "lisans_anahtari": "TEXT",
+            "mail_adresi": "TEXT",
+            "envanter_no": "TEXT",
+            "ifs_no": "TEXT",
+            "tarih": "DATE",
+            "islem_yapan": "TEXT",
+            "notlar": "TEXT",
+        }
+        for col, col_type in lic_required.items():
+            if col not in lic_cols:
+                conn.execute(text(f"ALTER TABLE license_inventory ADD COLUMN {col} {col_type}"))
+
+        deleted_lic_cols = [c["name"] for c in inspector.get_columns("deleted_license_inventory")]
+        deleted_lic_required = {
+            "departman": "TEXT",
+            "kullanici": "TEXT",
+            "yazilim_adi": "TEXT",
+            "lisans_anahtari": "TEXT",
+            "mail_adresi": "TEXT",
+            "envanter_no": "TEXT",
+            "ifs_no": "TEXT",
+            "tarih": "DATE",
+            "islem_yapan": "TEXT",
+            "notlar": "TEXT",
+            "deleted_at": "DATE",
+        }
+        for col, col_type in deleted_lic_required.items():
+            if col not in deleted_lic_cols:
+                conn.execute(text(f"ALTER TABLE deleted_license_inventory ADD COLUMN {col} {col_type}"))
+
+        # ensure printer inventory columns exist
+        printer_cols = [c["name"] for c in inspector.get_columns("printer_inventory")]
+        printer_required = {
+            "yazici_markasi": "TEXT",
+            "yazici_modeli": "TEXT",
+            "kullanim_alani": "TEXT",
+            "ip_adresi": "TEXT",
+            "mac": "TEXT",
+            "hostname": "TEXT",
+            "tarih": "DATE",
+            "islem_yapan": "TEXT",
+            "notlar": "TEXT",
+        }
+        for col, col_type in printer_required.items():
+            if col not in printer_cols:
+                conn.execute(text(f"ALTER TABLE printer_inventory ADD COLUMN {col} {col_type}"))
+
+        deleted_printer_cols = [c["name"] for c in inspector.get_columns("deleted_printer_inventory")]
+        deleted_printer_required = {
+            "yazici_markasi": "TEXT",
+            "yazici_modeli": "TEXT",
+            "kullanim_alani": "TEXT",
+            "ip_adresi": "TEXT",
+            "mac": "TEXT",
+            "hostname": "TEXT",
+            "tarih": "DATE",
+            "islem_yapan": "TEXT",
+            "notlar": "TEXT",
+            "deleted_at": "DATE",
+        }
+        for col, col_type in deleted_printer_required.items():
+            if col not in deleted_printer_cols:
+                conn.execute(text(f"ALTER TABLE deleted_printer_inventory ADD COLUMN {col} {col_type}"))
+
+        # ensure accessory inventory columns exist
+        acc_cols = [c["name"] for c in inspector.get_columns("accessory_inventory")]
+        if "islem_yapan" not in acc_cols:
+            conn.execute(text("ALTER TABLE accessory_inventory ADD COLUMN islem_yapan TEXT"))
 
         # ensure stock tracking new columns exist
         stock_cols = [c["name"] for c in inspector.get_columns("stock_tracking")]
@@ -370,6 +468,9 @@ COLUMN_OVERRIDES = {
         "lisans_anahtari",
         "mail_adresi",
         "envanter_no",
+        "ifs_no",
+        "tarih",
+        "islem_yapan",
         "notlar",
     ],
     "hardware_inventory": [
@@ -385,6 +486,30 @@ COLUMN_OVERRIDES = {
         "sorumlu_personel",
         "kullanim_alani",
         "bagli_makina_no",
+        "ifs_no",
+        "tarih",
+        "islem_yapan",
+    ],
+    "printer_inventory": [
+        "yazici_markasi",
+        "yazici_modeli",
+        "kullanim_alani",
+        "ip_adresi",
+        "mac",
+        "hostname",
+        "tarih",
+        "islem_yapan",
+        "notlar",
+    ],
+    "accessory_inventory": [
+        "urun_adi",
+        "adet",
+        "tarih",
+        "ifs_no",
+        "departman",
+        "kullanici",
+        "islem_yapan",
+        "aciklama",
     ],
     "stock_tracking": [
         "urun_adi",
@@ -459,6 +584,9 @@ class HardwareItem(BaseModel):
     sorumlu_personel: str
     kullanim_alani: str
     bagli_makina_no: str
+    ifs_no: Optional[str]
+    tarih: Optional[date]
+    islem_yapan: Optional[str]
 
     class Config:
         from_attributes = True
@@ -471,18 +599,23 @@ class PrinterItem(BaseModel):
     ip_adresi: str
     mac: str
     hostname: str
+    tarih: Optional[date]
+    islem_yapan: Optional[str]
     notlar: Optional[str]
     class Config:
         from_attributes = True
 
 class LicenseItem(BaseModel):
     id: Optional[int]
+    departman: str
+    kullanici: str
     yazilim_adi: str
     lisans_anahtari: str
-    adet: int
-    satin_alma_tarihi: Optional[date]
-    bitis_tarihi: Optional[date]
-    zimmetli_kisi: str
+    mail_adresi: str
+    envanter_no: str
+    ifs_no: Optional[str]
+    tarih: Optional[date]
+    islem_yapan: Optional[str]
     notlar: Optional[str]
     class Config:
         from_attributes = True
@@ -941,6 +1074,10 @@ def inventory_page(
         f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
         for u in db.query(User).all()
     ]
+    lookups["islem_yapan"] = [
+        f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+        for u in db.query(User).all()
+    ]
     return templates.TemplateResponse(
         "envanter.html",
         {
@@ -975,6 +1112,9 @@ def add_inventory_form(
     sorumlu_personel: str = Form(...),
     kullanim_alani: str = Form(...),
     bagli_makina_no: str = Form(...),
+    ifs_no: str = Form(""),
+    tarih: Optional[str] = Form(None),
+    islem_yapan: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -994,6 +1134,9 @@ def add_inventory_form(
         item.sorumlu_personel = sorumlu_personel
         item.kullanim_alani = kullanim_alani
         item.bagli_makina_no = bagli_makina_no
+        item.ifs_no = ifs_no
+        item.tarih = date.fromisoformat(tarih) if tarih else None
+        item.islem_yapan = islem_yapan
         log_action(db, user.username, f"Envanter güncellendi ({item_id})")
     else:
         db_item = HardwareInventory(
@@ -1009,6 +1152,9 @@ def add_inventory_form(
             sorumlu_personel=sorumlu_personel,
             kullanim_alani=kullanim_alani,
             bagli_makina_no=bagli_makina_no,
+            ifs_no=ifs_no,
+            tarih=date.fromisoformat(tarih) if tarih else None,
+            islem_yapan=islem_yapan,
         )
         db.add(db_item)
         log_action(db, user.username, "Envanter kaydı eklendi")
@@ -1042,6 +1188,9 @@ def delete_inventory_form(
             sorumlu_personel=item.sorumlu_personel,
             kullanim_alani=item.kullanim_alani,
             bagli_makina_no=item.bagli_makina_no,
+            ifs_no=item.ifs_no,
+            tarih=item.tarih,
+            islem_yapan=item.islem_yapan,
             deleted_at=date.today(),
         )
         db.add(deleted)
@@ -1068,6 +1217,9 @@ def delete_inventory(ids: DeleteIds, user: User = Depends(require_login), db: Se
             sorumlu_personel=item.sorumlu_personel,
             kullanim_alani=item.kullanim_alani,
             bagli_makina_no=item.bagli_makina_no,
+            ifs_no=item.ifs_no,
+            tarih=item.tarih,
+            islem_yapan=item.islem_yapan,
             deleted_at=date.today(),
         )
         db.add(deleted)
@@ -1147,6 +1299,9 @@ def restore_inventory(item_id: int, user: User = Depends(require_login), db: Ses
             sorumlu_personel=item.sorumlu_personel,
             kullanim_alani=item.kullanim_alani,
             bagli_makina_no=item.bagli_makina_no,
+            ifs_no=item.ifs_no,
+            tarih=item.tarih,
+            islem_yapan=item.islem_yapan,
         )
         db.add(restored)
         db.delete(item)
@@ -1251,6 +1406,9 @@ def export_inventory_excel(
             "Sorumlu Personel": i.sorumlu_personel,
             "Kullanım Alanı": i.kullanim_alani,
             "Bağlı Olduğu Makina No": i.bagli_makina_no,
+            "IFS No": i.ifs_no,
+            "Tarih": i.tarih.isoformat() if i.tarih else None,
+            "İşlem Yapan": i.islem_yapan,
         }
         for i in items
     ]
@@ -1312,6 +1470,10 @@ def license_page(
         f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
         for u in db.query(User).all()
     ]
+    lookups["islem_yapan"] = [
+        f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+        for u in db.query(User).all()
+    ]
     return templates.TemplateResponse(
         "lisans.html",
         {
@@ -1340,6 +1502,9 @@ def add_license_form(
     lisans_anahtari: str = Form(...),
     mail_adresi: str = Form(...),
     envanter_no: str = Form(...),
+    ifs_no: str = Form(""),
+    tarih: Optional[str] = Form(None),
+    islem_yapan: str = Form(""),
     notlar: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
@@ -1354,6 +1519,9 @@ def add_license_form(
         item.lisans_anahtari = lisans_anahtari
         item.mail_adresi = mail_adresi
         item.envanter_no = envanter_no
+        item.ifs_no = ifs_no
+        item.tarih = date.fromisoformat(tarih) if tarih else None
+        item.islem_yapan = islem_yapan
         item.notlar = notlar
         log_action(db, user.username, f"Lisans güncellendi ({license_id})")
     else:
@@ -1364,6 +1532,9 @@ def add_license_form(
             lisans_anahtari=lisans_anahtari,
             mail_adresi=mail_adresi,
             envanter_no=envanter_no,
+            ifs_no=ifs_no,
+            tarih=date.fromisoformat(tarih) if tarih else None,
+            islem_yapan=islem_yapan,
             notlar=notlar,
         )
         db.add(db_item)
@@ -1392,6 +1563,9 @@ def delete_license_form(
             lisans_anahtari=lic.lisans_anahtari,
             mail_adresi=lic.mail_adresi,
             envanter_no=lic.envanter_no,
+            ifs_no=lic.ifs_no,
+            tarih=lic.tarih,
+            islem_yapan=lic.islem_yapan,
             notlar=lic.notlar,
             deleted_at=date.today(),
         )
@@ -1422,6 +1596,9 @@ def delete_license(
             lisans_anahtari=lic.lisans_anahtari,
             mail_adresi=lic.mail_adresi,
             envanter_no=lic.envanter_no,
+            ifs_no=lic.ifs_no,
+            tarih=lic.tarih,
+            islem_yapan=lic.islem_yapan,
             notlar=lic.notlar,
             deleted_at=date.today(),
         )
@@ -1452,6 +1629,9 @@ def restore_license(
             lisans_anahtari=item.lisans_anahtari,
             mail_adresi=item.mail_adresi,
             envanter_no=item.envanter_no,
+            ifs_no=item.ifs_no,
+            tarih=item.tarih,
+            islem_yapan=item.islem_yapan,
             notlar=item.notlar,
         )
         db.add(restored)
@@ -1539,12 +1719,15 @@ def export_license_excel(
     items = db.query(LicenseInventory).all()
     data = [
         {
+            "Departman": i.departman,
+            "Kullanıcı": i.kullanici,
             "Yazılım Adı": i.yazilim_adi,
             "Lisans Anahtarı": i.lisans_anahtari,
-            "Adet": i.adet,
-            "Satın Alma Tarihi": i.satin_alma_tarihi.isoformat() if i.satin_alma_tarihi else None,
-            "Bitiş Tarihi": i.bitis_tarihi.isoformat() if i.bitis_tarihi else None,
-            "Zimmetli Kişi": i.zimmetli_kisi,
+            "Bulunduğu Mail Adresi": i.mail_adresi,
+            "Envanter No": i.envanter_no,
+            "IFS No": i.ifs_no,
+            "Tarih": i.tarih.isoformat() if i.tarih else None,
+            "İşlem Yapan": i.islem_yapan,
             "Notlar": i.notlar,
         }
         for i in items
@@ -1913,6 +2096,10 @@ def printer_page(
         col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
         for col, ltype in lookup_map.items()
     }
+    lookups["islem_yapan"] = [
+        f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+        for u in db.query(User).all()
+    ]
     return templates.TemplateResponse(
         "yazici.html",
         {
@@ -2072,6 +2259,9 @@ def transfer_requests(
                     lisans_anahtari=inp.lisans_anahtari or "",
                     mail_adresi=email,
                     envanter_no=inp.envanter_no or it.ifs_no,
+                    ifs_no=it.ifs_no,
+                    tarih=date.today(),
+                    islem_yapan=full_name,
                     notlar=inp.notlar or it.aciklama,
                 )
                 db.add(lic)
@@ -2090,6 +2280,9 @@ def transfer_requests(
                     sorumlu_personel=inp.sorumlu_personel or "",
                     kullanim_alani=inp.kullanim_alani or "",
                     bagli_makina_no=inp.bagli_makina_no or "",
+                    ifs_no=it.ifs_no,
+                    tarih=date.today(),
+                    islem_yapan=full_name,
                 )
                 db.add(hw)
         elif it.kategori == "aksesuar":
@@ -2101,6 +2294,7 @@ def transfer_requests(
                 departman=inp.departman,
                 kullanici=it.talep_acan,
                 aciklama=it.aciklama,
+                islem_yapan=full_name,
             )
             db.add(acc)
         else:
@@ -2194,6 +2388,8 @@ def add_printer_form(
     ip_adresi: str = Form(...),
     mac: str = Form(...),
     hostname: str = Form(...),
+    tarih: Optional[str] = Form(None),
+    islem_yapan: str = Form(""),
     notlar: str = Form(""),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
@@ -2209,6 +2405,8 @@ def add_printer_form(
         item.ip_adresi = ip_adresi
         item.mac = mac
         item.hostname = hostname
+        item.tarih = date.fromisoformat(tarih) if tarih else None
+        item.islem_yapan = islem_yapan
         item.notlar = notlar
         log_action(db, user.username, f"Yazıcı güncellendi ({printer_id})")
     else:
@@ -2219,6 +2417,8 @@ def add_printer_form(
             ip_adresi=ip_adresi,
             mac=mac,
             hostname=hostname,
+            tarih=date.fromisoformat(tarih) if tarih else None,
+            islem_yapan=islem_yapan,
             notlar=notlar,
         )
         db.add(db_item)
@@ -2248,6 +2448,8 @@ def delete_printer_form(
             ip_adresi=printer.ip_adresi,
             mac=printer.mac,
             hostname=printer.hostname,
+            tarih=printer.tarih,
+            islem_yapan=printer.islem_yapan,
             notlar=printer.notlar,
             deleted_at=date.today(),
         )
@@ -2278,6 +2480,8 @@ def delete_printer(
             ip_adresi=printer.ip_adresi,
             mac=printer.mac,
             hostname=printer.hostname,
+            tarih=printer.tarih,
+            islem_yapan=printer.islem_yapan,
             notlar=printer.notlar,
             deleted_at=date.today(),
         )
@@ -2308,6 +2512,8 @@ def restore_printer(
             ip_adresi=item.ip_adresi,
             mac=item.mac,
             hostname=item.hostname,
+            tarih=item.tarih,
+            islem_yapan=item.islem_yapan,
             notlar=item.notlar,
         )
         db.add(restored)
@@ -2389,6 +2595,8 @@ def export_printer_excel(
             "İp Adresi": i.ip_adresi,
             "Mac": i.mac,
             "Hostname": i.hostname,
+            "Tarih": i.tarih.isoformat() if i.tarih else None,
+            "İşlem Yapan": i.islem_yapan,
             "Notlar": i.notlar,
         }
         for i in items
