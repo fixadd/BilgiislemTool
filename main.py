@@ -17,7 +17,6 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from starlette.middleware.sessions import SessionMiddleware
 import os
 import json
-import base64
 import sqlite3
 from passlib.context import CryptContext
 from passlib.exc import UnknownHashError
@@ -423,10 +422,14 @@ def init_db():
 
 
 def init_admin():
+    username = os.getenv("ADMIN_USERNAME")
+    password_plain = os.getenv("ADMIN_PASSWORD")
+    if not username or not password_plain:
+        raise RuntimeError(
+            "ADMIN_USERNAME and ADMIN_PASSWORD environment variables must be set"
+        )
     db = SessionLocal()
     try:
-        username = base64.b64decode("YWRtaW4=").decode()
-        password_plain = base64.b64decode("YWRtaW4=").decode()
         if not db.query(User).filter(User.username == username).first():
             admin = User(
                 username=username,
