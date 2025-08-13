@@ -121,6 +121,12 @@
           });
         });
       }
+      const perPage = document.getElementById('per-page');
+      if (perPage) {
+        perPage.addEventListener('change', () => {
+          document.getElementById('search-form').submit();
+        });
+      }
     });
     function showAlert(message){
       document.getElementById('alertModalBody').innerText = message;
