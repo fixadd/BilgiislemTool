@@ -1,4 +1,17 @@
 {% extends "base.html" %}
+{% set column_labels = {
+    'urun_adi': 'Ürün Adı',
+    'kategori': 'Kategori',
+    'marka': 'Marka',
+    'adet': 'Adet',
+    'departman': 'Departman',
+    'guncelleme_tarihi': 'Güncelleme Tarihi',
+    'islem': 'İşlem',
+    'tarih': 'Tarih',
+    'ifs_no': 'IFS No',
+    'aciklama': 'Açıklama',
+    'islem_yapan': 'İşlem Yapan'
+} %}
 {% block title %}Stok Takip{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center">
@@ -77,7 +90,7 @@
             <div class="modal-body">
               {% for col in columns %}
               <div class="mb-3">
-                <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
+                <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
                 {% if col == 'aciklama' %}
                 <textarea class="form-control" name="{{ col }}" required></textarea>
                 {% elif col == 'tarih' %}
@@ -118,7 +131,7 @@
         <div class="modal-body">
           {% for col in columns %}
           <div class="mb-3">
-            <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
+            <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
             {% if col == 'aciklama' %}
             <textarea class="form-control" name="{{ col }}" required></textarea>
             {% elif col == 'tarih' %}
@@ -153,7 +166,7 @@
         <th><input type="checkbox" id="select-all"></th>
         <th>#</th>
         {% for col in columns %}
-        <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ col.replace('_', ' ').title() }}</th>
+        <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ column_labels.get(col, col.replace('_', ' ').title()) }}</th>
         {% endfor %}
     </tr>
     {% for s in stocks %}
