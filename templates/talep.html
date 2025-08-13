@@ -65,11 +65,16 @@
                   </select>
                 </div>
                 <div class="col">
-                  <input type="number" class="form-control adet" name="adet" placeholder="Adet" min="0" required>
+                  <input type="number" class="form-control adet" name="adet" placeholder="Adet" min="1" required>
                 </div>
-              <div class="col">
-                <input type="text" class="form-control ifs-no" name="ifs_no" placeholder="IFS No" required>
-              </div>
+                <div class="col">
+                  <input type="text" class="form-control ifs-no" name="ifs_no" placeholder="IFS No" required>
+                </div>
+                <div class="col-auto">
+                  <button type="button" class="btn btn-danger remove-row" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-dash"></i>
+                  </button>
+                </div>
               <input type="hidden" name="urun_adi">
               <input type="hidden" name="tarih" value="{{ today }}">
               <input type="hidden" name="aciklama">
@@ -182,13 +187,14 @@ document.getElementById('transfer-selected').addEventListener('click', function(
     const tr = cb.closest('tr');
     const urun = tr.children[1].innerText.trim();
     const ifsNo = tr.children[4].innerText.trim();
+    const maxQty = parseInt(tr.children[2].innerText.trim());
     const div = document.createElement('div');
     div.className = 'row g-2 transfer-row';
     if(transferCategory === 'lisans'){
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
         <div class="col-12 mb-2">${urun}</div>
-        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
+        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}"></div>
         <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
         <div class="col"><input type="text" class="form-control kullanici" placeholder="Kullanıcı"></div>
         <div class="col"><input type="text" class="form-control lisans_anahtari" placeholder="Lisans Anahtarı"></div>
@@ -200,7 +206,7 @@ document.getElementById('transfer-selected').addEventListener('click', function(
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
         <div class="col">${urun}</div>
-        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
+        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}"></div>
         <div class="col"><input type="text" class="form-control fabrika" placeholder="Fabrika"></div>
         <div class="col"><input type="text" class="form-control blok" placeholder="Blok"></div>
         <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
@@ -230,7 +236,7 @@ document.getElementById('transfer-selected').addEventListener('click', function(
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
         <div class="col">${urun}</div>
-        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
+        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}"></div>
         <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
       `;
     }
@@ -242,10 +248,17 @@ document.getElementById('transfer-selected').addEventListener('click', function(
 document.getElementById('confirm-transfer').addEventListener('click', function(){
   const rows = document.querySelectorAll('#transfer-rows .transfer-row');
   let valid = true;
+  let maxExceeded = false;
   const items = Array.from(rows).map(row => {
     const departman = row.querySelector('.departman').value.trim();
-    const adet = parseInt(row.querySelector('.adet').value);
-    if(!departman || isNaN(adet)){
+    const adetInput = row.querySelector('.adet');
+    const adet = parseInt(adetInput.value);
+    const max = parseInt(adetInput.getAttribute('max'));
+    if(!departman || isNaN(adet) || adet <= 0){
+      valid = false;
+    }
+    if(adet > max){
+      maxExceeded = true;
       valid = false;
     }
     const item = {
@@ -289,7 +302,11 @@ document.getElementById('confirm-transfer').addEventListener('click', function()
     return item;
   });
   if(!valid){
-    showAlert('Lütfen tüm alanları doldurun');
+    if(maxExceeded){
+      showAlert('Adet talep edilen miktarı aşamaz');
+    } else {
+      showAlert('Lütfen tüm alanları doldurun');
+    }
     return;
   }
   fetch('/requests/transfer', {
@@ -319,12 +336,13 @@ document.getElementById('stock-transfer-selected').addEventListener('click', fun
   checks.forEach(cb => {
     const tr = cb.closest('tr');
     const urun = tr.children[1].innerText.trim();
+    const maxQty = parseInt(tr.children[2].innerText.trim());
     const div = document.createElement('div');
     div.className = 'row g-2 stock-transfer-row';
     div.innerHTML = `
       <input type="hidden" name="id" value="${cb.value}">
       <div class="col">${urun}</div>
-      <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
+      <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}"></div>
     `;
     container.appendChild(div);
   });
@@ -333,10 +351,32 @@ document.getElementById('stock-transfer-selected').addEventListener('click', fun
 });
 document.getElementById('confirm-stock-transfer').addEventListener('click', function(){
   const rows = document.querySelectorAll('#stock-transfer-rows .stock-transfer-row');
-  const items = Array.from(rows).map(row => ({
-    id: parseInt(row.querySelector('input[name="id"]').value),
-    adet: parseInt(row.querySelector('.adet').value)
-  }));
+  let valid = true;
+  let maxExceeded = false;
+  const items = Array.from(rows).map(row => {
+    const adetInput = row.querySelector('.adet');
+    const adet = parseInt(adetInput.value);
+    const max = parseInt(adetInput.getAttribute('max'));
+    if(isNaN(adet) || adet <= 0){
+      valid = false;
+    }
+    if(adet > max){
+      maxExceeded = true;
+      valid = false;
+    }
+    return {
+      id: parseInt(row.querySelector('input[name="id"]').value),
+      adet: adet
+    };
+  });
+  if(!valid){
+    if(maxExceeded){
+      showAlert('Adet talep edilen miktarı aşamaz');
+    } else {
+      showAlert('Lütfen tüm alanları doldurun');
+    }
+    return;
+  }
   fetch('/requests/stock_transfer', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -371,6 +411,15 @@ function setupRow(row){
   const typeSelect = row.querySelector('.type-select');
   const donanimFields = row.querySelectorAll('.donanim-field');
   const lisansField = row.querySelector('.lisans-field');
+  const removeBtn = row.querySelector('.remove-row');
+  removeBtn.addEventListener('click', () => {
+    const rows = document.querySelectorAll('.request-row');
+    if(rows.length > 1){
+      row.remove();
+    } else {
+      showAlert('En az bir satır olmalı');
+    }
+  });
   typeSelect.addEventListener('change', () => {
     if(typeSelect.value === 'lisans'){
       donanimFields.forEach(f => { f.classList.add('d-none'); const sel = f.querySelector('select'); if(sel) sel.value = ''; });
