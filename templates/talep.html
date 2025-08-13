@@ -64,6 +64,14 @@
                     {% endfor %}
                   </select>
                 </div>
+                <div class="col aksesuar-field d-none">
+                  <select class="form-select urun-adi">
+                    <option value="">Ürün Adı</option>
+                    {% for val in lookups.urun_adi %}
+                    <option value="{{ val }}">{{ val }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
                 <div class="col">
                   <input type="number" class="form-control adet" name="adet" placeholder="Adet" min="1" required>
                 </div>
@@ -189,55 +197,53 @@ document.getElementById('transfer-selected').addEventListener('click', function(
     const ifsNo = tr.children[4].innerText.trim();
     const maxQty = parseInt(tr.children[2].innerText.trim());
     const div = document.createElement('div');
-    div.className = 'row g-2 transfer-row';
+    div.className = 'transfer-row d-flex flex-column gap-2';
     if(transferCategory === 'lisans'){
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
-        <div class="col-12 mb-2">${urun}</div>
-        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}"></div>
-        <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
-        <div class="col"><input type="text" class="form-control kullanici" placeholder="Kullanıcı"></div>
-        <div class="col"><input type="text" class="form-control lisans_anahtari" placeholder="Lisans Anahtarı"></div>
-        <div class="col"><input type="text" class="form-control mail_adresi" placeholder="Mail Adresi"></div>
-        <div class="col"><input type="text" class="form-control envanter_no" placeholder="Envanter No" value="${ifsNo}"></div>
-        <div class="col"><input type="text" class="form-control notlar" placeholder="Notlar"></div>
+        <div>${urun}</div>
+        <input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}">
+        <input type="text" class="form-control departman" placeholder="Departman">
+        <input type="text" class="form-control kullanici" placeholder="Kullanıcı">
+        <input type="text" class="form-control lisans_anahtari" placeholder="Lisans Anahtarı">
+        <input type="text" class="form-control mail_adresi" placeholder="Mail Adresi">
+        <input type="text" class="form-control envanter_no" placeholder="Envanter No" value="${ifsNo}">
+        <input type="text" class="form-control notlar" placeholder="Notlar">
       `;
     } else if(transferCategory === 'donanim'){
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
-        <div class="col">${urun}</div>
-        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}"></div>
-        <div class="col"><input type="text" class="form-control fabrika" placeholder="Fabrika"></div>
-        <div class="col"><input type="text" class="form-control blok" placeholder="Blok"></div>
-        <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
-        <div class="col"><input type="text" class="form-control bilgisayar_adi" placeholder="Bilgisayar Adı"></div>
-        <div class="col"><input type="text" class="form-control seri_no" placeholder="Seri No"></div>
-        <div class="col"><input type="text" class="form-control sorumlu_personel" placeholder="Sorumlu Personel"></div>
-        <div class="col">
-          <select class="form-select kullanim_alani">
-            <option value="">Kullanım Alanı</option>
-            <option value="Kullanıcı">Kullanıcı</option>
-            <option value="Üretim">Üretim</option>
-          </select>
-        </div>
-        <div class="col d-none bagli-makina-col"><input type="text" class="form-control bagli_makina_no" placeholder="Bağlı Olduğu Makina"></div>
+        <div>${urun}</div>
+        <input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}">
+        <input type="text" class="form-control fabrika" placeholder="Fabrika">
+        <input type="text" class="form-control blok" placeholder="Blok">
+        <input type="text" class="form-control departman" placeholder="Departman">
+        <input type="text" class="form-control bilgisayar_adi" placeholder="Bilgisayar Adı">
+        <input type="text" class="form-control seri_no" placeholder="Seri No">
+        <input type="text" class="form-control sorumlu_personel" placeholder="Sorumlu Personel">
+        <select class="form-select kullanim_alani">
+          <option value="">Kullanım Alanı</option>
+          <option value="Kullanıcı">Kullanıcı</option>
+          <option value="Üretim">Üretim</option>
+        </select>
+        <input type="text" class="form-control bagli_makina_no d-none" placeholder="Bağlı Olduğu Makina">
       `;
       const usageSelect = div.querySelector('.kullanim_alani');
-      const machineCol = div.querySelector('.bagli-makina-col');
+      const machineInput = div.querySelector('.bagli_makina_no');
       usageSelect.addEventListener('change', () => {
         if(usageSelect.value === 'Üretim'){
-          machineCol.classList.remove('d-none');
+          machineInput.classList.remove('d-none');
         } else {
-          machineCol.classList.add('d-none');
-          div.querySelector('.bagli_makina_no').value = '';
+          machineInput.classList.add('d-none');
+          machineInput.value = '';
         }
       });
     } else {
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
-        <div class="col">${urun}</div>
-        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}"></div>
-        <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
+        <div>${urun}</div>
+        <input type="number" class="form-control adet" placeholder="Adet" value="${maxQty}" min="1" max="${maxQty}">
+        <input type="text" class="form-control departman" placeholder="Departman">
       `;
     }
     container.appendChild(div);
@@ -411,6 +417,7 @@ function setupRow(row){
   const typeSelect = row.querySelector('.type-select');
   const donanimFields = row.querySelectorAll('.donanim-field');
   const lisansField = row.querySelector('.lisans-field');
+  const aksesuarField = row.querySelector('.aksesuar-field');
   const removeBtn = row.querySelector('.remove-row');
   removeBtn.addEventListener('click', () => {
     const rows = document.querySelectorAll('.request-row');
@@ -423,11 +430,20 @@ function setupRow(row){
   typeSelect.addEventListener('change', () => {
     if(typeSelect.value === 'lisans'){
       donanimFields.forEach(f => { f.classList.add('d-none'); const sel = f.querySelector('select'); if(sel) sel.value = ''; });
+      aksesuarField.classList.add('d-none');
+      const urSel = aksesuarField.querySelector('select'); if(urSel) urSel.value = '';
       lisansField.classList.remove('d-none');
+    } else if(typeSelect.value === 'aksesuar'){
+      donanimFields.forEach(f => { f.classList.add('d-none'); const sel = f.querySelector('select'); if(sel) sel.value = ''; });
+      const lisSel = lisansField.querySelector('select'); if(lisSel) lisSel.value = '';
+      lisansField.classList.add('d-none');
+      aksesuarField.classList.remove('d-none');
     } else {
       donanimFields.forEach(f => f.classList.remove('d-none'));
       const lisSel = lisansField.querySelector('select'); if(lisSel) lisSel.value = '';
       lisansField.classList.add('d-none');
+      aksesuarField.classList.add('d-none');
+      const urSel = aksesuarField.querySelector('select'); if(urSel) urSel.value = '';
     }
   });
 }
@@ -445,6 +461,7 @@ document.getElementById('add-row').addEventListener('click', () => {
   clone.querySelector('.type-select').value = 'donanim';
   clone.querySelectorAll('.donanim-field').forEach(f => f.classList.remove('d-none'));
   clone.querySelector('.lisans-field').classList.add('d-none');
+  clone.querySelector('.aksesuar-field').classList.add('d-none');
   rows.appendChild(clone);
   setupRow(clone);
 });
@@ -454,6 +471,8 @@ document.querySelector('form').addEventListener('submit', () => {
     let urun = '';
     if(type === 'lisans'){
       urun = row.querySelector('.yazilim-adi').value;
+    } else if(type === 'aksesuar'){
+      urun = row.querySelector('.aksesuar-field select').value;
     } else {
       const tip = row.querySelector('.donanim-tipi').value;
       const marka = row.querySelector('.marka').value;

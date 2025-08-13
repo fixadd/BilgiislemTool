@@ -30,14 +30,14 @@
     </ol>
   </div>
   <div class="col">
-    <h5>Kategori</h5>
+    <h5>Donanım Tipi</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="kategori">
-      <input class="form-control" type="text" name="name" placeholder="Yeni kategori" required>
+      <input type="hidden" name="item_type" value="donanim_tipi">
+      <input class="form-control" type="text" name="name" placeholder="Yeni donanım tipi" required>
       <button class="btn btn-success" type="submit">Ekle</button>
     </form>
     <ol class="list-group list-group-numbered">
-      {% for c in categories %}
+      {% for c in types %}
       <li class="list-group-item">{{ c.name }}</li>
       {% endfor %}
     </ol>

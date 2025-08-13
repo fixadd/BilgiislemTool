@@ -803,7 +803,7 @@ def home_page(
     factories: Dict[str, List[Dict[str, int]]] = {}
     for fabrika, donanim_tipi, adet in factory_rows:
         factories.setdefault(fabrika or "Bilinmiyor", []).append(
-            {"kategori": donanim_tipi, "adet": adet}
+            {"donanim_tipi": donanim_tipi, "adet": adet}
         )
 
     type_rows = (
@@ -986,7 +986,7 @@ def lists_page(
     """Lookup list management page."""
     brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
-    categories = db.query(LookupItem).filter(LookupItem.type == "kategori").all()
+    types = db.query(LookupItem).filter(LookupItem.type == "donanim_tipi").all()
     softwares = db.query(LookupItem).filter(LookupItem.type == "yazilim").all()
     factories = db.query(LookupItem).filter(LookupItem.type == "fabrika").all()
     departments = db.query(LookupItem).filter(LookupItem.type == "departman").all()
@@ -1001,7 +1001,7 @@ def lists_page(
             "request": request,
             "brands": brands,
             "locations": locations,
-            "categories": categories,
+            "types": types,
             "softwares": softwares,
             "factories": factories,
             "departments": departments,
@@ -2137,6 +2137,7 @@ def request_tracking_page(
         "marka": "marka",
         "model": "model",
         "yazilim_adi": "yazilim",
+        "urun_adi": "urun",
     }
     lookups = {
         col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
