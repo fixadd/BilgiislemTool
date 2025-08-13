@@ -38,3 +38,30 @@ def test_basic_pages():
     for path in ["/", "/login", "/stock", "/printer"]:
         resp = client.get(path)
         assert resp.status_code == 200
+
+
+def test_column_helper_endpoints():
+    client = TestClient(main.app)
+
+    resp = client.get("/column-settings", params={"table_name": "stock"})
+    assert resp.status_code == 200
+    assert resp.json() == {}
+
+    payload = {"order": ["a"], "visible": ["a"], "widths": {"a": 100}}
+    resp = client.post(
+        "/column-settings",
+        params={"table_name": "stock"},
+        json=payload,
+    )
+    assert resp.status_code == 200
+    assert resp.json() == payload
+
+    resp = client.get("/table-columns", params={"table_name": "stock"})
+    assert resp.status_code == 200
+    assert resp.json() == {"columns": []}
+
+    resp = client.get(
+        "/column-values", params={"table_name": "stock", "column": "name"}
+    )
+    assert resp.status_code == 200
+    assert resp.json() == []
