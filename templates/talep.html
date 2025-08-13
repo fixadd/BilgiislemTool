@@ -25,20 +25,33 @@
           <div id="request-rows" class="d-flex flex-column gap-2">
             <div class="row g-2 request-row">
               <div class="col">
-                <input type="text" class="form-control" name="urun_adi" placeholder="Ürün Adı" required>
+                <select class="form-select type-select">
+                  <option value="donanim">Donanım</option>
+                  <option value="lisans">Lisans</option>
+                  <option value="aksesuar">Aksesuar</option>
+                </select>
+              </div>
+              <div class="col donanim-field">
+                <input type="text" class="form-control donanim-tipi" placeholder="Donanım Tipi">
+              </div>
+              <div class="col donanim-field">
+                <input type="text" class="form-control marka" placeholder="Marka">
+              </div>
+              <div class="col donanim-field">
+                <input type="text" class="form-control model" placeholder="Model">
+              </div>
+              <div class="col lisans-field d-none">
+                <input type="text" class="form-control yazilim-adi" placeholder="Yazılım Adı">
               </div>
               <div class="col">
-                <input type="number" class="form-control" name="adet" placeholder="Adet" required>
+                <input type="number" class="form-control adet" name="adet" placeholder="Adet" required>
               </div>
               <div class="col">
-                <input type="date" class="form-control" name="tarih" value="{{ today }}" required>
+                <input type="text" class="form-control ifs-no" name="ifs_no" placeholder="IFS No" required>
               </div>
-              <div class="col">
-                <input type="text" class="form-control" name="ifs_no" placeholder="IFS No" required>
-              </div>
-              <div class="col">
-                <input type="text" class="form-control" name="aciklama" placeholder="Açıklama">
-              </div>
+              <input type="hidden" name="urun_adi">
+              <input type="hidden" name="tarih" value="{{ today }}">
+              <input type="hidden" name="aciklama">
             </div>
           </div>
           <button type="button" id="add-row" class="btn btn-outline-secondary mt-2" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
@@ -136,14 +149,50 @@ document.querySelectorAll('.toggle-group').forEach(btn => {
   });
 });
 const today = "{{ today }}";
+function setupRow(row){
+  const typeSelect = row.querySelector('.type-select');
+  const donanimFields = row.querySelectorAll('.donanim-field');
+  const lisansField = row.querySelector('.lisans-field');
+  typeSelect.addEventListener('change', () => {
+    if(typeSelect.value === 'lisans'){
+      donanimFields.forEach(f => f.classList.add('d-none'));
+      lisansField.classList.remove('d-none');
+    } else {
+      donanimFields.forEach(f => f.classList.remove('d-none'));
+      lisansField.classList.add('d-none');
+    }
+  });
+}
+document.querySelectorAll('.request-row').forEach(setupRow);
 document.getElementById('add-row').addEventListener('click', () => {
   const rows = document.getElementById('request-rows');
   const first = rows.querySelector('.request-row');
   const clone = first.cloneNode(true);
   clone.querySelectorAll('input').forEach(inp => {
-    inp.value = inp.type === 'date' ? today : '';
+    if(inp.type !== 'hidden') inp.value = '';
+    if(inp.name === 'tarih') inp.value = today;
+    if(inp.name === 'aciklama') inp.value = '';
   });
+  clone.querySelector('.type-select').value = 'donanim';
+  clone.querySelectorAll('.donanim-field').forEach(f => f.classList.remove('d-none'));
+  clone.querySelector('.lisans-field').classList.add('d-none');
   rows.appendChild(clone);
+  setupRow(clone);
+});
+document.querySelector('form').addEventListener('submit', () => {
+  document.querySelectorAll('.request-row').forEach(row => {
+    const type = row.querySelector('.type-select').value;
+    let urun = '';
+    if(type === 'lisans'){
+      urun = row.querySelector('.yazilim-adi').value;
+    } else {
+      const tip = row.querySelector('.donanim-tipi').value;
+      const marka = row.querySelector('.marka').value;
+      const model = row.querySelector('.model').value;
+      urun = [tip, marka, model].filter(Boolean).join(' ');
+    }
+    row.querySelector('input[name="urun_adi"]').value = urun;
+  });
 });
 </script>
 {% endblock %}
