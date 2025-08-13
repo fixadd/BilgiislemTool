@@ -77,7 +77,7 @@
                 {% elif col == 'tarih' %}
                 <input type="date" class="form-control" name="{{ col }}" required>
                 {% elif col == 'adet' %}
-                <input type="number" class="form-control" name="{{ col }}" required>
+                  <input type="number" class="form-control" name="{{ col }}" min="0" required>
                 {% else %}
                 {% if lookups.get(col) %}
                 <select class="form-select" name="{{ col }}" required>
@@ -118,7 +118,7 @@
             {% elif col == 'tarih' %}
             <input type="date" class="form-control" name="{{ col }}" required>
             {% elif col == 'adet' %}
-            <input type="number" class="form-control" name="{{ col }}" required>
+            <input type="number" class="form-control" name="{{ col }}" min="0" required>
             {% else %}
             {% if lookups.get(col) %}
             <select class="form-select" name="{{ col }}" required>

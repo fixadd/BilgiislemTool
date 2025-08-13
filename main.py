@@ -156,6 +156,11 @@ class StockItem(Base):
 class RequestItem(Base):
     __tablename__ = "request_tracking"
     id = Column(Integer, primary_key=True, index=True)
+    kategori = Column(String)
+    donanim_tipi = Column(String)
+    marka = Column(String)
+    model = Column(String)
+    yazilim_adi = Column(String)
     urun_adi = Column(String)
     adet = Column(Integer)
     tarih = Column(Date)
@@ -292,6 +297,19 @@ def init_db():
             conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN aciklama TEXT"))
         if "islem_yapan" not in stock_cols:
             conn.execute(text("ALTER TABLE stock_tracking ADD COLUMN islem_yapan TEXT"))
+
+        # ensure request tracking columns exist
+        req_cols = [c["name"] for c in inspector.get_columns("request_tracking")]
+        req_required = {
+            "kategori": "TEXT",
+            "donanim_tipi": "TEXT",
+            "marka": "TEXT",
+            "model": "TEXT",
+            "yazilim_adi": "TEXT",
+        }
+        for col, col_type in req_required.items():
+            if col not in req_cols:
+                conn.execute(text(f"ALTER TABLE request_tracking ADD COLUMN {col} {col_type}"))
 
 
 def init_admin():
@@ -489,7 +507,6 @@ class DeleteIds(BaseModel):
 
 class TransferItem(BaseModel):
     id: int
-    kategori: Optional[str] = ""
     departman: Optional[str] = ""
     adet: Optional[int] = None
 
@@ -1590,6 +1607,8 @@ def add_stock_form(
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
+    if adet < 0:
+        raise HTTPException(status_code=400, detail="Adet negatif olamaz")
     if stock_id:
         item = db.query(StockItem).get(stock_id)
         if not item:
@@ -1714,11 +1733,12 @@ def stock_status(
     summary: Dict[str, int] = {}
     for it in items:
         qty = summary.get(it.urun_adi, 0)
-        if it.islem == "giriş":
+        action = (it.islem or "").lower()
+        if action == "giriş":
             qty += it.adet
-        elif it.islem == "çıkış":
+        elif action == "çıkış":
             qty -= it.adet
-        summary[it.urun_adi] = qty
+        summary[it.urun_adi] = max(qty, 0)
     sorted_items = sorted(summary.items(), key=lambda x: x[1], reverse=True)
     return templates.TemplateResponse(
         "stok_durumu.html", {"request": request, "summary": sorted_items}
@@ -1893,9 +1913,24 @@ def request_tracking_page(
     groups: Dict[str, List[RequestItem]] = {}
     for it in items:
         groups.setdefault(it.ifs_no or "", []).append(it)
+    lookup_map = {
+        "donanim_tipi": "donanim_tipi",
+        "marka": "marka",
+        "model": "model",
+        "yazilim_adi": "yazilim",
+    }
+    lookups = {
+        col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
+        for col, ltype in lookup_map.items()
+    }
     return templates.TemplateResponse(
         "talep.html",
-        {"request": request, "groups": groups, "today": date.today().isoformat()},
+        {
+            "request": request,
+            "groups": groups,
+            "today": date.today().isoformat(),
+            "lookups": lookups,
+        },
     )
 
 
@@ -1909,6 +1944,11 @@ def accessories_page(
 
 @app.post("/requests/add")
 def add_request_form(
+    kategori: List[str] = Form(...),
+    donanim_tipi: Optional[List[str]] = Form(None),
+    marka: Optional[List[str]] = Form(None),
+    model: Optional[List[str]] = Form(None),
+    yazilim_adi: Optional[List[str]] = Form(None),
     urun_adi: List[str] = Form(...),
     adet: List[int] = Form(...),
     tarih: Optional[List[str]] = Form(None),
@@ -1919,6 +1959,9 @@ def add_request_form(
 ):
     items: List[RequestItem] = []
     for i in range(len(urun_adi)):
+        qty = adet[i]
+        if qty < 0:
+            raise HTTPException(status_code=400, detail="Adet negatif olamaz")
         t = (
             date.fromisoformat(tarih[i])
             if tarih and len(tarih) > i and tarih[i]
@@ -1927,8 +1970,13 @@ def add_request_form(
         ac = aciklama[i] if aciklama and len(aciklama) > i else ""
         items.append(
             RequestItem(
+                kategori=kategori[i],
+                donanim_tipi=donanim_tipi[i] if donanim_tipi and len(donanim_tipi) > i else "",
+                marka=marka[i] if marka and len(marka) > i else "",
+                model=model[i] if model and len(model) > i else "",
+                yazilim_adi=yazilim_adi[i] if yazilim_adi and len(yazilim_adi) > i else "",
                 urun_adi=urun_adi[i],
-                adet=adet[i],
+                adet=qty,
                 tarih=t,
                 ifs_no=ifs_no[i],
                 aciklama=ac,
@@ -1955,20 +2003,53 @@ def transfer_requests(
         it = req_map.get(inp.id)
         if not it:
             continue
-        st = StockItem(
-            urun_adi=it.urun_adi,
-            kategori=inp.kategori,
-            marka="",
-            adet=inp.adet if inp.adet is not None else it.adet,
-            departman=inp.departman,
-            guncelleme_tarihi=date.today(),
-            islem="Giriş",
-            tarih=date.today(),
-            ifs_no=it.ifs_no,
-            aciklama=it.aciklama,
-            islem_yapan=full_name,
-        )
-        db.add(st)
+        qty = inp.adet if inp.adet is not None else it.adet or 1
+        if qty < 0:
+            raise HTTPException(status_code=400, detail="Adet negatif olamaz")
+        if it.kategori == "lisans":
+            for _ in range(qty):
+                lic = LicenseInventory(
+                    departman=inp.departman,
+                    kullanici="",
+                    yazilim_adi=it.yazilim_adi or it.urun_adi,
+                    lisans_anahtari="",
+                    mail_adresi="",
+                    envanter_no=it.ifs_no,
+                    notlar=it.aciklama,
+                )
+                db.add(lic)
+        elif it.kategori == "donanim":
+            for _ in range(qty):
+                hw = HardwareInventory(
+                    donanim_tipi=it.donanim_tipi,
+                    marka=it.marka,
+                    model=it.model,
+                    departman=inp.departman,
+                    no="",
+                    fabrika="",
+                    blok="",
+                    bilgisayar_adi="",
+                    seri_no="",
+                    sorumlu_personel="",
+                    kullanim_alani="",
+                    bagli_makina_no="",
+                )
+                db.add(hw)
+        else:
+            st = StockItem(
+                urun_adi=it.urun_adi,
+                kategori=it.kategori,
+                marka=it.marka,
+                adet=qty,
+                departman=inp.departman,
+                guncelleme_tarihi=date.today(),
+                islem="Giriş",
+                tarih=date.today(),
+                ifs_no=it.ifs_no,
+                aciklama=it.aciklama,
+                islem_yapan=full_name,
+            )
+            db.add(st)
         db.delete(it)
     log_action(db, user.username, f"{len(req_items)} talep stok kayıtlarına aktarıldı")
     db.commit()
