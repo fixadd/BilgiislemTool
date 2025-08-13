@@ -196,11 +196,23 @@ document.getElementById('transfer-selected').addEventListener('click', function(
 });
 document.getElementById('confirm-transfer').addEventListener('click', function(){
   const rows = document.querySelectorAll('#transfer-rows .transfer-row');
-  const items = Array.from(rows).map(row => ({
-    id: parseInt(row.querySelector('input[name="id"]').value),
-    departman: row.querySelector('.departman').value,
-    adet: parseInt(row.querySelector('.adet').value)
-  }));
+  let valid = true;
+  const items = Array.from(rows).map(row => {
+    const departman = row.querySelector('.departman').value.trim();
+    const adet = parseInt(row.querySelector('.adet').value);
+    if(!departman || isNaN(adet)){
+      valid = false;
+    }
+    return {
+      id: parseInt(row.querySelector('input[name="id"]').value),
+      departman: departman,
+      adet: adet
+    };
+  });
+  if(!valid){
+    showAlert('Lütfen tüm alanları doldurun');
+    return;
+  }
   fetch('/requests/transfer', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},

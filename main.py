@@ -519,7 +519,7 @@ class DeleteIds(BaseModel):
 
 class TransferItem(BaseModel):
     id: int
-    departman: Optional[str] = ""
+    departman: str = Field(..., min_length=1)
     adet: Optional[int] = None
 
 
