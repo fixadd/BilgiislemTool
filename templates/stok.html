@@ -29,7 +29,14 @@
     <i class="bi bi-trash"></i>
   </button>
   <a class="btn btn-info" href="/stock/status" style="height:40px;display:flex;align-items:center;">Stok Durumu</a>
-  <input id="search-input" type="text" class="form-control ms-auto" placeholder="Ara..." style="max-width: 200px;">
+  <form id="search-form" method="get" class="ms-auto d-flex gap-2">
+    <input id="search-input" name="q" type="text" class="form-control" placeholder="Ara..." value="{{ q }}" style="max-width: 200px;">
+    <select id="per-page" name="per_page" class="form-select" style="max-width: 100px;">
+      {% for opt in [25,50,100] %}
+      <option value="{{ opt }}" {% if per_page == opt %}selected{% endif %}>{{ opt }}</option>
+      {% endfor %}
+    </select>
+  </form>
 </div>
 
 <form id="uploadForm" action="/stock/upload" method="post" enctype="multipart/form-data" style="display:none;">
@@ -137,14 +144,13 @@
 <nav aria-label="Sayfalar">
   <ul class="pagination justify-content-center">
     {% if page > 1 %}
-    <li class="page-item">
-      <a class="page-link" href="/stock?page={{ page - 1 }}">Önceki</a>
-    </li>
+    <li class="page-item"><a class="page-link" href="/stock?page={{ page - 1 }}&per_page={{ per_page }}&q={{ q }}">Önceki</a></li>
     {% endif %}
-    {% if has_next %}
-    <li class="page-item">
-      <a class="page-link" href="/stock?page={{ page + 1 }}">Sonraki</a>
-    </li>
+    {% for p in range(1, total_pages + 1) %}
+    <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="/stock?page={{ p }}&per_page={{ per_page }}&q={{ q }}">{{ p }}</a></li>
+    {% endfor %}
+    {% if page < total_pages %}
+    <li class="page-item"><a class="page-link" href="/stock?page={{ page + 1 }}&per_page={{ per_page }}&q={{ q }}">Sonraki</a></li>
     {% endif %}
   </ul>
 </nav>
@@ -299,5 +305,11 @@ document.getElementById('confirm-delete').addEventListener('click', async () => 
     deleteModal.hide();
     location.reload();
 });
+const perPageSelect = document.getElementById('per-page');
+if (perPageSelect) {
+    perPageSelect.addEventListener('change', () => {
+        document.getElementById('search-form').submit();
+    });
+}
 </script>
 {% endblock %}
