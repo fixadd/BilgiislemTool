@@ -23,7 +23,6 @@ from passlib.context import CryptContext
 from passlib.exc import UnknownHashError
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
-from prometheus_fastapi_instrumentator import Instrumentator
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -674,9 +673,6 @@ class TransferItems(BaseModel):
 # --- FastAPI Uygulaması ---
 app = FastAPI()
 app.mount("/image", StaticFiles(directory="image"), name="image")
-
-# Expose Prometheus metrics at /metrics
-Instrumentator().instrument(app).expose(app)
 templates = Jinja2Templates(directory="templates")
 
 # Oturum yönetimi için SessionMiddleware ekle
