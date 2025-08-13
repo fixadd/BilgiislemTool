@@ -1,4 +1,16 @@
 {% extends "base.html" %}
+{% set column_labels = {
+    'departman': 'Departman',
+    'kullanici': 'Kullanıcı',
+    'yazilim_adi': 'Yazılım Adı',
+    'lisans_anahtari': 'Lisans Anahtarı',
+    'mail_adresi': 'Bulunduğu Mail Adresi',
+    'envanter_no': 'Envanter No',
+    'ifs_no': 'IFS No',
+    'tarih': 'Tarih',
+    'islem_yapan': 'İşlem Yapan',
+    'notlar': 'Notlar'
+} %}
 {% block title %}Lisans Takip{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center">
@@ -140,18 +152,6 @@
 </div>
 
 <table class="table table-striped table-fixed table-resizable">
-{% set column_labels = {
-    'departman': 'Departman',
-    'kullanici': 'Kullanıcı',
-    'yazilim_adi': 'Yazılım Adı',
-    'lisans_anahtari': 'Lisans Anahtarı',
-    'mail_adresi': 'Bulunduğu Mail Adresi',
-    'envanter_no': 'Envanter No',
-    'ifs_no': 'IFS No',
-    'tarih': 'Tarih',
-    'islem_yapan': 'İşlem Yapan',
-    'notlar': 'Notlar'
-} %}
 
   <tr>
       <th><input type="checkbox" id="select-all"></th>
