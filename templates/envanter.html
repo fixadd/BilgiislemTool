@@ -82,8 +82,9 @@
       <form id="editForm" action="/inventory/add" method="post">
         <input type="hidden" name="item_id">
           <div class="modal-body">
+            <div class="row row-cols-1 row-cols-md-3 g-3">
             {% for col in columns %}
-            <div class="mb-3">
+            <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
               <select class="form-select" name="{{ col }}" required>
@@ -97,6 +98,7 @@
               {% endif %}
             </div>
             {% endfor %}
+            </div>
           </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Kaydet</button>
@@ -114,8 +116,9 @@
       </div>
       <form id="addForm" action="/inventory/add" method="post">
           <div class="modal-body">
+            <div class="row row-cols-1 row-cols-md-3 g-3">
             {% for col in columns %}
-            <div class="mb-3">
+            <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
               <select class="form-select" name="{{ col }}" required>
@@ -129,6 +132,7 @@
               {% endif %}
             </div>
             {% endfor %}
+            </div>
           </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>

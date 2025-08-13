@@ -865,6 +865,7 @@ def inventory_page(
         "fabrika": "fabrika",
         "departman": "departman",
         "blok": "blok",
+        "donanim_tipi": "donanim_tipi",
         "marka": "marka",
         "model": "model",
         "kullanim_alani": "lokasyon",
