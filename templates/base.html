@@ -32,6 +32,11 @@
       border-radius:.25rem;
       width:300px;
     }
+    #search-form{
+      margin-left:auto;
+      position:sticky;
+      right:0;
+    }
   </style>
 </head>
 <body>
@@ -63,9 +68,8 @@
 
     <div class="flex-grow-1 p-4">
       <div class="d-flex justify-content-end align-items-center mb-3">
-        <span class="me-2">{{ request.session.get('username') }}</span>
-        <a href="/profile" class="me-2" title="Profil"><i class="bi bi-person-circle"></i></a>
-        <a href="/logout" title="Çıkış"><i class="bi bi-box-arrow-right"></i></a>
+        <span class="me-3 fs-5 fw-bold">{{ request.session.get('username') }}</span>
+        <a href="/logout" class="text-danger fs-4" title="Çıkış"><i class="bi bi-box-arrow-right"></i></a>
       </div>
       {% block content %}{% endblock %}
     </div>
