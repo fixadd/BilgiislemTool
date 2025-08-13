@@ -823,14 +823,16 @@ def inventory_page(
     if per_page not in (25, 50, 100):
         per_page = 50
     page = max(page, 1)
-    offset = (page - 1) * per_page
     query = db.query(HardwareInventory)
     if q:
         pattern = f"%{q}%"
         query = query.filter(or_(*(getattr(HardwareInventory, c).ilike(pattern) for c in columns)))
     total = query.count()
+    total_pages = (total + per_page - 1) // per_page or 1
+    if page > total_pages:
+        page = total_pages
+    offset = (page - 1) * per_page
     items = query.offset(offset).limit(per_page).all()
-    total_pages = (total + per_page - 1) // per_page
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "envanter.html",
@@ -1148,14 +1150,16 @@ def license_page(
     if per_page not in (25, 50, 100):
         per_page = 50
     page = max(page, 1)
-    offset = (page - 1) * per_page
     query = db.query(LicenseInventory)
     if q:
         pattern = f"%{q}%"
         query = query.filter(or_(*(getattr(LicenseInventory, c).ilike(pattern) for c in columns)))
     total = query.count()
+    total_pages = (total + per_page - 1) // per_page or 1
+    if page > total_pages:
+        page = total_pages
+    offset = (page - 1) * per_page
     licenses = query.offset(offset).limit(per_page).all()
-    total_pages = (total + per_page - 1) // per_page
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "lisans.html",
@@ -1721,14 +1725,16 @@ def printer_page(
     if per_page not in (25, 50, 100):
         per_page = 50
     page = max(page, 1)
-    offset = (page - 1) * per_page
     query = db.query(PrinterInventory)
     if q:
         pattern = f"%{q}%"
         query = query.filter(or_(*(getattr(PrinterInventory, c).ilike(pattern) for c in columns)))
     total = query.count()
+    total_pages = (total + per_page - 1) // per_page or 1
+    if page > total_pages:
+        page = total_pages
+    offset = (page - 1) * per_page
     printers = query.offset(offset).limit(per_page).all()
-    total_pages = (total + per_page - 1) // per_page
     display_columns = [c for c in order if c in visible]
     brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
