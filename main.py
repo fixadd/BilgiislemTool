@@ -521,6 +521,11 @@ class TransferItem(BaseModel):
     id: int
     departman: str = Field(..., min_length=1)
     adet: Optional[int] = None
+    kullanici: Optional[str] = ""
+    lisans_anahtari: Optional[str] = ""
+    mail_adresi: Optional[str] = ""
+    envanter_no: Optional[str] = ""
+    notlar: Optional[str] = ""
 
 
 class TransferItems(BaseModel):
@@ -2029,15 +2034,34 @@ def transfer_requests(
         if qty < 0:
             raise HTTPException(status_code=400, detail="Adet negatif olamaz")
         if it.kategori == "lisans":
+            email = inp.mail_adresi or ""
+            if not email and inp.kullanici:
+                db_user = (
+                    db.query(User)
+                    .filter(
+                        or_(
+                            User.username == inp.kullanici,
+                            func.lower(
+                                func.coalesce(User.first_name, "")
+                                + " "
+                                + func.coalesce(User.last_name, "")
+                            )
+                            == inp.kullanici.lower(),
+                        )
+                    )
+                    .first()
+                )
+                if db_user and db_user.email:
+                    email = db_user.email
             for _ in range(qty):
                 lic = LicenseInventory(
                     departman=inp.departman,
-                    kullanici="",
+                    kullanici=inp.kullanici or "",
                     yazilim_adi=it.yazilim_adi or it.urun_adi,
-                    lisans_anahtari="",
-                    mail_adresi="",
-                    envanter_no=it.ifs_no,
-                    notlar=it.aciklama,
+                    lisans_anahtari=inp.lisans_anahtari or "",
+                    mail_adresi=email,
+                    envanter_no=inp.envanter_no or it.ifs_no,
+                    notlar=inp.notlar or it.aciklama,
                 )
                 db.add(lic)
         elif it.kategori == "donanim":
