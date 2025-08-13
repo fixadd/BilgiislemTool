@@ -2081,6 +2081,43 @@ def transfer_requests(
     return {"message": "ok"}
 
 
+@app.post("/requests/stock_transfer")
+def stock_transfer_requests(
+    data: TransferItems,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    item_ids = [i.id for i in data.items]
+    req_items = db.query(RequestItem).filter(RequestItem.id.in_(item_ids)).all()
+    req_map = {it.id: it for it in req_items}
+    full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+    for inp in data.items:
+        it = req_map.get(inp.id)
+        if not it:
+            continue
+        qty = inp.adet if inp.adet is not None else it.adet or 1
+        if qty < 0:
+            raise HTTPException(status_code=400, detail="Adet negatif olamaz")
+        st = StockItem(
+            urun_adi=it.urun_adi,
+            kategori=it.kategori,
+            marka=it.marka,
+            adet=qty,
+            departman="",
+            guncelleme_tarihi=date.today(),
+            islem="Giriş",
+            tarih=date.today(),
+            ifs_no=it.ifs_no,
+            aciklama=it.aciklama,
+            islem_yapan=full_name,
+        )
+        db.add(st)
+        db.delete(it)
+    log_action(db, user.username, f"{len(req_items)} talep stok kayıtlarına aktarıldı")
+    db.commit()
+    return {"message": "ok"}
+
+
 @app.post("/requests/delete")
 def delete_requests(
     ids: DeleteIds,
