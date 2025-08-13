@@ -31,3 +31,10 @@ def test_ping_route():
     response = client.get("/ping")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_basic_pages():
+    client = TestClient(main.app)
+    for path in ["/", "/login", "/stock", "/printer"]:
+        resp = client.get(path)
+        assert resp.status_code == 200
