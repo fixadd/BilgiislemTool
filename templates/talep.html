@@ -181,14 +181,29 @@ document.getElementById('transfer-selected').addEventListener('click', function(
   checks.forEach(cb => {
     const tr = cb.closest('tr');
     const urun = tr.children[1].innerText.trim();
+    const ifsNo = tr.children[4].innerText.trim();
     const div = document.createElement('div');
     div.className = 'row g-2 transfer-row';
-    div.innerHTML = `
-      <input type="hidden" name="id" value="${cb.value}">
-      <div class="col">${urun}</div>
-      <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
-      <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
-    `;
+    if(transferCategory === 'lisans'){
+      div.innerHTML = `
+        <input type="hidden" name="id" value="${cb.value}">
+        <div class="col-12 mb-2">${urun}</div>
+        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
+        <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
+        <div class="col"><input type="text" class="form-control kullanici" placeholder="Kullanıcı"></div>
+        <div class="col"><input type="text" class="form-control lisans_anahtari" placeholder="Lisans Anahtarı"></div>
+        <div class="col"><input type="text" class="form-control mail_adresi" placeholder="Mail Adresi"></div>
+        <div class="col"><input type="text" class="form-control envanter_no" placeholder="Envanter No" value="${ifsNo}"></div>
+        <div class="col"><input type="text" class="form-control notlar" placeholder="Notlar"></div>
+      `;
+    } else {
+      div.innerHTML = `
+        <input type="hidden" name="id" value="${cb.value}">
+        <div class="col">${urun}</div>
+        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
+        <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
+      `;
+    }
     container.appendChild(div);
   });
   const modal = new bootstrap.Modal(document.getElementById('transferModal'));
@@ -203,11 +218,27 @@ document.getElementById('confirm-transfer').addEventListener('click', function()
     if(!departman || isNaN(adet)){
       valid = false;
     }
-    return {
+    const item = {
       id: parseInt(row.querySelector('input[name="id"]').value),
       departman: departman,
       adet: adet
     };
+    if(transferCategory === 'lisans'){
+      const kullanici = row.querySelector('.kullanici').value.trim();
+      const lisans = row.querySelector('.lisans_anahtari').value.trim();
+      const mail = row.querySelector('.mail_adresi').value.trim();
+      const env = row.querySelector('.envanter_no').value.trim();
+      const note = row.querySelector('.notlar').value.trim();
+      if(!kullanici || !lisans || !env){
+        valid = false;
+      }
+      item.kullanici = kullanici;
+      item.lisans_anahtari = lisans;
+      item.mail_adresi = mail;
+      item.envanter_no = env;
+      item.notlar = note;
+    }
+    return item;
   });
   if(!valid){
     showAlert('Lütfen tüm alanları doldurun');
