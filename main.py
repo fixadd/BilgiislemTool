@@ -652,7 +652,7 @@ class DeleteIds(BaseModel):
 
 class TransferItem(BaseModel):
     id: int
-    departman: str = Field(..., min_length=1)
+    departman: Optional[str] = None
     adet: Optional[int] = None
     kullanici: Optional[str] = ""
     lisans_anahtari: Optional[str] = ""
@@ -2225,6 +2225,8 @@ def transfer_requests(
         it = req_map.get(inp.id)
         if not it:
             continue
+        if not inp.departman:
+            raise HTTPException(status_code=400, detail="Departman gerekli")
         qty = inp.adet if inp.adet is not None else it.adet or 1
         if qty < 0:
             raise HTTPException(status_code=400, detail="Adet negatif olamaz")
