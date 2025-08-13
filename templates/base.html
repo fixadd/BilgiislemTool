@@ -28,17 +28,22 @@
       <img src="/image/onurum.png" alt="Onurum" class="img-fluid mb-3" style="width:150px">
       <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item"><a href="/home" class="nav-link text-white {% if request.path.startswith('/home') %}active{% endif %}">Ana Sayfa</a></li>
+
+        <li class="nav-item mt-3"><span class="nav-link text-white text-uppercase fw-bold disabled">Envanter</span></li>
         <li><a href="/inventory" class="nav-link text-white {% if request.path.startswith('/inventory') %}active{% endif %}">Envanter Takip</a></li>
         <li><a href="/license" class="nav-link text-white {% if request.path.startswith('/license') %}active{% endif %}">Lisans Takip</a></li>
-        <li><a href="/printer" class="nav-link text-white {% if request.path.startswith('/printer') %}active{% endif %}">Yazıcı Takip</a></li>
-        <li><a href="/stock" class="nav-link text-white {% if request.path.startswith('/stock') %}active{% endif %}">Stok Takip</a></li>
-        <li><a href="/requests" class="nav-link text-white {% if request.path.startswith('/requests') %}active{% endif %}">Talep Takip</a></li>
         <li><a href="/accessories" class="nav-link text-white {% if request.path.startswith('/accessories') %}active{% endif %}">Aksesuar Takip</a></li>
-        <li><a href="/trash" class="nav-link text-white {% if request.path.startswith('/trash') %}active{% endif %}">Çöp Kutusu</a></li>
-        <li><a href="/lists" class="nav-link text-white {% if request.path.startswith('/lists') %}active{% endif %}">Envanter Ekleme</a></li>
+        <li><a href="/printer" class="nav-link text-white {% if request.path.startswith('/printer') %}active{% endif %}">Yazıcı Takip</a></li>
+
+        <li class="nav-item mt-3"><span class="nav-link text-white text-uppercase fw-bold disabled">İşlemler</span></li>
+        <li><a href="/requests" class="nav-link text-white {% if request.path.startswith('/requests') %}active{% endif %}">Talep Takip</a></li>
+        <li><a href="/stock" class="nav-link text-white {% if request.path.startswith('/stock') %}active{% endif %}">Stok Takip</a></li>
+
+        <li class="nav-item mt-3"><span class="nav-link text-white text-uppercase fw-bold disabled">Ayarlar</span></li>
         {% if request.session.get('is_admin') %}
         <li><a href="/admin" class="nav-link text-white {% if request.path.startswith('/admin') %}active{% endif %}">Admin Paneli</a></li>
         {% endif %}
+        <li><a href="/lists" class="nav-link text-white {% if request.path.startswith('/lists') %}active{% endif %}">Envanter Ekleme</a></li>
       </ul>
     </nav>
 
