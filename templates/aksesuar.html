@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Aksesuar Takip{% endblock %}
+{% block content %}
+<h2>Aksesuar Takip</h2>
+<div class="d-flex gap-2 mb-3">
+  <button id="add-row" class="btn btn-success" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+    <i class="bi bi-plus"></i>
+  </button>
+</div>
+<form>
+  <div id="rows" class="d-flex flex-column gap-2">
+    <div class="row g-2 item-row">
+      <div class="col">
+        <select class="form-select kategori">
+          <option value="donanim">Donanım</option>
+          <option value="lisans">Lisans</option>
+          <option value="aksesuar">Aksesuar</option>
+        </select>
+      </div>
+      <div class="col hardware-field">
+        <input type="text" class="form-control" placeholder="Donanım Tipi">
+      </div>
+      <div class="col hardware-field">
+        <input type="text" class="form-control" placeholder="Marka">
+      </div>
+      <div class="col hardware-field">
+        <input type="text" class="form-control" placeholder="Model">
+      </div>
+      <div class="col common-field">
+        <input type="number" class="form-control" placeholder="Adet">
+      </div>
+      <div class="col common-field">
+        <input type="text" class="form-control" placeholder="IFS No">
+      </div>
+      <div class="col license-field d-none">
+        <input type="text" class="form-control" placeholder="Yazılım Adı">
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+function updateFields(row){
+  const cat = row.querySelector('.kategori').value;
+  row.querySelectorAll('.hardware-field').forEach(el=>el.classList.toggle('d-none', cat === 'lisans'));
+  row.querySelector('.license-field').classList.toggle('d-none', cat !== 'lisans');
+}
+document.querySelectorAll('.item-row').forEach(row=>{
+  updateFields(row);
+  row.querySelector('.kategori').addEventListener('change', ()=>updateFields(row));
+});
+document.getElementById('add-row').addEventListener('click', ()=>{
+  const rows = document.getElementById('rows');
+  const first = rows.querySelector('.item-row');
+  const clone = first.cloneNode(true);
+  clone.querySelectorAll('input').forEach(inp=>inp.value='');
+  rows.appendChild(clone);
+  updateFields(clone);
+  clone.querySelector('.kategori').addEventListener('change', ()=>updateFields(clone));
+});
+</script>
+{% endblock %}
