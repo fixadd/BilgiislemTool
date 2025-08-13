@@ -526,6 +526,13 @@ class TransferItem(BaseModel):
     mail_adresi: Optional[str] = ""
     envanter_no: Optional[str] = ""
     notlar: Optional[str] = ""
+    fabrika: Optional[str] = ""
+    blok: Optional[str] = ""
+    bilgisayar_adi: Optional[str] = ""
+    seri_no: Optional[str] = ""
+    sorumlu_personel: Optional[str] = ""
+    kullanim_alani: Optional[str] = ""
+    bagli_makina_no: Optional[str] = ""
 
 
 class TransferItems(BaseModel):
@@ -2072,13 +2079,13 @@ def transfer_requests(
                     model=it.model,
                     departman=inp.departman,
                     no="",
-                    fabrika="",
-                    blok="",
-                    bilgisayar_adi="",
-                    seri_no="",
-                    sorumlu_personel="",
-                    kullanim_alani="",
-                    bagli_makina_no="",
+                    fabrika=inp.fabrika or "",
+                    blok=inp.blok or "",
+                    bilgisayar_adi=inp.bilgisayar_adi or "",
+                    seri_no=inp.seri_no or "",
+                    sorumlu_personel=inp.sorumlu_personel or "",
+                    kullanim_alani=inp.kullanim_alani or "",
+                    bagli_makina_no=inp.bagli_makina_no or "",
                 )
                 db.add(hw)
         elif it.kategori == "aksesuar":

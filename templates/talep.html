@@ -196,6 +196,36 @@ document.getElementById('transfer-selected').addEventListener('click', function(
         <div class="col"><input type="text" class="form-control envanter_no" placeholder="Envanter No" value="${ifsNo}"></div>
         <div class="col"><input type="text" class="form-control notlar" placeholder="Notlar"></div>
       `;
+    } else if(transferCategory === 'donanim'){
+      div.innerHTML = `
+        <input type="hidden" name="id" value="${cb.value}">
+        <div class="col">${urun}</div>
+        <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
+        <div class="col"><input type="text" class="form-control fabrika" placeholder="Fabrika"></div>
+        <div class="col"><input type="text" class="form-control blok" placeholder="Blok"></div>
+        <div class="col"><input type="text" class="form-control departman" placeholder="Departman"></div>
+        <div class="col"><input type="text" class="form-control bilgisayar_adi" placeholder="Bilgisayar Adı"></div>
+        <div class="col"><input type="text" class="form-control seri_no" placeholder="Seri No"></div>
+        <div class="col"><input type="text" class="form-control sorumlu_personel" placeholder="Sorumlu Personel"></div>
+        <div class="col">
+          <select class="form-select kullanim_alani">
+            <option value="">Kullanım Alanı</option>
+            <option value="Kullanıcı">Kullanıcı</option>
+            <option value="Üretim">Üretim</option>
+          </select>
+        </div>
+        <div class="col d-none bagli-makina-col"><input type="text" class="form-control bagli_makina_no" placeholder="Bağlı Olduğu Makina"></div>
+      `;
+      const usageSelect = div.querySelector('.kullanim_alani');
+      const machineCol = div.querySelector('.bagli-makina-col');
+      usageSelect.addEventListener('change', () => {
+        if(usageSelect.value === 'Üretim'){
+          machineCol.classList.remove('d-none');
+        } else {
+          machineCol.classList.add('d-none');
+          div.querySelector('.bagli_makina_no').value = '';
+        }
+      });
     } else {
       div.innerHTML = `
         <input type="hidden" name="id" value="${cb.value}">
@@ -237,6 +267,24 @@ document.getElementById('confirm-transfer').addEventListener('click', function()
       item.mail_adresi = mail;
       item.envanter_no = env;
       item.notlar = note;
+    } else if(transferCategory === 'donanim'){
+      const fabrika = row.querySelector('.fabrika').value.trim();
+      const blok = row.querySelector('.blok').value.trim();
+      const bilgisayarAdi = row.querySelector('.bilgisayar_adi').value.trim();
+      const seriNo = row.querySelector('.seri_no').value.trim();
+      const sorumlu = row.querySelector('.sorumlu_personel').value.trim();
+      const kullanim = row.querySelector('.kullanim_alani').value;
+      const bagliMakina = row.querySelector('.bagli_makina_no').value.trim();
+      if(!fabrika || !blok || !sorumlu || !kullanim){
+        valid = false;
+      }
+      item.fabrika = fabrika;
+      item.blok = blok;
+      item.bilgisayar_adi = bilgisayarAdi;
+      item.seri_no = seriNo;
+      item.sorumlu_personel = sorumlu;
+      item.kullanim_alani = kullanim;
+      item.bagli_makina_no = bagliMakina;
     }
     return item;
   });
