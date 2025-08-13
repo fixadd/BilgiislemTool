@@ -96,29 +96,80 @@
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('table.table-resizable').forEach(makeTableResizable);
       const searchForm = document.getElementById('search-form');
-      const searchInputs = document.querySelectorAll('.search-input');
-      if (searchForm && searchInputs.length) {
-        let searchTimeout;
-        searchInputs.forEach(inp => {
-          inp.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => searchForm.submit(), 500);
-          });
-        });
-      }
+      const filtersContainer = document.getElementById('filters-container');
+      const filterRows = document.getElementById('filter-rows');
       const addFilterBtn = document.getElementById('add-filter');
-      if (addFilterBtn) {
+      const addFilterRowBtn = document.getElementById('add-filter-row');
+      function addFilterRow(field = null, value = null){
+        if (!filterRows) return;
+        const row = document.createElement('div');
+        row.className = 'd-flex gap-2 align-items-center';
+        const fieldSel = document.createElement('select');
+        fieldSel.name = 'filter_field';
+        fieldSel.className = 'form-select';
+        (window.availableColumns || []).forEach(col => {
+          const opt = document.createElement('option');
+          opt.value = col;
+          opt.textContent = (window.columnLabels && window.columnLabels[col]) || col;
+          if (col === field) opt.selected = true;
+          fieldSel.appendChild(opt);
+        });
+        const valueSel = document.createElement('select');
+        valueSel.name = 'filter_value';
+        valueSel.className = 'form-select';
+        valueSel.innerHTML = '<option value="">Seçiniz</option>';
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-danger';
+        removeBtn.style.width = '40px';
+        removeBtn.style.height = '40px';
+        removeBtn.textContent = '-';
+        removeBtn.addEventListener('click', () => {
+          row.remove();
+          if (searchForm) searchForm.submit();
+        });
+        row.appendChild(fieldSel);
+        row.appendChild(valueSel);
+        row.appendChild(removeBtn);
+        filterRows.appendChild(row);
+        function loadValues(selected = null){
+          if (!window.filterEndpoint || !window.tableName) return;
+          fetch(`${window.filterEndpoint}?table_name=${encodeURIComponent(window.tableName)}&column=${encodeURIComponent(fieldSel.value)}`)
+            .then(r => r.json())
+            .then(vals => {
+              valueSel.innerHTML = '<option value="">Seçiniz</option>';
+              vals.forEach(v => {
+                const o = document.createElement('option');
+                o.value = v;
+                o.textContent = v;
+                if (v === selected) o.selected = true;
+                valueSel.appendChild(o);
+              });
+              if (selected) valueSel.value = selected;
+            });
+        }
+        fieldSel.addEventListener('change', () => loadValues());
+        valueSel.addEventListener('change', () => { if (searchForm) searchForm.submit(); });
+        loadValues(value);
+      }
+      if (addFilterBtn && filtersContainer) {
         addFilterBtn.addEventListener('click', () => {
-          const second = document.getElementById('search-input-2');
-          if (second.classList.contains('d-none')) {
-            second.classList.remove('d-none');
-            second.focus();
+          if (filtersContainer.classList.contains('d-none')) {
+            filtersContainer.classList.remove('d-none');
+            if (!filterRows.children.length) addFilterRow();
           } else {
-            second.value = '';
-            second.classList.add('d-none');
+            filterRows.innerHTML = '';
+            filtersContainer.classList.add('d-none');
             if (searchForm) searchForm.submit();
           }
         });
+      }
+      if (addFilterRowBtn) {
+        addFilterRowBtn.addEventListener('click', () => addFilterRow());
+      }
+      if (filtersContainer && window.initialFilters && window.initialFilters.length){
+        filtersContainer.classList.remove('d-none');
+        window.initialFilters.forEach(f => addFilterRow(f.field, f.value));
       }
       const perPage = document.getElementById('per-page');
       if (perPage && searchForm) {

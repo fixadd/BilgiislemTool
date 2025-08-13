@@ -1,7 +1,7 @@
 # main.py
 # FastAPI + SQLAlchemy + Docker uyumlu envanter sistemi backend yapisi
 
-from fastapi import FastAPI, Depends, Request, Form, HTTPException, status, UploadFile, File
+from fastapi import FastAPI, Depends, Request, Form, HTTPException, status, UploadFile, File, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from io import BytesIO
@@ -1030,6 +1030,8 @@ def inventory_page(
     per_page: int = 50,
     q: str = "",
     q2: str = "",
+    filter_field: List[str] = Query([]),
+    filter_value: List[str] = Query([]),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1050,6 +1052,11 @@ def inventory_page(
     if q2:
         pattern2 = f"%{q2}%"
         query = query.filter(or_(*(getattr(HardwareInventory, c).ilike(pattern2) for c in columns)))
+    filters = []
+    for f, v in zip(filter_field, filter_value):
+        if f in columns and v:
+            query = query.filter(getattr(HardwareInventory, f) == v)
+            filters.append({"field": f, "value": v})
     total = query.count()
     total_pages = (total + per_page - 1) // per_page or 1
     if page > total_pages:
@@ -1094,6 +1101,7 @@ def inventory_page(
             "q2": q2,
             "offset": offset,
             "lookups": lookups,
+            "filters": filters,
         },
     )
 
@@ -1436,6 +1444,8 @@ def license_page(
     per_page: int = 50,
     q: str = "",
     q2: str = "",
+    filter_field: List[str] = Query([]),
+    filter_value: List[str] = Query([]),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1456,6 +1466,11 @@ def license_page(
     if q2:
         pattern2 = f"%{q2}%"
         query = query.filter(or_(*(getattr(LicenseInventory, c).ilike(pattern2) for c in columns)))
+    filters = []
+    for f, v in zip(filter_field, filter_value):
+        if f in columns and v:
+            query = query.filter(getattr(LicenseInventory, f) == v)
+            filters.append({"field": f, "value": v})
     total = query.count()
     total_pages = (total + per_page - 1) // per_page or 1
     if page > total_pages:
@@ -1495,6 +1510,7 @@ def license_page(
             "q2": q2,
             "offset": offset,
             "lookups": lookups,
+            "filters": filters,
         },
     )
 
@@ -1761,6 +1777,8 @@ def stock_page(
     per_page: int = 50,
     q: str = "",
     q2: str = "",
+    filter_field: List[str] = Query([]),
+    filter_value: List[str] = Query([]),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1780,6 +1798,11 @@ def stock_page(
     if q2:
         pattern2 = f"%{q2}%"
         query = query.filter(or_(*(getattr(StockItem, c).ilike(pattern2) for c in columns)))
+    filters = []
+    for f, v in zip(filter_field, filter_value):
+        if f in columns and v:
+            query = query.filter(getattr(StockItem, f) == v)
+            filters.append({"field": f, "value": v})
     total = query.count()
     total_pages = (total + per_page - 1) // per_page or 1
     if page < 1:
@@ -1815,6 +1838,7 @@ def stock_page(
             "q2": q2,
             "offset": offset,
             "lookups": lookups,
+            "filters": filters,
         },
     )
 
@@ -2075,6 +2099,8 @@ def printer_page(
     per_page: int = 50,
     q: str = "",
     q2: str = "",
+    filter_field: List[str] = Query([]),
+    filter_value: List[str] = Query([]),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -2095,6 +2121,11 @@ def printer_page(
     if q2:
         pattern2 = f"%{q2}%"
         query = query.filter(or_(*(getattr(PrinterInventory, c).ilike(pattern2) for c in columns)))
+    filters = []
+    for f, v in zip(filter_field, filter_value):
+        if f in columns and v:
+            query = query.filter(getattr(PrinterInventory, f) == v)
+            filters.append({"field": f, "value": v})
     total = query.count()
     total_pages = (total + per_page - 1) // per_page or 1
     if page > total_pages:
@@ -2133,6 +2164,7 @@ def printer_page(
             "q2": q2,
             "offset": offset,
             "lookups": lookups,
+            "filters": filters,
         },
     )
 
@@ -2730,6 +2762,34 @@ def table_columns(
     user: User = Depends(require_login),
 ):
     return {"columns": get_table_columns(table_name)}
+
+
+@app.get("/column-values")
+def column_values(
+    table_name: str,
+    column: str,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    columns = get_table_columns(table_name)
+    if column not in columns:
+        raise HTTPException(status_code=400, detail="Geçersiz kolon")
+    model_map = {
+        HardwareInventory.__tablename__: HardwareInventory,
+        LicenseInventory.__tablename__: LicenseInventory,
+        PrinterInventory.__tablename__: PrinterInventory,
+        StockItem.__tablename__: StockItem,
+    }
+    model = model_map.get(table_name)
+    if not model:
+        raise HTTPException(status_code=400, detail="Geçersiz tablo")
+    values = (
+        db.query(getattr(model, column))
+        .distinct()
+        .order_by(getattr(model, column))
+        .all()
+    )
+    return [v[0] for v in values if v[0] is not None]
 
 
 @app.get("/column-settings")
