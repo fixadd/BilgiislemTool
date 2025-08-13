@@ -7,8 +7,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     *{ box-sizing: border-box; }
-    body{ margin:0; font-family: Arial, sans-serif; color:#111; }
-    .table-container{ width:100%; overflow-x:auto; }
+    body{ margin:0; font-family: Arial, sans-serif; color:#111; overflow-x:auto; }
+    .table-container{ width:max-content; min-width:100%; }
     .table-fixed{ table-layout:auto; width:max-content; min-width:100%; }
     .table-fixed td{ white-space:normal; word-break:break-word; }
     .table-resizable th,
@@ -23,24 +23,24 @@
     }
     .filters-popup{
       position:absolute;
-      top:50px;
-      left:0;
+      top:0;
+      right:100%;
       z-index:1000;
       background:#fff;
       border:1px solid #dee2e6;
       padding:1rem;
       border-radius:.25rem;
       width:300px;
+      margin-right:.5rem;
     }
     #search-form{
       margin-left:auto;
-      position:sticky;
-      right:0;
     }
   </style>
 </head>
 <body>
-  <div class="d-flex">
+  <div class="overflow-auto" style="min-height:100vh;">
+  <div class="d-flex" style="width:max-content;">
     <nav class="flex-shrink-0 p-3 text-white bg-dark" style="width:200px; min-height:100vh;">
       <img src="/image/onurum.png" alt="Onurum" class="img-fluid mb-3" style="width:150px">
       <ul class="nav nav-pills flex-column mb-auto">
@@ -66,13 +66,14 @@
       </ul>
     </nav>
 
-    <div class="flex-grow-1 p-4">
+    <div class="flex-grow-1 p-4" style="width:max-content;">
       <div class="d-flex justify-content-end align-items-center mb-3">
         <span class="me-3 fs-5 fw-bold">{{ request.session.get('username') }}</span>
         <a href="/logout" class="text-danger fs-4" title="Çıkış"><i class="bi bi-box-arrow-right"></i></a>
       </div>
       {% block content %}{% endblock %}
     </div>
+  </div>
   </div>
   <div class="modal fade" id="alertModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
