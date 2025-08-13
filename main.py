@@ -2040,6 +2040,10 @@ def transfer_requests(
         qty = inp.adet if inp.adet is not None else it.adet or 1
         if qty < 0:
             raise HTTPException(status_code=400, detail="Adet negatif olamaz")
+        if qty > it.adet:
+            raise HTTPException(
+                status_code=400, detail="Talep edilen miktardan fazla işlenemez"
+            )
         if it.kategori == "lisans":
             email = inp.mail_adresi or ""
             if not email and inp.kullanici:
@@ -2114,7 +2118,10 @@ def transfer_requests(
                 islem_yapan=full_name,
             )
             db.add(st)
-        db.delete(it)
+        if qty == it.adet:
+            db.delete(it)
+        else:
+            it.adet -= qty
     log_action(db, user.username, f"{len(req_items)} talep stok kayıtlarına aktarıldı")
     db.commit()
     return {"message": "ok"}
@@ -2137,6 +2144,10 @@ def stock_transfer_requests(
         qty = inp.adet if inp.adet is not None else it.adet or 1
         if qty < 0:
             raise HTTPException(status_code=400, detail="Adet negatif olamaz")
+        if qty > it.adet:
+            raise HTTPException(
+                status_code=400, detail="Talep edilen miktardan fazla işlenemez"
+            )
         st = StockItem(
             urun_adi=it.urun_adi,
             kategori=it.kategori,
@@ -2151,7 +2162,10 @@ def stock_transfer_requests(
             islem_yapan=full_name,
         )
         db.add(st)
-        db.delete(it)
+        if qty == it.adet:
+            db.delete(it)
+        else:
+            it.adet -= qty
     log_action(db, user.username, f"{len(req_items)} talep stok kayıtlarına aktarıldı")
     db.commit()
     return {"message": "ok"}
