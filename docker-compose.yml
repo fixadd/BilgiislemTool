@@ -8,6 +8,8 @@ services:
     environment:
       - DATABASE_URL=sqlite:////app/data/envanter.db
       - SENTRY_DSN=${SENTRY_DSN:-}
+      - ADMIN_USERNAME
+      - ADMIN_PASSWORD
     volumes:
       - ./data:/app/data
       - ./image:/app/image     # hosttaki image klasörünü container’a bağla
