@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Bağlantılar{% endblock %}
+{% block content %}
+<h2>LDAP Bağlantısı</h2>
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+{% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+<form method="post" action="/connections">
+  <div class="mb-3">
+    <label class="form-label">Sunucu</label>
+    <input type="text" name="server" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Port</label>
+    <input type="number" name="port" class="form-control" value="389">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Kullanıcı DN</label>
+    <input type="text" name="user_dn" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Şifre</label>
+    <input type="password" name="password" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Base DN</label>
+    <input type="text" name="base_dn" class="form-control" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Kullanıcıları Çek</button>
+</form>
+{% endblock %}
