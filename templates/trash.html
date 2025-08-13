@@ -126,7 +126,7 @@
 <table class="table table-striped table-fixed table-resizable">
   <tr>
     <th><input type="checkbox" class="form-check-input select-all"></th>
-    {% for col in ["urun_adi","kategori","marka","adet","lokasyon","guncelleme_tarihi"] %}
+    {% for col in ["urun_adi","kategori","marka","adet","departman","guncelleme_tarihi"] %}
     <th>{{ col.replace('_',' ').title() }}</th>
     {% endfor %}
     <th>Kalan Gün</th>
@@ -139,7 +139,7 @@
     <td style="white-space: normal; word-break: break-word;" title="{{ s.kategori }}">{{ s.kategori }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ s.marka }}">{{ s.marka }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ s.adet }}">{{ s.adet }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ s.lokasyon }}">{{ s.lokasyon }}</td>
+    <td style="white-space: normal; word-break: break-word;" title="{{ s.departman }}">{{ s.departman }}</td>
     <td style="white-space: normal; word-break: break-word;" title="{{ s.guncelleme_tarihi }}">{{ s.guncelleme_tarihi }}</td>
     <td>{{ 15 - (today - s.deleted_at).days }}</td>
     <td>

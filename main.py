@@ -108,7 +108,7 @@ class DeletedStockItem(Base):
     islem = Column(String)
     adet = Column(Integer)
     tarih = Column(Date)
-    lokasyon = Column(String)
+    departman = Column("lokasyon", String)
     ifs_no = Column(String)
     aciklama = Column(String)
     islem_yapan = Column(String)
@@ -143,7 +143,7 @@ class StockItem(Base):
     kategori = Column(String)
     marka = Column(String)
     adet = Column(Integer)
-    lokasyon = Column(String)
+    departman = Column("lokasyon", String)
     guncelleme_tarihi = Column(Date)
     # Legacy fields preserved for backward compatibility
     islem = Column(String)
@@ -350,8 +350,7 @@ COLUMN_OVERRIDES = {
         "islem",
         "adet",
         "tarih",
-        "lokasyon",
-        "ifs_no",
+        "departman",
         "aciklama",
         "islem_yapan",
     ],
@@ -452,7 +451,7 @@ class StockItemSchema(BaseModel):
     kategori: str
     marka: str
     adet: int
-    lokasyon: str
+    departman: str
     guncelleme_tarihi: Optional[date]
     class Config:
         from_attributes = True
@@ -1529,7 +1528,7 @@ def stock_page(
         "urun_adi": "urun",
         "kategori": "kategori",
         "marka": "marka",
-        "lokasyon": "lokasyon",
+        "departman": "departman",
     }
     lookups = {
         col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
@@ -1561,8 +1560,7 @@ def add_stock_form(
     islem: str = Form(...),
     adet: int = Form(...),
     tarih: Optional[str] = Form(None),
-    lokasyon: str = Form(...),
-    ifs_no: str = Form(...),
+    departman: str = Form(...),
     aciklama: str = Form(""),
     islem_yapan: str = Form(...),
     user: User = Depends(require_login),
@@ -1576,8 +1574,7 @@ def add_stock_form(
         item.islem = islem
         item.adet = adet
         item.tarih = date.fromisoformat(tarih) if tarih else None
-        item.lokasyon = lokasyon
-        item.ifs_no = ifs_no
+        item.departman = departman
         item.aciklama = aciklama
         item.islem_yapan = islem_yapan
         log_action(db, user.username, f"Stok güncellendi ({stock_id})")
@@ -1587,8 +1584,7 @@ def add_stock_form(
             islem=islem,
             adet=adet,
             tarih=date.fromisoformat(tarih) if tarih else None,
-            lokasyon=lokasyon,
-            ifs_no=ifs_no,
+            departman=departman,
             aciklama=aciklama,
             islem_yapan=islem_yapan,
         )
@@ -1612,7 +1608,7 @@ def delete_stock_form(
             islem=st.islem,
             adet=st.adet,
             tarih=st.tarih,
-            lokasyon=st.lokasyon,
+            departman=st.departman,
             ifs_no=st.ifs_no,
             aciklama=st.aciklama,
             islem_yapan=st.islem_yapan,
@@ -1639,7 +1635,7 @@ def delete_stock(
             islem=st.islem,
             adet=st.adet,
             tarih=st.tarih,
-            lokasyon=st.lokasyon,
+            departman=st.departman,
             ifs_no=st.ifs_no,
             aciklama=st.aciklama,
             islem_yapan=st.islem_yapan,
@@ -1670,7 +1666,7 @@ def restore_stock(
             islem=item.islem,
             adet=item.adet,
             tarih=item.tarih,
-            lokasyon=item.lokasyon,
+            departman=item.departman,
             ifs_no=item.ifs_no,
             aciklama=item.aciklama,
             islem_yapan=item.islem_yapan,
@@ -1728,7 +1724,7 @@ async def upload_stock_excel(
                 "Kategori": "kategori",
                 "Marka": "marka",
                 "Adet": "adet",
-                "Lokasyon": "lokasyon",
+                "Departman": "departman",
                 "Güncelleme Tarihi": "guncelleme_tarihi",
             }
         )
@@ -1737,7 +1733,7 @@ async def upload_stock_excel(
             "kategori",
             "marka",
             "adet",
-            "lokasyon",
+            "departman",
             "guncelleme_tarihi",
         ]
         eksik_kolonlar = [col for col in expected_cols if col not in df.columns]
@@ -1754,7 +1750,7 @@ async def upload_stock_excel(
                 kategori=str(row["kategori"]),
                 marka=str(row["marka"]),
                 adet=int(row["adet"]),
-                lokasyon=str(row["lokasyon"]),
+                departman=str(row["departman"]),
                 guncelleme_tarihi=
                     pd.to_datetime(row["guncelleme_tarihi"]).date()
                     if not pd.isnull(row["guncelleme_tarihi"])
@@ -1779,7 +1775,7 @@ def export_stock_excel(
             "Kategori": i.kategori,
             "Marka": i.marka,
             "Adet": i.adet,
-            "Lokasyon": i.lokasyon,
+            "Departman": i.departman,
             "Güncelleme Tarihi": i.guncelleme_tarihi.isoformat() if i.guncelleme_tarihi else None,
         }
         for i in items
