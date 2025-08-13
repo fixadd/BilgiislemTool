@@ -10,6 +10,7 @@
     <i class="bi bi-plus"></i>
   </button>
   <button id="transfer-selected" type="button" class="btn btn-primary" style="height:40px;">Giriş</button>
+  <button id="stock-transfer-selected" type="button" class="btn btn-warning" style="height:40px;">Stok Giriş</button>
   <button id="delete-selected" type="button" class="btn btn-danger" style="height:40px;">Sil</button>
 </div>
 
@@ -98,6 +99,23 @@
       </div>
       <div class="modal-footer">
         <button type="button" id="confirm-transfer" class="btn btn-primary">Kaydet</button>
+      </div>
+</div>
+</div>
+</div>
+
+<div class="modal fade" id="stockTransferModal" tabindex="-1" aria-labelledby="stockTransferModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="stockTransferModalLabel">Stok Giriş</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <div id="stock-transfer-rows" class="d-flex flex-column gap-2"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="confirm-stock-transfer" class="btn btn-warning">Kaydet</button>
       </div>
     </div>
   </div>
@@ -198,6 +216,41 @@ document.getElementById('confirm-transfer').addEventListener('click', function()
       location.reload();
     }
   });
+});
+document.getElementById('stock-transfer-selected').addEventListener('click', function(){
+  const checks = Array.from(document.querySelectorAll('.row-check:checked'));
+  if(!checks.length){
+    showAlert('Lütfen kayıt seçin');
+    return;
+  }
+  const container = document.getElementById('stock-transfer-rows');
+  container.innerHTML = '';
+  checks.forEach(cb => {
+    const tr = cb.closest('tr');
+    const urun = tr.children[1].innerText.trim();
+    const div = document.createElement('div');
+    div.className = 'row g-2 stock-transfer-row';
+    div.innerHTML = `
+      <input type="hidden" name="id" value="${cb.value}">
+      <div class="col">${urun}</div>
+      <div class="col"><input type="number" class="form-control adet" placeholder="Adet" value="${tr.children[2].innerText.trim()}" min="0"></div>
+    `;
+    container.appendChild(div);
+  });
+  const modal = new bootstrap.Modal(document.getElementById('stockTransferModal'));
+  modal.show();
+});
+document.getElementById('confirm-stock-transfer').addEventListener('click', function(){
+  const rows = document.querySelectorAll('#stock-transfer-rows .stock-transfer-row');
+  const items = Array.from(rows).map(row => ({
+    id: parseInt(row.querySelector('input[name="id"]').value),
+    adet: parseInt(row.querySelector('.adet').value)
+  }));
+  fetch('/requests/stock_transfer', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({items: items})
+  }).then(r => r.json()).then(() => location.reload());
 });
 document.getElementById('delete-selected').addEventListener('click', function(){
   const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(cb => parseInt(cb.value));
