@@ -10,6 +10,7 @@
     <i class="bi bi-plus"></i>
   </button>
   <button id="transfer-selected" type="button" class="btn btn-primary" style="height:40px;">Giriş</button>
+  <button id="delete-selected" type="button" class="btn btn-danger" style="height:40px;">Sil</button>
 </div>
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
@@ -66,9 +67,11 @@
     <tr>
       <td><input class="form-check-input row-check" type="checkbox" value="{{ items[0].id }}"></td>
       <td>
+        {% if items|length > 1 %}
         <button type="button" class="btn btn-link p-0 toggle-group" data-group="{{ ifs }}">
           <i class="bi bi-caret-right-fill"></i>
         </button>
+        {% endif %}
         {{ items[0].urun_adi }}
       </td>
       <td>{{ items[0].adet }}</td>
@@ -104,6 +107,18 @@ document.getElementById('transfer-selected').addEventListener('click', function(
     return;
   }
   fetch('/requests/transfer', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ids: ids})
+  }).then(r => r.json()).then(() => location.reload());
+});
+document.getElementById('delete-selected').addEventListener('click', function(){
+  const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(cb => parseInt(cb.value));
+  if(!ids.length){
+    showAlert('Lütfen kayıt seçin');
+    return;
+  }
+  fetch('/requests/delete', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ids: ids})

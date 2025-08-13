@@ -56,6 +56,7 @@
       <li><a href="/printer"   class="{% if request.path.startswith('/printer') %}active{% endif %}">Yazıcı Takip</a></li>
       <li><a href="/stock"     class="{% if request.path.startswith('/stock') %}active{% endif %}">Stok Takip</a></li>
       <li><a href="/requests" class="{% if request.path.startswith('/requests') %}active{% endif %}">Talep Takip</a></li>
+      <li><a href="/accessories" class="{% if request.path.startswith('/accessories') %}active{% endif %}">Aksesuar Takip</a></li>
       <li><a href="/trash" class="{% if request.path.startswith('/trash') %}active{% endif %}">Çöp Kutusu</a></li>
       <li><a href="/lists" class="{% if request.path.startswith('/lists') %}active{% endif %}">Envanter Ekleme</a></li>
       {% if request.session.get('is_admin') %}

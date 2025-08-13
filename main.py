@@ -1888,6 +1888,14 @@ def request_tracking_page(
     )
 
 
+@app.get("/accessories", response_class=HTMLResponse)
+def accessories_page(
+    request: Request,
+    user: User = Depends(require_login),
+):
+    return templates.TemplateResponse("aksesuar.html", {"request": request})
+
+
 @app.post("/requests/add")
 def add_request_form(
     urun_adi: List[str] = Form(...),
@@ -1946,6 +1954,20 @@ def transfer_requests(
     log_action(db, user.username, f"{len(items)} talep stok kayıtlarına aktarıldı")
     db.commit()
     return {"message": "ok"}
+
+
+@app.post("/requests/delete")
+def delete_requests(
+    ids: DeleteIds,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = db.query(RequestItem).filter(RequestItem.id.in_(ids.ids)).all()
+    for it in items:
+        db.delete(it)
+    log_action(db, user.username, f"{len(items)} talep silindi")
+    db.commit()
+    return {"message": "deleted"}
 
 
 @app.post("/printer/add")
