@@ -56,4 +56,101 @@
     </ol>
   </div>
 </div>
+
+<div class="row mt-4">
+  <div class="col-md-3">
+    <h5>Fabrika</h5>
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+      <input type="hidden" name="item_type" value="fabrika">
+      <input class="form-control" type="text" name="name" placeholder="Yeni fabrika" required>
+      <button class="btn btn-success" type="submit">Ekle</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+      {% for f in factories %}
+      <li class="list-group-item">{{ f.name }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div class="col-md-3">
+    <h5>Departman</h5>
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+      <input type="hidden" name="item_type" value="departman">
+      <input class="form-control" type="text" name="name" placeholder="Yeni departman" required>
+      <button class="btn btn-success" type="submit">Ekle</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+      {% for d in departments %}
+      <li class="list-group-item">{{ d.name }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div class="col-md-3">
+    <h5>Blok</h5>
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+      <input type="hidden" name="item_type" value="blok">
+      <input class="form-control" type="text" name="name" placeholder="Yeni blok" required>
+      <button class="btn btn-success" type="submit">Ekle</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+      {% for b in blocks %}
+      <li class="list-group-item">{{ b.name }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div class="col-md-3">
+    <h5>Model</h5>
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+      <input type="hidden" name="item_type" value="model">
+      <input class="form-control" type="text" name="name" placeholder="Yeni model" required>
+      <button class="btn btn-success" type="submit">Ekle</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+      {% for m in models %}
+      <li class="list-group-item">{{ m.name }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-md-4">
+    <h5>Yazıcı Markası</h5>
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+      <input type="hidden" name="item_type" value="yazici_marka">
+      <input class="form-control" type="text" name="name" placeholder="Yeni yazıcı markası" required>
+      <button class="btn btn-success" type="submit">Ekle</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+      {% for pb in printer_brands %}
+      <li class="list-group-item">{{ pb.name }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div class="col-md-4">
+    <h5>Yazıcı Modeli</h5>
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+      <input type="hidden" name="item_type" value="yazici_model">
+      <input class="form-control" type="text" name="name" placeholder="Yeni yazıcı modeli" required>
+      <button class="btn btn-success" type="submit">Ekle</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+      {% for pm in printer_models %}
+      <li class="list-group-item">{{ pm.name }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div class="col-md-4">
+    <h5>Ürün Adı</h5>
+    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+      <input type="hidden" name="item_type" value="urun">
+      <input class="form-control" type="text" name="name" placeholder="Yeni ürün adı" required>
+      <button class="btn btn-success" type="submit">Ekle</button>
+    </form>
+    <ol class="list-group list-group-numbered">
+      {% for pr in products %}
+      <li class="list-group-item">{{ pr.name }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+</div>
 {% endblock %}

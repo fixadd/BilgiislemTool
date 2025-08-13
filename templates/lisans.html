@@ -74,7 +74,16 @@
               {% if col == 'notlar' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
               {% else %}
+              {% if lookups.get(col) %}
+              <input type="text" class="form-control" name="{{ col }}" list="{{ col }}-list" required>
+              <datalist id="{{ col }}-list">
+                {% for val in lookups.get(col) %}
+                <option value="{{ val }}">
+                {% endfor %}
+              </datalist>
+              {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
+              {% endif %}
               {% endif %}
             </div>
             {% endfor %}
@@ -102,7 +111,16 @@
               {% if col == 'notlar' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
               {% else %}
+              {% if lookups.get(col) %}
+              <input type="text" class="form-control" name="{{ col }}" list="{{ col }}-list" required>
+              <datalist id="{{ col }}-list">
+                {% for val in lookups.get(col) %}
+                <option value="{{ val }}">
+                {% endfor %}
+              </datalist>
+              {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
+              {% endif %}
               {% endif %}
             </div>
             {% endfor %}
@@ -128,6 +146,7 @@
 
   <tr>
       <th><input type="checkbox" id="select-all"></th>
+      <th>#</th>
       {% for col in columns %}
       <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ column_labels.get(col, col.replace('_', ' ').title()) }}</th>
       {% endfor %}
@@ -135,6 +154,7 @@
   {% for l in licenses %}
   <tr>
       <td><input class="form-check-input row-check" type="checkbox" value="{{ l.id }}"></td>
+      <td>{{ loop.index + offset }}</td>
       {% for col in columns %}
       <td data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px; white-space: normal; word-break: break-word;"{% else %} style="white-space: normal; word-break: break-word;"{% endif %}>{{ l|attr(col) }}</td>
       {% endfor %}

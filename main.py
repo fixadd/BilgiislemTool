@@ -779,6 +779,13 @@ def lists_page(
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
     categories = db.query(LookupItem).filter(LookupItem.type == "kategori").all()
     softwares = db.query(LookupItem).filter(LookupItem.type == "yazilim").all()
+    factories = db.query(LookupItem).filter(LookupItem.type == "fabrika").all()
+    departments = db.query(LookupItem).filter(LookupItem.type == "departman").all()
+    blocks = db.query(LookupItem).filter(LookupItem.type == "blok").all()
+    models = db.query(LookupItem).filter(LookupItem.type == "model").all()
+    printer_brands = db.query(LookupItem).filter(LookupItem.type == "yazici_marka").all()
+    printer_models = db.query(LookupItem).filter(LookupItem.type == "yazici_model").all()
+    products = db.query(LookupItem).filter(LookupItem.type == "urun").all()
     return templates.TemplateResponse(
         "listeler.html",
         {
@@ -787,6 +794,13 @@ def lists_page(
             "locations": locations,
             "categories": categories,
             "softwares": softwares,
+            "factories": factories,
+            "departments": departments,
+            "blocks": blocks,
+            "models": models,
+            "printer_brands": printer_brands,
+            "printer_models": printer_models,
+            "products": products,
         },
     )
 
@@ -834,6 +848,18 @@ def inventory_page(
     offset = (page - 1) * per_page
     items = query.offset(offset).limit(per_page).all()
     display_columns = [c for c in order if c in visible]
+    lookup_map = {
+        "fabrika": "fabrika",
+        "departman": "departman",
+        "blok": "blok",
+        "marka": "marka",
+        "model": "model",
+        "kullanim_alani": "lokasyon",
+    }
+    lookups = {
+        col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
+        for col, ltype in lookup_map.items()
+    }
     return templates.TemplateResponse(
         "envanter.html",
         {
@@ -847,6 +873,8 @@ def inventory_page(
             "total_pages": total_pages,
             "per_page": per_page,
             "q": q,
+            "offset": offset,
+            "lookups": lookups,
         },
     )
 
@@ -1161,6 +1189,14 @@ def license_page(
     offset = (page - 1) * per_page
     licenses = query.offset(offset).limit(per_page).all()
     display_columns = [c for c in order if c in visible]
+    lookup_map = {
+        "departman": "departman",
+        "yazilim_adi": "yazilim",
+    }
+    lookups = {
+        col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
+        for col, ltype in lookup_map.items()
+    }
     return templates.TemplateResponse(
         "lisans.html",
         {
@@ -1174,6 +1210,8 @@ def license_page(
             "total_pages": total_pages,
             "per_page": per_page,
             "q": q,
+            "offset": offset,
+            "lookups": lookups,
         },
     )
 
@@ -1443,6 +1481,16 @@ def stock_page(
     offset = (page - 1) * per_page
     stocks = query.offset(offset).limit(per_page).all()
     display_columns = [c for c in order if c in visible]
+    lookup_map = {
+        "urun_adi": "urun",
+        "kategori": "kategori",
+        "marka": "marka",
+        "lokasyon": "lokasyon",
+    }
+    lookups = {
+        col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
+        for col, ltype in lookup_map.items()
+    }
     return templates.TemplateResponse(
         "stok.html",
         {
@@ -1456,6 +1504,8 @@ def stock_page(
             "total_pages": total_pages,
             "per_page": per_page,
             "q": q,
+            "offset": offset,
+            "lookups": lookups,
         },
     )
 
@@ -1736,8 +1786,15 @@ def printer_page(
     offset = (page - 1) * per_page
     printers = query.offset(offset).limit(per_page).all()
     display_columns = [c for c in order if c in visible]
-    brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
-    locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
+    lookup_map = {
+        "yazici_markasi": "yazici_marka",
+        "yazici_modeli": "yazici_model",
+        "kullanim_alani": "lokasyon",
+    }
+    lookups = {
+        col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
+        for col, ltype in lookup_map.items()
+    }
     return templates.TemplateResponse(
         "yazici.html",
         {
@@ -1747,12 +1804,14 @@ def printer_page(
             "columns": display_columns,
             "table_name": table_name,
             "column_widths": widths,
-            "brands": brands,
-            "locations": locations,
+            "brands": db.query(LookupItem).filter(LookupItem.type == "marka").all(),
+            "locations": db.query(LookupItem).filter(LookupItem.type == "lokasyon").all(),
             "page": page,
             "total_pages": total_pages,
             "per_page": per_page,
             "q": q,
+            "offset": offset,
+            "lookups": lookups,
         },
     )
 
