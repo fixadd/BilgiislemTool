@@ -925,6 +925,10 @@ def inventory_page(
         col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
         for col, ltype in lookup_map.items()
     }
+    lookups["sorumlu_personel"] = [
+        f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+        for u in db.query(User).all()
+    ]
     return templates.TemplateResponse(
         "envanter.html",
         {
@@ -1292,6 +1296,10 @@ def license_page(
         col: [li.name for li in db.query(LookupItem).filter(LookupItem.type == ltype).all()]
         for col, ltype in lookup_map.items()
     }
+    lookups["kullanici"] = [
+        f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+        for u in db.query(User).all()
+    ]
     return templates.TemplateResponse(
         "lisans.html",
         {
