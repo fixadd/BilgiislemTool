@@ -1411,7 +1411,7 @@ def export_license_excel(
 @app.get("/stock", response_class=HTMLResponse)
 def stock_page(
     request: Request,
-    page: int = 1,
+    page: int = 0,
     per_page: int = 50,
     q: str = "",
     user: User = Depends(require_login),
@@ -1426,15 +1426,18 @@ def stock_page(
     widths = settings.get("widths", {})
     if per_page not in (25, 50, 100):
         per_page = 50
-    page = max(page, 1)
-    offset = (page - 1) * per_page
     query = db.query(StockItem)
     if q:
         pattern = f"%{q}%"
         query = query.filter(or_(*(getattr(StockItem, c).ilike(pattern) for c in columns)))
     total = query.count()
+    total_pages = (total + per_page - 1) // per_page or 1
+    if page < 1:
+        page = total_pages
+    if page > total_pages:
+        page = total_pages
+    offset = (page - 1) * per_page
     stocks = query.offset(offset).limit(per_page).all()
-    total_pages = (total + per_page - 1) // per_page
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "stok.html",
