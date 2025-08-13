@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 from datetime import date, timedelta
-from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, Text, Boolean, text, inspect, func
+from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, Text, Boolean, text, inspect, func, or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -808,6 +808,8 @@ def add_list_item(
 def inventory_page(
     request: Request,
     page: int = 1,
+    per_page: int = 50,
+    q: str = "",
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -818,14 +820,17 @@ def inventory_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    limit = 50
+    if per_page not in (25, 50, 100):
+        per_page = 50
     page = max(page, 1)
-    offset = (page - 1) * limit
+    offset = (page - 1) * per_page
     query = db.query(HardwareInventory)
+    if q:
+        pattern = f"%{q}%"
+        query = query.filter(or_(*(getattr(HardwareInventory, c).ilike(pattern) for c in columns)))
     total = query.count()
-    rows = query.offset(offset).limit(limit + 1).all()
-    has_next = len(rows) > limit
-    items = rows[:limit]
+    items = query.offset(offset).limit(per_page).all()
+    total_pages = (total + per_page - 1) // per_page
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "envanter.html",
@@ -837,7 +842,9 @@ def inventory_page(
             "table_name": table_name,
             "column_widths": widths,
             "page": page,
-            "has_next": has_next,
+            "total_pages": total_pages,
+            "per_page": per_page,
+            "q": q,
         },
     )
 
@@ -1126,6 +1133,8 @@ def export_inventory_excel(
 def license_page(
     request: Request,
     page: int = 1,
+    per_page: int = 50,
+    q: str = "",
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1136,14 +1145,17 @@ def license_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    limit = 50
+    if per_page not in (25, 50, 100):
+        per_page = 50
     page = max(page, 1)
-    offset = (page - 1) * limit
+    offset = (page - 1) * per_page
     query = db.query(LicenseInventory)
+    if q:
+        pattern = f"%{q}%"
+        query = query.filter(or_(*(getattr(LicenseInventory, c).ilike(pattern) for c in columns)))
     total = query.count()
-    rows = query.offset(offset).limit(limit + 1).all()
-    has_next = len(rows) > limit
-    licenses = rows[:limit]
+    licenses = query.offset(offset).limit(per_page).all()
+    total_pages = (total + per_page - 1) // per_page
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "lisans.html",
@@ -1155,7 +1167,9 @@ def license_page(
             "table_name": table_name,
             "column_widths": widths,
             "page": page,
-            "has_next": has_next,
+            "total_pages": total_pages,
+            "per_page": per_page,
+            "q": q,
         },
     )
 
@@ -1398,6 +1412,8 @@ def export_license_excel(
 def stock_page(
     request: Request,
     page: int = 1,
+    per_page: int = 50,
+    q: str = "",
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1408,14 +1424,17 @@ def stock_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    limit = 50
+    if per_page not in (25, 50, 100):
+        per_page = 50
     page = max(page, 1)
-    offset = (page - 1) * limit
+    offset = (page - 1) * per_page
     query = db.query(StockItem)
+    if q:
+        pattern = f"%{q}%"
+        query = query.filter(or_(*(getattr(StockItem, c).ilike(pattern) for c in columns)))
     total = query.count()
-    rows = query.offset(offset).limit(limit + 1).all()
-    has_next = len(rows) > limit
-    stocks = rows[:limit]
+    stocks = query.offset(offset).limit(per_page).all()
+    total_pages = (total + per_page - 1) // per_page
     display_columns = [c for c in order if c in visible]
     return templates.TemplateResponse(
         "stok.html",
@@ -1427,7 +1446,9 @@ def stock_page(
             "table_name": table_name,
             "column_widths": widths,
             "page": page,
-            "has_next": has_next,
+            "total_pages": total_pages,
+            "per_page": per_page,
+            "q": q,
         },
     )
 
@@ -1682,6 +1703,8 @@ def export_stock_excel(
 def printer_page(
     request: Request,
     page: int = 1,
+    per_page: int = 50,
+    q: str = "",
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
@@ -1692,14 +1715,17 @@ def printer_page(
     order = settings.get("order", columns)
     visible = settings.get("visible", columns)
     widths = settings.get("widths", {})
-    limit = 50
+    if per_page not in (25, 50, 100):
+        per_page = 50
     page = max(page, 1)
-    offset = (page - 1) * limit
+    offset = (page - 1) * per_page
     query = db.query(PrinterInventory)
+    if q:
+        pattern = f"%{q}%"
+        query = query.filter(or_(*(getattr(PrinterInventory, c).ilike(pattern) for c in columns)))
     total = query.count()
-    rows = query.offset(offset).limit(limit + 1).all()
-    has_next = len(rows) > limit
-    printers = rows[:limit]
+    printers = query.offset(offset).limit(per_page).all()
+    total_pages = (total + per_page - 1) // per_page
     display_columns = [c for c in order if c in visible]
     brands = db.query(LookupItem).filter(LookupItem.type == "marka").all()
     locations = db.query(LookupItem).filter(LookupItem.type == "lokasyon").all()
@@ -1715,7 +1741,9 @@ def printer_page(
             "brands": brands,
             "locations": locations,
             "page": page,
-            "has_next": has_next,
+            "total_pages": total_pages,
+            "per_page": per_page,
+            "q": q,
         },
     )
 
