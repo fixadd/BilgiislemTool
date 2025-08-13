@@ -486,6 +486,16 @@ class ColumnSettings(BaseModel):
 class DeleteIds(BaseModel):
     ids: List[int]
 
+
+class TransferItem(BaseModel):
+    id: int
+    kategori: Optional[str] = ""
+    departman: Optional[str] = ""
+
+
+class TransferItems(BaseModel):
+    items: List[TransferItem]
+
 # --- FastAPI Uygulaması ---
 app = FastAPI()
 app.mount("/image", StaticFiles(directory="image"), name="image")
@@ -1932,26 +1942,34 @@ def add_request_form(
 
 @app.post("/requests/transfer")
 def transfer_requests(
-    ids: DeleteIds,
+    data: TransferItems,
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
-    items = db.query(RequestItem).filter(RequestItem.id.in_(ids.ids)).all()
+    item_ids = [i.id for i in data.items]
+    req_items = db.query(RequestItem).filter(RequestItem.id.in_(item_ids)).all()
+    req_map = {it.id: it for it in req_items}
     full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
-    for it in items:
+    for inp in data.items:
+        it = req_map.get(inp.id)
+        if not it:
+            continue
         st = StockItem(
             urun_adi=it.urun_adi,
-            islem="Giriş",
+            kategori=inp.kategori,
+            marka="",
             adet=it.adet,
+            departman=inp.departman,
+            guncelleme_tarihi=date.today(),
+            islem="Giriş",
             tarih=date.today(),
             ifs_no=it.ifs_no,
-            departman="",
             aciklama=it.aciklama,
             islem_yapan=full_name,
         )
         db.add(st)
         db.delete(it)
-    log_action(db, user.username, f"{len(items)} talep stok kayıtlarına aktarıldı")
+    log_action(db, user.username, f"{len(req_items)} talep stok kayıtlarına aktarıldı")
     db.commit()
     return {"message": "ok"}
 
