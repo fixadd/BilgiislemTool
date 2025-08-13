@@ -41,6 +41,7 @@
   <button id="delete-selected" type="button" class="btn btn-danger" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
     <i class="bi bi-trash"></i>
   </button>
+  <a class="btn btn-info" href="/stock/status" style="height:40px;display:flex;align-items:center;">Stok Durumu</a>
   <form id="search-form" method="get" class="d-flex gap-2 align-items-center flex-wrap position-relative">
     <div id="filters-container" class="filters-popup d-none flex-column gap-2">
       <div id="filter-rows" class="d-flex flex-column gap-2"></div>
@@ -58,7 +59,6 @@
       {% endfor %}
     </select>
   </form>
-  <a class="btn btn-info" href="/stock/status" style="height:40px;display:flex;align-items:center;">Stok Durumu</a>
 </div>
 
 <form id="uploadForm" action="/stock/upload" method="post" enctype="multipart/form-data" style="display:none;">
