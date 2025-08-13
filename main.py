@@ -153,6 +153,17 @@ class StockItem(Base):
     islem_yapan = Column(String)
 
 
+class RequestItem(Base):
+    __tablename__ = "request_tracking"
+    id = Column(Integer, primary_key=True, index=True)
+    urun_adi = Column(String)
+    adet = Column(Integer)
+    tarih = Column(Date)
+    ifs_no = Column(String)
+    aciklama = Column(String)
+    talep_acan = Column(String)
+
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -350,6 +361,7 @@ COLUMN_OVERRIDES = {
         "islem",
         "adet",
         "tarih",
+        "ifs_no",
         "departman",
         "aciklama",
         "islem_yapan",
@@ -1560,6 +1572,7 @@ def add_stock_form(
     islem: str = Form(...),
     adet: int = Form(...),
     tarih: Optional[str] = Form(None),
+    ifs_no: str = Form(""),
     departman: str = Form(...),
     aciklama: str = Form(""),
     islem_yapan: str = Form(...),
@@ -1574,6 +1587,7 @@ def add_stock_form(
         item.islem = islem
         item.adet = adet
         item.tarih = date.fromisoformat(tarih) if tarih else None
+        item.ifs_no = ifs_no
         item.departman = departman
         item.aciklama = aciklama
         item.islem_yapan = islem_yapan
@@ -1584,6 +1598,7 @@ def add_stock_form(
             islem=islem,
             adet=adet,
             tarih=date.fromisoformat(tarih) if tarih else None,
+            ifs_no=ifs_no,
             departman=departman,
             aciklama=aciklama,
             islem_yapan=islem_yapan,
@@ -1860,9 +1875,67 @@ def printer_page(
 def request_tracking_page(
     request: Request,
     user: User = Depends(require_login),
+    db: Session = Depends(get_db),
 ):
     """Talep takip sayfası."""
-    return templates.TemplateResponse("talep.html", {"request": request})
+    items = db.query(RequestItem).order_by(RequestItem.ifs_no, RequestItem.tarih).all()
+    groups: Dict[str, List[RequestItem]] = {}
+    for it in items:
+        groups.setdefault(it.ifs_no or "", []).append(it)
+    return templates.TemplateResponse(
+        "talep.html",
+        {"request": request, "groups": groups, "today": date.today().isoformat()},
+    )
+
+
+@app.post("/requests/add")
+def add_request_form(
+    urun_adi: str = Form(...),
+    adet: int = Form(...),
+    tarih: Optional[str] = Form(None),
+    ifs_no: str = Form(...),
+    aciklama: str = Form(""),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    req = RequestItem(
+        urun_adi=urun_adi,
+        adet=adet,
+        tarih=date.fromisoformat(tarih) if tarih else date.today(),
+        ifs_no=ifs_no,
+        aciklama=aciklama,
+        talep_acan=f"{user.first_name or ''} {user.last_name or ''}".strip(),
+    )
+    db.add(req)
+    log_action(db, user.username, "Talep eklendi")
+    db.commit()
+    return RedirectResponse("/requests", status_code=303)
+
+
+@app.post("/requests/transfer")
+def transfer_requests(
+    ids: DeleteIds,
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    items = db.query(RequestItem).filter(RequestItem.id.in_(ids.ids)).all()
+    full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+    for it in items:
+        st = StockItem(
+            urun_adi=it.urun_adi,
+            islem="Giriş",
+            adet=it.adet,
+            tarih=date.today(),
+            ifs_no=it.ifs_no,
+            departman="",
+            aciklama=it.aciklama,
+            islem_yapan=full_name,
+        )
+        db.add(st)
+        db.delete(it)
+    log_action(db, user.username, f"{len(items)} talep stok kayıtlarına aktarıldı")
+    db.commit()
+    return {"message": "ok"}
 
 
 @app.post("/printer/add")
