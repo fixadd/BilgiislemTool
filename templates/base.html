@@ -52,8 +52,10 @@
         <li><a href="/stock" class="nav-link text-white {% if request.path.startswith('/stock') %}active{% endif %}">Stok Takip</a></li>
 
         <li class="nav-item mt-3"><span class="nav-link text-white text-uppercase fw-bold disabled">Ayarlar</span></li>
+        <li><a href="/profile" class="nav-link text-white {% if request.path.startswith('/profile') %}active{% endif %}">Profil</a></li>
         {% if request.session.get('is_admin') %}
         <li><a href="/admin" class="nav-link text-white {% if request.path.startswith('/admin') %}active{% endif %}">Admin Paneli</a></li>
+        <li><a href="/connections" class="nav-link text-white {% if request.path.startswith('/connections') %}active{% endif %}">Bağlantılar</a></li>
         {% endif %}
         <li><a href="/lists" class="nav-link text-white {% if request.path.startswith('/lists') %}active{% endif %}">Envanter Ekleme</a></li>
       </ul>

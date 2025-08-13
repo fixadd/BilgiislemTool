@@ -23,6 +23,7 @@ from passlib.context import CryptContext
 from passlib.exc import UnknownHashError
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
+from ldap3 import Server, Connection
 
 # --- DATABASE AYARI (Docker icin degisebilir) ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -969,6 +970,71 @@ def admin_edit_user(
     log_action(db, user.username, f"Kullanıcı güncellendi: {target.username}")
     db.commit()
     return RedirectResponse("/admin", status_code=303)
+
+
+# --- Bağlantılar (LDAP) ---
+
+@app.get("/connections", response_class=HTMLResponse)
+def connections_page(request: Request, user: User = Depends(require_login)):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    return templates.TemplateResponse("connections.html", {"request": request})
+
+
+@app.post("/connections", response_class=HTMLResponse)
+def connections_import(
+    request: Request,
+    server: str = Form(...),
+    port: int = Form(389),
+    user_dn: str = Form(...),
+    password: str = Form(...),
+    base_dn: str = Form(...),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Yetkisiz")
+    try:
+        srv = Server(server, port=port)
+        conn = Connection(srv, user=user_dn, password=password, auto_bind=True)
+        conn.search(
+            base_dn,
+            "(objectClass=person)",
+            attributes=["sAMAccountName", "givenName", "sn", "mail"],
+        )
+        imported = 0
+        for entry in conn.entries:
+            username = (
+                entry.sAMAccountName.value if "sAMAccountName" in entry else None
+            )
+            if not username:
+                continue
+            first_name = entry.givenName.value if "givenName" in entry else None
+            last_name = entry.sn.value if "sn" in entry else None
+            email = entry.mail.value if "mail" in entry else None
+            if not db.query(User).filter(User.username == username).first():
+                db.add(
+                    User(
+                        username=username,
+                        password=pwd_context.hash("changeme"),
+                        first_name=first_name,
+                        last_name=last_name,
+                        email=email,
+                        must_change_password=True,
+                    )
+                )
+                imported += 1
+        db.commit()
+        return templates.TemplateResponse(
+            "connections.html",
+            {"request": request, "success": f"{imported} kullanıcı içe aktarıldı."},
+        )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "connections.html",
+            {"request": request, "error": str(e)},
+            status_code=400,
+        )
 
 
 # --- Takip Sayfaları (HTML) ---
