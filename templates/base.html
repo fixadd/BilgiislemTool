@@ -21,6 +21,17 @@
       top:0; right:0; width:5px; height:100%;
       cursor:col-resize; user-select:none;
     }
+    .filters-popup{
+      position:absolute;
+      top:50px;
+      left:0;
+      z-index:1000;
+      background:#fff;
+      border:1px solid #dee2e6;
+      padding:1rem;
+      border-radius:.25rem;
+      width:300px;
+    }
   </style>
 </head>
 <body>
@@ -100,6 +111,11 @@
       const filterRows = document.getElementById('filter-rows');
       const addFilterBtn = document.getElementById('add-filter');
       const addFilterRowBtn = document.getElementById('add-filter-row');
+      const clearFilterBtn = document.getElementById('clear-filter');
+      function updateClearBtn(){
+        if (!clearFilterBtn) return;
+        clearFilterBtn.classList.toggle('d-none', !filterRows || !filterRows.children.length);
+      }
       function addFilterRow(field = null, value = null){
         if (!filterRows) return;
         const row = document.createElement('div');
@@ -126,12 +142,14 @@
         removeBtn.textContent = '-';
         removeBtn.addEventListener('click', () => {
           row.remove();
+          updateClearBtn();
           if (searchForm) searchForm.submit();
         });
         row.appendChild(fieldSel);
         row.appendChild(valueSel);
         row.appendChild(removeBtn);
         filterRows.appendChild(row);
+        updateClearBtn();
         function loadValues(selected = null){
           if (!window.filterEndpoint || !window.tableName) return;
           fetch(`${window.filterEndpoint}?table_name=${encodeURIComponent(window.tableName)}&column=${encodeURIComponent(fieldSel.value)}`)
@@ -158,18 +176,25 @@
             filtersContainer.classList.remove('d-none');
             if (!filterRows.children.length) addFilterRow();
           } else {
-            filterRows.innerHTML = '';
             filtersContainer.classList.add('d-none');
-            if (searchForm) searchForm.submit();
           }
         });
       }
       if (addFilterRowBtn) {
         addFilterRowBtn.addEventListener('click', () => addFilterRow());
       }
+      if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', () => {
+          if (filterRows) filterRows.innerHTML = '';
+          filtersContainer && filtersContainer.classList.add('d-none');
+          updateClearBtn();
+          if (searchForm) searchForm.submit();
+        });
+      }
       if (filtersContainer && window.initialFilters && window.initialFilters.length){
         filtersContainer.classList.remove('d-none');
         window.initialFilters.forEach(f => addFilterRow(f.field, f.value));
+        updateClearBtn();
       }
       const perPage = document.getElementById('per-page');
       if (perPage && searchForm) {
@@ -177,6 +202,7 @@
           searchForm.submit();
         });
       }
+      updateClearBtn();
     });
     function showAlert(message){
       document.getElementById('alertModalBody').innerText = message;
