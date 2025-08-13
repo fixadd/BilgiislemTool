@@ -1890,23 +1890,33 @@ def request_tracking_page(
 
 @app.post("/requests/add")
 def add_request_form(
-    urun_adi: str = Form(...),
-    adet: int = Form(...),
-    tarih: Optional[str] = Form(None),
-    ifs_no: str = Form(...),
-    aciklama: str = Form(""),
+    urun_adi: List[str] = Form(...),
+    adet: List[int] = Form(...),
+    tarih: Optional[List[str]] = Form(None),
+    ifs_no: List[str] = Form(...),
+    aciklama: Optional[List[str]] = Form(None),
     user: User = Depends(require_login),
     db: Session = Depends(get_db),
 ):
-    req = RequestItem(
-        urun_adi=urun_adi,
-        adet=adet,
-        tarih=date.fromisoformat(tarih) if tarih else date.today(),
-        ifs_no=ifs_no,
-        aciklama=aciklama,
-        talep_acan=f"{user.first_name or ''} {user.last_name or ''}".strip(),
-    )
-    db.add(req)
+    items: List[RequestItem] = []
+    for i in range(len(urun_adi)):
+        t = (
+            date.fromisoformat(tarih[i])
+            if tarih and len(tarih) > i and tarih[i]
+            else date.today()
+        )
+        ac = aciklama[i] if aciklama and len(aciklama) > i else ""
+        items.append(
+            RequestItem(
+                urun_adi=urun_adi[i],
+                adet=adet[i],
+                tarih=t,
+                ifs_no=ifs_no[i],
+                aciklama=ac,
+                talep_acan=f"{user.first_name or ''} {user.last_name or ''}".strip(),
+            )
+        )
+    db.add_all(items)
     log_action(db, user.username, "Talep eklendi")
     db.commit()
     return RedirectResponse("/requests", status_code=303)

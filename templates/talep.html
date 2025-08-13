@@ -13,7 +13,7 @@
 </div>
 
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="addModalLabel">Talep Aç</h5>
@@ -21,29 +21,31 @@
       </div>
       <form action="/requests/add" method="post">
         <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Ürün Adı</label>
-            <input type="text" class="form-control" name="urun_adi" required>
+          <div id="request-rows" class="d-flex flex-column gap-2">
+            <div class="row g-2 request-row">
+              <div class="col">
+                <input type="text" class="form-control" name="urun_adi" placeholder="Ürün Adı" required>
+              </div>
+              <div class="col">
+                <input type="number" class="form-control" name="adet" placeholder="Adet" required>
+              </div>
+              <div class="col">
+                <input type="date" class="form-control" name="tarih" value="{{ today }}" required>
+              </div>
+              <div class="col">
+                <input type="text" class="form-control" name="ifs_no" placeholder="IFS No" required>
+              </div>
+              <div class="col">
+                <input type="text" class="form-control" name="aciklama" placeholder="Açıklama">
+              </div>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Adet</label>
-            <input type="number" class="form-control" name="adet" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Tarih</label>
-            <input type="date" class="form-control" name="tarih" value="{{ today }}" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">IFS No</label>
-            <input type="text" class="form-control" name="ifs_no" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Açıklama</label>
-            <textarea class="form-control" name="aciklama"></textarea>
-          </div>
+          <button type="button" id="add-row" class="btn btn-outline-secondary mt-2" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-plus"></i>
+          </button>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Ekle</button>
+          <button type="submit" class="btn btn-success">Kaydet</button>
         </div>
       </form>
     </div>
@@ -117,6 +119,16 @@ document.querySelectorAll('.toggle-group').forEach(btn => {
     icon.classList.toggle('bi-caret-right-fill');
     icon.classList.toggle('bi-caret-down-fill');
   });
+});
+const today = "{{ today }}";
+document.getElementById('add-row').addEventListener('click', () => {
+  const rows = document.getElementById('request-rows');
+  const first = rows.querySelector('.request-row');
+  const clone = first.cloneNode(true);
+  clone.querySelectorAll('input').forEach(inp => {
+    inp.value = inp.type === 'date' ? today : '';
+  });
+  rows.appendChild(clone);
 });
 </script>
 {% endblock %}
