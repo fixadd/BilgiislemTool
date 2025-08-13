@@ -153,6 +153,18 @@ class StockItem(Base):
     islem_yapan = Column(String)
 
 
+class AccessoryInventory(Base):
+    __tablename__ = "accessory_inventory"
+    id = Column(Integer, primary_key=True, index=True)
+    urun_adi = Column(String)
+    adet = Column(Integer)
+    tarih = Column(Date)
+    ifs_no = Column(String)
+    departman = Column(String)
+    kullanici = Column(String)
+    aciklama = Column(String)
+
+
 class RequestItem(Base):
     __tablename__ = "request_tracking"
     id = Column(Integer, primary_key=True, index=True)
@@ -1938,8 +1950,10 @@ def request_tracking_page(
 def accessories_page(
     request: Request,
     user: User = Depends(require_login),
+    db: Session = Depends(get_db),
 ):
-    return templates.TemplateResponse("aksesuar.html", {"request": request})
+    items = db.query(AccessoryInventory).order_by(AccessoryInventory.tarih.desc()).all()
+    return templates.TemplateResponse("aksesuar.html", {"request": request, "items": items})
 
 
 @app.post("/requests/add")
@@ -2035,6 +2049,17 @@ def transfer_requests(
                     bagli_makina_no="",
                 )
                 db.add(hw)
+        elif it.kategori == "aksesuar":
+            acc = AccessoryInventory(
+                urun_adi=it.urun_adi,
+                adet=qty,
+                tarih=date.today(),
+                ifs_no=it.ifs_no,
+                departman=inp.departman,
+                kullanici=it.talep_acan,
+                aciklama=it.aciklama,
+            )
+            db.add(acc)
         else:
             st = StockItem(
                 urun_adi=it.urun_adi,
