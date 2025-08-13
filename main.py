@@ -1032,6 +1032,36 @@ def trash(request: Request, user: User = Depends(require_login), db: Session = D
 def inventory_trash_redirect():
     return RedirectResponse("/trash", status_code=307)
 
+@app.post("/trash/delete")
+def trash_delete(
+    item_type: str = Form(...),
+    ids: List[int] = Form([]),
+    user: User = Depends(require_login),
+    db: Session = Depends(get_db),
+):
+    model_map = {
+        "hardware": DeletedHardwareInventory,
+        "license": DeletedLicenseInventory,
+        "printer": DeletedPrinterInventory,
+        "stock": DeletedStockItem,
+    }
+    model = model_map.get(item_type)
+    if model and ids:
+        db.query(model).filter(model.id.in_(ids)).delete(synchronize_session=False)
+        action_map = {
+            "hardware": "Envanter",
+            "license": "Lisans",
+            "printer": "Yazıcı",
+            "stock": "Stok",
+        }
+        log_action(
+            db,
+            user.username,
+            f"{action_map.get(item_type, item_type)} kalıcı silindi (toplu {len(ids)} adet)",
+        )
+        db.commit()
+    return RedirectResponse("/trash", status_code=303)
+
 @app.post("/inventory/restore/{item_id}")
 def restore_inventory(item_id: int, user: User = Depends(require_login), db: Session = Depends(get_db)):
     item = db.query(DeletedHardwareInventory).filter(DeletedHardwareInventory.id == item_id).first()

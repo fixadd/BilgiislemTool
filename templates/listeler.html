@@ -2,8 +2,8 @@
 {% block title %}Envanter Ekleme{% endblock %}
 {% block content %}
 <h2>Envanter Ekleme</h2>
-<div class="row">
-  <div class="col-md-3">
+<div class="row row-cols-1 row-cols-md-3 g-4">
+  <div class="col">
     <h5>Marka</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="marka">
@@ -16,7 +16,7 @@
       {% endfor %}
     </ol>
   </div>
-  <div class="col-md-3">
+  <div class="col">
     <h5>Lokasyon</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="lokasyon">
@@ -29,7 +29,7 @@
       {% endfor %}
     </ol>
   </div>
-  <div class="col-md-3">
+  <div class="col">
     <h5>Kategori</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="kategori">
@@ -42,7 +42,7 @@
       {% endfor %}
     </ol>
   </div>
-  <div class="col-md-3">
+  <div class="col">
     <h5>Yazılım</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="yazilim">
@@ -55,10 +55,7 @@
       {% endfor %}
     </ol>
   </div>
-</div>
-
-<div class="row mt-4">
-  <div class="col-md-3">
+  <div class="col">
     <h5>Fabrika</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="fabrika">
@@ -71,7 +68,7 @@
       {% endfor %}
     </ol>
   </div>
-  <div class="col-md-3">
+  <div class="col">
     <h5>Departman</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="departman">
@@ -84,7 +81,7 @@
       {% endfor %}
     </ol>
   </div>
-  <div class="col-md-3">
+  <div class="col">
     <h5>Blok</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="blok">
@@ -97,7 +94,7 @@
       {% endfor %}
     </ol>
   </div>
-  <div class="col-md-3">
+  <div class="col">
     <h5>Model</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="model">
@@ -110,10 +107,7 @@
       {% endfor %}
     </ol>
   </div>
-</div>
-
-<div class="row mt-4">
-  <div class="col-md-4">
+  <div class="col">
     <h5>Yazıcı Markası</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="yazici_marka">
@@ -126,7 +120,7 @@
       {% endfor %}
     </ol>
   </div>
-  <div class="col-md-4">
+  <div class="col">
     <h5>Yazıcı Modeli</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="yazici_model">
@@ -139,7 +133,7 @@
       {% endfor %}
     </ol>
   </div>
-  <div class="col-md-4">
+  <div class="col">
     <h5>Ürün Adı</h5>
     <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
       <input type="hidden" name="item_type" value="urun">
