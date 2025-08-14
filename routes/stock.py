@@ -8,7 +8,7 @@ from sqlalchemy import or_, String
 import math
 
 from utils.auth import require_login
-from utils import templates, get_table_columns
+from utils import templates, get_table_columns, log_action
 from models import StockItem, SessionLocal
 
 router = APIRouter(dependencies=[Depends(require_login)])
@@ -88,6 +88,11 @@ async def add_stock(request: Request):
         )
         db.add(item)
         db.commit()
+        log_action(
+            db,
+            request.session.get("username", ""),
+            f"Added stock item {item.id}",
+        )
     finally:
         db.close()
     return RedirectResponse("/stock", status_code=303)

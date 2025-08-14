@@ -23,7 +23,7 @@ from models import (
     DeletedPrinterInventory,
     DeletedStockItem,
 )
-from utils import get_table_columns, load_settings, save_settings, templates
+from utils import get_table_columns, load_settings, save_settings, templates, log_action
 
 
 router = APIRouter(dependencies=[Depends(require_login)])
@@ -138,6 +138,7 @@ async def stock_add(request: Request):
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
                 item.islem_yapan = request.session.get("full_name", "")
+            action = f"Updated stock item {stock_id}"
         else:
             item = StockItem(
                 urun_adi=form.get("urun_adi"),
@@ -159,7 +160,9 @@ async def stock_add(request: Request):
                 islem_yapan=request.session.get("full_name", ""),
             )
             db.add(item)
+            action = f"Added stock item {item.id}"
         db.commit()
+        log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()
     return RedirectResponse("/stock", status_code=303)
@@ -209,6 +212,7 @@ async def printer_add(request: Request):
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
                 item.islem_yapan = request.session.get("full_name", "")
+            action = f"Updated printer item {printer_id}"
         else:
             item = PrinterInventory(
                 yazici_markasi=form.get("yazici_markasi"),
@@ -225,7 +229,9 @@ async def printer_add(request: Request):
                 notlar=form.get("notlar"),
             )
             db.add(item)
+            action = f"Added printer item {item.id}"
         db.commit()
+        log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()
     return RedirectResponse("/printer", status_code=303)
@@ -290,6 +296,7 @@ async def inventory_add(request: Request):
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
                 item.islem_yapan = request.session.get("full_name", "")
+            action = f"Updated hardware item {item_id}"
         else:
             item = HardwareInventory(
                 no=form.get("no"),
@@ -312,7 +319,9 @@ async def inventory_add(request: Request):
                 islem_yapan=request.session.get("full_name", ""),
             )
             db.add(item)
+            action = f"Added hardware item {item.id}"
         db.commit()
+        log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()
     return RedirectResponse("/inventory", status_code=303)
@@ -372,6 +381,7 @@ async def license_add(request: Request):
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
                 item.islem_yapan = request.session.get("full_name", "")
+            action = f"Updated license item {license_id}"
         else:
             item = LicenseInventory(
                 departman=form.get("departman"),
@@ -389,7 +399,9 @@ async def license_add(request: Request):
                 notlar=form.get("notlar"),
             )
             db.add(item)
+            action = f"Added license item {item.id}"
         db.commit()
+        log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()
     return RedirectResponse("/license", status_code=303)
@@ -429,6 +441,7 @@ async def accessories_add(request: Request):
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
                 item.islem_yapan = request.session.get("full_name", "")
+            action = f"Updated accessory item {accessory_id}"
         else:
             item = AccessoryInventory(
                 urun_adi=form.get("urun_adi"),
@@ -444,7 +457,9 @@ async def accessories_add(request: Request):
                 islem_yapan=request.session.get("full_name", ""),
             )
             db.add(item)
+            action = f"Added accessory item {item.id}"
         db.commit()
+        log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()
     return RedirectResponse("/accessories", status_code=303)
@@ -504,6 +519,11 @@ async def requests_add(request: Request):
         )
         db.add(item)
         db.commit()
+        log_action(
+            db,
+            request.session.get("username", ""),
+            f"Added request item {item.id}",
+        )
     finally:
         db.close()
     return RedirectResponse("/requests", status_code=303)
@@ -535,6 +555,11 @@ async def lists_add(request: Request, item_type: str = Form(...), name: str = Fo
     try:
         db.add(LookupItem(type=item_type, name=name))
         db.commit()
+        log_action(
+            db,
+            request.session.get("username", ""),
+            f"Added lookup {item_type}: {name}",
+        )
     finally:
         db.close()
     return RedirectResponse("/lists", status_code=303)
@@ -570,6 +595,15 @@ async def inventory_delete(request: Request):
     body = await request.json()
     ids = [int(i) for i in body.get("ids", [])]
     _soft_delete(ids, HardwareInventory, DeletedHardwareInventory)
+    db = SessionLocal()
+    try:
+        log_action(
+            db,
+            request.session.get("username", ""),
+            f"Deleted hardware items {ids}",
+        )
+    finally:
+        db.close()
     return {"status": "ok"}
 
 
@@ -579,6 +613,15 @@ async def stock_delete(request: Request):
     body = await request.json()
     ids = [int(i) for i in body.get("ids", [])]
     _soft_delete(ids, StockItem, DeletedStockItem)
+    db = SessionLocal()
+    try:
+        log_action(
+            db,
+            request.session.get("username", ""),
+            f"Deleted stock items {ids}",
+        )
+    finally:
+        db.close()
     return {"status": "ok"}
 
 
@@ -588,6 +631,15 @@ async def license_delete(request: Request):
     body = await request.json()
     ids = [int(i) for i in body.get("ids", [])]
     _soft_delete(ids, LicenseInventory, DeletedLicenseInventory)
+    db = SessionLocal()
+    try:
+        log_action(
+            db,
+            request.session.get("username", ""),
+            f"Deleted license items {ids}",
+        )
+    finally:
+        db.close()
     return {"status": "ok"}
 
 
@@ -597,6 +649,15 @@ async def printer_delete(request: Request):
     body = await request.json()
     ids = [int(i) for i in body.get("ids", [])]
     _soft_delete(ids, PrinterInventory, DeletedPrinterInventory)
+    db = SessionLocal()
+    try:
+        log_action(
+            db,
+            request.session.get("username", ""),
+            f"Deleted printer items {ids}",
+        )
+    finally:
+        db.close()
     return {"status": "ok"}
 
 
