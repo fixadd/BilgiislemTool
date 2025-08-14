@@ -1,39 +1,52 @@
-/* Sayfa genel scroll'u kapat, içerikler kendi içinde scroll alsın */
-html, body { height: 100%; margin: 0; overflow: hidden; }
+/* Sayfa: dikeyde scroll olsun, yatayda olmasın */
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow-y: auto;   /* sayfa yukarı-aşağı scroll */
+  overflow-x: hidden; /* yatay scroll'u sayfada kapat */
+}
 
-/* Sol menü kendi içinde scroll alsın */
+/* Sol menü yine kendi içinde dikey scroll alsın (varsa) */
 .sidebar { height: 100vh; overflow-y: auto; }
 
-/* İçerik alanı (sağ taraf) dikey esnesin */
+/* İçerik alanı: boşlukları azalt */
 .content, .main-content {
   display: flex;
   flex-direction: column;
-  min-width: 0;     /* yatay taşmada esneyebilsin */
-  padding: 8px;     /* kenar boşluklarını küçült */
+  min-width: 0;
+  padding: 8px;
 }
 
-/* Sadece TABLO alanı scroll alacak konteyner */
-
+/* --- SADECE YATAY SCROLL ALAN TABLO SARGISI --- */
 .table-scroll {
-  flex: 1 1 auto;
-  height: calc(100vh - 100px);
+  /* Dikey scroll KAPALI, yatay scroll AÇIK */
   overflow-x: auto;
-  overflow-y: auto;              /* hem yatay hem dikey scroll */
+  overflow-y: hidden;
+
+  /* Yüksekliği serbest bırak: dikey taşma sayfaya aksın */
+  height: auto;
+  max-height: none;
+
   border: 1px solid #eee;
   border-radius: 6px;
   background: #fff;
+
+  /* Yatay scrollbar görünürken layout zıplamasın (destekli tarayıcılarda) */
+  scrollbar-gutter: stable both-edges;
 }
 
-/* Tablo ekrana sığsın; gerekirse yatay scroll açılsın */
+/* Tablo genişleyebilsin; sığmazsa YATAY scroll çıksın */
 .table-scroll table {
+  min-width: 100%;
+  width: max-content;
   table-layout: auto;
 }
 
-/* Hücreleri tek satırda tut; taşarsa yatay scroll kullanılsın */
+/* Hücreler tek satırda; yatay scroll'u teşvik eder */
 .table-scroll th,
 .table-scroll td { white-space: nowrap; }
 
-/* Başlık satırı sabit */
+/* (İsteğe bağlı) Başlık satırı sayfa yukarı-aşağı scroll’da yapışık kalsın */
 .table-scroll thead th {
   position: sticky;
   top: 0;
@@ -41,8 +54,8 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   background: #fff;
 }
 
-/* (Opsiyonel) İlk sütunu sabitlemek istersen aç */
- /*
+/* İstersen ilk sütunu sabitle (opsiyonel) */
+/*
 .table-scroll th:first-child,
 .table-scroll td:first-child {
   position: sticky;
@@ -52,5 +65,5 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 }
 */
 
-/* Bootstrap konteyner boşluklarını azalt */
+/* Kenar boşluklarını biraz kıs */
 .container-fluid { padding-left: 8px; padding-right: 8px; }
