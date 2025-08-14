@@ -59,6 +59,23 @@ def test_login_creates_session_and_logout_clears_it():
         assert resp.status_code == 401
 
 
+def test_logout_via_get_request():
+    """Users should also be able to log out via GET requests."""
+    create_user()
+    with TestClient(main.app) as client:
+        client.post(
+            "/login", data={"username": "tester", "password": "secret"}, follow_redirects=False
+        )
+        resp = client.get("/ping")
+        assert resp.status_code == 200
+
+        resp = client.get("/logout", follow_redirects=False)
+        assert resp.status_code == 303
+
+        resp = client.get("/ping")
+        assert resp.status_code == 401
+
+
 def test_admin_routes_require_admin():
     create_user("admin_user", is_admin=True)
     create_user("normal_user", password="secret2", is_admin=False)
