@@ -8,6 +8,7 @@ from sqlalchemy import or_, String
 import math
 
 from models import (
+    AccessoryInventory,
     HardwareInventory,
     LicenseInventory,
     LookupItem,
@@ -28,6 +29,7 @@ MODEL_MAP = {
     "printer": PrinterInventory,
     "license": LicenseInventory,
     "inventory": HardwareInventory,
+    "accessory": AccessoryInventory,
 }
 
 
@@ -192,8 +194,54 @@ def license_page(request: Request) -> HTMLResponse:
 
 @router.get("/accessories", response_class=HTMLResponse)
 def accessories_page(request: Request) -> HTMLResponse:
-    """Render a simple accessories tracking page."""
-    return templates.TemplateResponse(request, "aksesuar.html", {"items": []})
+    """Render the accessories inventory page."""
+    params = request.query_params
+    q = params.get("q", "")
+    filter_field = params.get("filter_field")
+    filter_value = params.get("filter_value")
+    page = int(params.get("page", 1))
+    per_page = int(params.get("per_page", 25))
+
+    db = SessionLocal()
+    try:
+        query = db.query(AccessoryInventory)
+
+        if filter_field and filter_value and hasattr(AccessoryInventory, filter_field):
+            query = query.filter(getattr(AccessoryInventory, filter_field) == filter_value)
+
+        if q:
+            search_conditions = []
+            for column in AccessoryInventory.__table__.columns:
+                if isinstance(column.type, String):
+                    search_conditions.append(column.ilike(f"%{q}%"))
+            if search_conditions:
+                query = query.filter(or_(*search_conditions))
+
+        total_count = query.count()
+        total_pages = max(1, math.ceil(total_count / per_page))
+        offset = (page - 1) * per_page
+        accessories = query.offset(offset).limit(per_page).all()
+    finally:
+        db.close()
+
+    context = {
+        "request": request,
+        "accessories": accessories,
+        "columns": get_table_columns(AccessoryInventory.__tablename__),
+        "column_widths": {},
+        "lookups": {},
+        "offset": offset,
+        "page": page,
+        "total_pages": total_pages,
+        "q": q,
+        "per_page": per_page,
+        "table_name": "accessory",
+        "filters": ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "count": total_count,
+        "filter_field": filter_field,
+        "filter_value": filter_value,
+    }
+    return templates.TemplateResponse("aksesuar.html", context)
 
 
 @router.get("/requests", response_class=HTMLResponse)

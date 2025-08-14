@@ -12,7 +12,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 import models
 from routes.hardware import router as hardware_router
-from routes.stock import router as stock_router
+from routes.inventory import router as inventory_router
+from routes.inventory_pages import router as inventory_pages_router
 from utils.auth import require_login
 
 
@@ -20,7 +21,8 @@ def create_app():
     app = FastAPI()
     app.add_middleware(SessionMiddleware, secret_key="test")
     app.include_router(hardware_router, prefix="/hardware")
-    app.include_router(stock_router, prefix="/stock")
+    app.include_router(inventory_router)
+    app.include_router(inventory_pages_router)
     # Bypass authentication for tests
     app.dependency_overrides[require_login] = lambda: None
     return app
@@ -62,3 +64,16 @@ def test_stock_router_lists_added_items():
         resp = client.get("/stock")
         assert resp.status_code == 200
         assert "Mouse" in resp.text
+
+
+def test_accessories_router_lists_added_items():
+    setup_in_memory_db()
+    app = create_app()
+    with TestClient(app) as client:
+        resp = client.post(
+            "/accessories/add", data={"urun_adi": "Kablo", "adet": "3"}, follow_redirects=False
+        )
+        assert resp.status_code == 303
+        resp = client.get("/accessories")
+        assert resp.status_code == 200
+        assert "Kablo" in resp.text

@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 from utils.auth import require_login
 from models import (
+    AccessoryInventory,
     HardwareInventory,
     LicenseInventory,
     LookupItem,
@@ -36,6 +37,7 @@ MODEL_MAP = {
     "printer": PrinterInventory,
     "license": LicenseInventory,
     "inventory": HardwareInventory,
+    "accessory": AccessoryInventory,
 }
 
 
@@ -400,12 +402,65 @@ async def license_upload(request: Request, excel_file: UploadFile = File(...)):
     return RedirectResponse("/license", status_code=303)
 
 
-@router.get("/accessories", response_class=HTMLResponse)
-def accessories_page(request: Request) -> HTMLResponse:
-    """Render the accessories tracking page."""
-    return templates.TemplateResponse(
-        request, "aksesuar.html", {"items": []}
-    )
+@router.post("/accessories/add")
+async def accessories_add(request: Request):
+    """Create or update an accessory inventory item."""
+    form = await request.form()
+    db = SessionLocal()
+    try:
+        accessory_id = form.get("accessory_id")
+        if accessory_id:
+            item = db.query(AccessoryInventory).get(int(accessory_id))
+            if item:
+                for field in [
+                    "urun_adi",
+                    "adet",
+                    "tarih",
+                    "ifs_no",
+                    "departman",
+                    "kullanici",
+                    "aciklama",
+                ]:
+                    if field in form:
+                        value = form.get(field)
+                        if field == "adet":
+                            value = int(value) if value else None
+                        elif field == "tarih":
+                            value = date.fromisoformat(value) if value else None
+                        setattr(item, field, value)
+                item.islem_yapan = request.session.get("full_name", "")
+        else:
+            item = AccessoryInventory(
+                urun_adi=form.get("urun_adi"),
+                adet=int(form.get("adet") or 0),
+                tarih=
+                    date.fromisoformat(form.get("tarih"))
+                    if form.get("tarih")
+                    else None,
+                ifs_no=form.get("ifs_no"),
+                departman=form.get("departman"),
+                kullanici=form.get("kullanici"),
+                aciklama=form.get("aciklama"),
+                islem_yapan=request.session.get("full_name", ""),
+            )
+            db.add(item)
+        db.commit()
+    finally:
+        db.close()
+    return RedirectResponse("/accessories", status_code=303)
+
+
+@router.post("/accessories/upload")
+async def accessories_upload(request: Request, excel_file: UploadFile = File(...)):
+    """Accept an accessories inventory Excel upload (currently discarded)."""
+    await excel_file.read()
+    return RedirectResponse("/accessories", status_code=303)
+
+
+@router.get("/accessories/export")
+def accessories_export():
+    """Export accessories inventory as CSV."""
+    return _export_model(AccessoryInventory, "accessories.csv")
 
 
 @router.get("/requests", response_class=HTMLResponse)
