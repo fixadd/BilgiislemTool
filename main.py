@@ -9,9 +9,13 @@ app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
 app.mount("/image", StaticFiles(directory="image"), name="image")
 
-# Initialize database and default admin user
-init_db()
-init_admin()
+
+@app.on_event("startup")
+def on_startup() -> None:
+    """Initialize database tables and default admin user on startup."""
+    init_db()
+    init_admin()
+
 
 # Register API routes
 app.include_router(api_router)

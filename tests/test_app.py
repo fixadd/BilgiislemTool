@@ -33,66 +33,63 @@ def create_user(username: str = "tester", password: str = "secret", is_admin: bo
 
 def test_protected_routes_require_login():
     create_user()
-    client = TestClient(main.app)
+    with TestClient(main.app) as client:
+        resp = client.get("/ping")
+        assert resp.status_code == 401
 
-    resp = client.get("/ping")
-    assert resp.status_code == 401
-
-    resp = client.get("/", headers={"accept": "text/html"}, follow_redirects=False)
-    assert resp.status_code in {302, 303, 307}
+        resp = client.get("/", headers={"accept": "text/html"}, follow_redirects=False)
+        assert resp.status_code in {302, 303, 307}
 
 
 def test_login_creates_session_and_logout_clears_it():
     create_user()
-    client = TestClient(main.app)
+    with TestClient(main.app) as client:
+        resp = client.post(
+            "/login", data={"username": "tester", "password": "secret"}, follow_redirects=False
+        )
+        assert resp.status_code == 303
 
-    resp = client.post(
-        "/login", data={"username": "tester", "password": "secret"}, follow_redirects=False
-    )
-    assert resp.status_code == 303
+        resp = client.get("/ping")
+        assert resp.status_code == 200
 
-    resp = client.get("/ping")
-    assert resp.status_code == 200
+        resp = client.post("/logout", follow_redirects=False)
+        assert resp.status_code == 303
 
-    resp = client.post("/logout", follow_redirects=False)
-    assert resp.status_code == 303
-
-    resp = client.get("/ping")
-    assert resp.status_code == 401
+        resp = client.get("/ping")
+        assert resp.status_code == 401
 
 
 def test_admin_routes_require_admin():
     create_user("admin_user", is_admin=True)
     create_user("normal_user", password="secret2", is_admin=False)
-    client = TestClient(main.app)
+    with TestClient(main.app) as client:
+        # non-admin should get forbidden
+        client.post(
+            "/login", data={"username": "normal_user", "password": "secret2"}, follow_redirects=False
+        )
+        resp = client.get("/admin", follow_redirects=False)
+        assert resp.status_code == 403
 
-    # non-admin should get forbidden
-    client.post(
-        "/login", data={"username": "normal_user", "password": "secret2"}, follow_redirects=False
-    )
-    resp = client.get("/admin", follow_redirects=False)
-    assert resp.status_code == 403
-
-    # switch to admin
-    client.post("/logout", follow_redirects=False)
-    client.post(
-        "/login", data={"username": "admin_user", "password": "secret"}, follow_redirects=False
-    )
-    resp = client.get("/admin")
-    assert resp.status_code == 200
+        # switch to admin
+        client.post("/logout", follow_redirects=False)
+        client.post(
+            "/login", data={"username": "admin_user", "password": "secret"}, follow_redirects=False
+        )
+        resp = client.get("/admin")
+        assert resp.status_code == 200
 
 
 def test_admin_can_create_user():
     create_user("site_admin", is_admin=True)
-    client = TestClient(main.app)
-    client.post(
-        "/login", data={"username": "site_admin", "password": "secret"}, follow_redirects=False
-    )
+    with TestClient(main.app) as client:
+        client.post(
+            "/login", data={"username": "site_admin", "password": "secret"}, follow_redirects=False
+        )
 
-    resp = client.post(
-        "/admin/create", data={"username": "new_user", "password": "pass"}, follow_redirects=False
-    )
-    assert resp.status_code == 303
+        resp = client.post(
+            "/admin/create", data={"username": "new_user", "password": "pass"}, follow_redirects=False
+        )
+        assert resp.status_code == 303
 
     db = SessionLocal()
     try:
