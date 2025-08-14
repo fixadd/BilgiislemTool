@@ -8,7 +8,7 @@ from sqlalchemy import or_, String
 import math
 
 from utils.auth import require_login
-from utils import templates, get_table_columns
+from utils import templates, get_table_columns, log_action
 from models import HardwareInventory, SessionLocal
 
 router = APIRouter(dependencies=[Depends(require_login)])
@@ -83,6 +83,11 @@ async def add_hardware(request: Request):
         )
         db.add(item)
         db.commit()
+        log_action(
+            db,
+            request.session.get("username", ""),
+            f"Added hardware item {item.id}",
+        )
     finally:
         db.close()
     return RedirectResponse("/hardware", status_code=303)
