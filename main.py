@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from models import init_db, init_admin
-from routes import router
+from routes import router as api_router
 
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
@@ -14,4 +14,4 @@ init_db()
 init_admin()
 
 # Register API routes
-app.include_router(router)
+app.include_router(api_router)
