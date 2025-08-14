@@ -99,6 +99,7 @@
           <div class="modal-body">
             <div class="row row-cols-1 row-cols-md-3 g-3">
             {% for col in columns %}
+            {% if col != 'islem_yapan' %}
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
@@ -114,6 +115,7 @@
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
             </div>
+            {% endif %}
             {% endfor %}
             </div>
           </div>
@@ -135,6 +137,7 @@
           <div class="modal-body">
             <div class="row row-cols-1 row-cols-md-3 g-3">
             {% for col in columns %}
+            {% if col != 'islem_yapan' %}
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
@@ -150,6 +153,7 @@
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
             </div>
+            {% endif %}
             {% endfor %}
             </div>
           </div>

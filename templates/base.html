@@ -71,7 +71,7 @@
 
     <div class="main-content flex-grow-1">
       <div class="d-flex justify-content-end align-items-center mb-3">
-        <span class="me-3 fs-5 fw-bold">{{ request.session.get('username') }}</span>
+        <span class="me-3 fs-5 fw-bold">{{ request.session.get('full_name') }}</span>
         <a href="/logout" class="text-danger fs-4" title="Çıkış"><i class="bi bi-box-arrow-right"></i></a>
       </div>
       {% block content %}{% endblock %}

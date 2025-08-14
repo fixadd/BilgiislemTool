@@ -84,7 +84,7 @@ async def add_stock(request: Request):
             tarih=date.fromisoformat(form.get("tarih")) if form.get("tarih") else None,
             ifs_no=form.get("ifs_no"),
             aciklama=form.get("aciklama"),
-            islem_yapan=form.get("islem_yapan"),
+            islem_yapan=request.session.get("full_name", ""),
         )
         db.add(item)
         db.commit()

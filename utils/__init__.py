@@ -46,7 +46,13 @@ def get_table_columns(table_name: str) -> List[str]:
     """Return a list of column names for the given table."""
     columns = [col["name"] for col in inspect(engine).get_columns(table_name)]
     # Skip primary key identifiers which are not meant for display/editing
-    return [c for c in columns if c != "id"]
+    cols = [c for c in columns if c != "id"]
+    # Ensure date and operator fields appear at the end consistently
+    for field in ["tarih", "islem_yapan"]:
+        if field in cols:
+            cols.remove(field)
+            cols.append(field)
+    return cols
 
 
 def cleanup_deleted(db: Session) -> None:

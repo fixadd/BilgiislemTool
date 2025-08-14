@@ -25,6 +25,9 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
             request.session["user_id"] = user.id
             request.session["username"] = user.username
             request.session["is_admin"] = user.is_admin
+            request.session["full_name"] = (
+                f"{user.first_name or ''} {user.last_name or ''}".strip()
+            )
             return RedirectResponse("/", status_code=303)
     finally:
         db.close()
