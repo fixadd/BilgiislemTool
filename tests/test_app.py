@@ -35,6 +35,19 @@ def test_ping_route():
 
 def test_basic_pages():
     client = TestClient(main.app)
-    for path in ["/", "/login", "/stock", "/printer"]:
+    paths = [
+        "/",
+        "/login",
+        "/stock",
+        "/printer",
+        "/home",
+        "/inventory",
+        "/license",
+        "/accessories",
+        "/requests",
+        "/profile",
+        "/lists",
+    ]
+    for path in paths:
         resp = client.get(path)
         assert resp.status_code == 200
