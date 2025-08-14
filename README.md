@@ -15,3 +15,7 @@ When using Docker Compose, provide these variables in your environment or an `.e
 ADMIN_USERNAME=your_admin_username
 ADMIN_PASSWORD=your_admin_password
 ```
+
+## Authentication
+
+Administrative pages now require users to be authenticated. Visit `/login` to sign in and `/logout` to terminate the session. Unauthenticated requests to protected pages will be redirected to the login screen.

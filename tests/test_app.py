@@ -13,7 +13,7 @@ os.environ["DATABASE_URL"] = f"sqlite:///{test_db}"
 from fastapi.testclient import TestClient
 
 import main
-from models import init_db, SessionLocal, User, ActivityLog
+from models import init_db, SessionLocal, User, ActivityLog, pwd_context
 from utils import log_action
 
 
@@ -37,10 +37,20 @@ def test_ping_route():
 
 
 def test_basic_pages():
+    init_db()
+    db = SessionLocal()
+    db.add(User(username="admin", password=pwd_context.hash("secret")))
+    db.commit()
+    db.close()
+
     client = TestClient(main.app)
+    login_resp = client.post(
+        "/login", data={"username": "admin", "password": "secret"}, follow_redirects=False
+    )
+    assert login_resp.status_code == 303
+
     paths = [
         "/",
-        "/login",
         "/stock",
         "/printer",
         "/home",
@@ -59,33 +69,37 @@ def test_basic_pages():
 def test_add_endpoints_exist():
     init_db()
     db = SessionLocal()
-    try:
-        client = TestClient(main.app)
+    db.add(User(username="admin2", password=pwd_context.hash("secret")))
+    db.commit()
+    db.close()
 
-        resp = client.post("/inventory/add", data={"no": "1"}, follow_redirects=False)
-        assert resp.status_code == 303
+    client = TestClient(main.app)
+    client.post(
+        "/login", data={"username": "admin2", "password": "secret"}, follow_redirects=False
+    )
 
-        resp = client.post(
-            "/license/add", data={"departman": "IT"}, follow_redirects=False
-        )
-        assert resp.status_code == 303
+    resp = client.post("/inventory/add", data={"no": "1"}, follow_redirects=False)
+    assert resp.status_code == 303
 
-        resp = client.post(
-            "/printer/add", data={"yazici_markasi": "HP"}, follow_redirects=False
-        )
-        assert resp.status_code == 303
+    resp = client.post(
+        "/license/add", data={"departman": "IT"}, follow_redirects=False
+    )
+    assert resp.status_code == 303
 
-        resp = client.post(
-            "/inventory/upload",
-            files={
-                "excel_file": (
-                    "test.xlsx",
-                    b"data",
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                )
-            },
-            follow_redirects=False,
-        )
-        assert resp.status_code == 303
-    finally:
-        db.close()
+    resp = client.post(
+        "/printer/add", data={"yazici_markasi": "HP"}, follow_redirects=False
+    )
+    assert resp.status_code == 303
+
+    resp = client.post(
+        "/inventory/upload",
+        files={
+            "excel_file": (
+                "test.xlsx",
+                b"data",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+        follow_redirects=False,
+    )
+    assert resp.status_code == 303
