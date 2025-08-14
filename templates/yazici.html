@@ -91,6 +91,7 @@
         <input type="hidden" name="printer_id">
           <div class="modal-body">
             {% for col in columns %}
+            {% if col != 'islem_yapan' %}
             <div class="mb-3">
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% if lookups.get(col) %}
@@ -106,6 +107,7 @@
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
             </div>
+            {% endif %}
             {% endfor %}
           </div>
         <div class="modal-footer">
@@ -126,6 +128,7 @@
       <form id="addForm" action="/printer/add" method="post">
           <div class="modal-body">
             {% for col in columns %}
+            {% if col != 'islem_yapan' %}
             <div class="mb-3">
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% if lookups.get(col) %}
@@ -141,6 +144,7 @@
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
             </div>
+            {% endif %}
             {% endfor %}
           </div>
         <div class="modal-footer">

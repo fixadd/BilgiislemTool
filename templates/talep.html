@@ -139,9 +139,9 @@
     <th><input type="checkbox" id="select-all"></th>
     <th>Ürün Adı</th>
     <th>Adet</th>
-    <th>Tarih</th>
     <th>IFS No</th>
     <th>Açıklama</th>
+    <th>Tarih</th>
     <th>Talep Açan</th>
   </tr>
   {% for ifs, items in groups.items() %}
@@ -156,9 +156,9 @@
         {{ items[0].urun_adi }}
       </td>
       <td>{{ items[0].adet }}</td>
-      <td>{{ items[0].tarih }}</td>
       <td>{{ items[0].ifs_no }}</td>
       <td>{{ items[0].aciklama }}</td>
+      <td>{{ items[0].tarih }}</td>
       <td>{{ items[0].talep_acan }}</td>
     </tr>
     {% for item in items[1:] %}
@@ -166,9 +166,9 @@
       <td><input class="form-check-input row-check" type="checkbox" value="{{ item.id }}" data-kategori="{{ item.kategori }}"></td>
       <td>{{ item.urun_adi }}</td>
       <td>{{ item.adet }}</td>
-      <td>{{ item.tarih }}</td>
       <td>{{ item.ifs_no }}</td>
       <td>{{ item.aciklama }}</td>
+      <td>{{ item.tarih }}</td>
       <td>{{ item.talep_acan }}</td>
     </tr>
     {% endfor %}

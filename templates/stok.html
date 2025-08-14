@@ -94,6 +94,7 @@
           <input type="hidden" name="stock_id">
             <div class="modal-body">
               {% for col in columns %}
+              {% if col != 'islem_yapan' %}
               <div class="mb-3">
                 <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
                 {% if col == 'aciklama' %}
@@ -115,6 +116,7 @@
                 {% endif %}
                 {% endif %}
               </div>
+              {% endif %}
               {% endfor %}
             </div>
           <div class="modal-footer">
@@ -135,6 +137,7 @@
       <form id="addForm" action="/stock/add" method="post">
         <div class="modal-body">
           {% for col in columns %}
+          {% if col != 'islem_yapan' %}
           <div class="mb-3">
             <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
             {% if col == 'aciklama' %}
@@ -156,6 +159,7 @@
             {% endif %}
             {% endif %}
           </div>
+          {% endif %}
           {% endfor %}
         </div>
         <div class="modal-footer">

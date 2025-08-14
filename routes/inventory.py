@@ -127,7 +127,6 @@ async def stock_add(request: Request):
                     "tarih",
                     "ifs_no",
                     "aciklama",
-                    "islem_yapan",
                 ]:
                     if field in form:
                         value = form.get(field)
@@ -136,6 +135,7 @@ async def stock_add(request: Request):
                         elif field in {"guncelleme_tarihi", "tarih"}:
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
+                item.islem_yapan = request.session.get("full_name", "")
         else:
             item = StockItem(
                 urun_adi=form.get("urun_adi"),
@@ -154,7 +154,7 @@ async def stock_add(request: Request):
                     else None,
                 ifs_no=form.get("ifs_no"),
                 aciklama=form.get("aciklama"),
-                islem_yapan=form.get("islem_yapan"),
+                islem_yapan=request.session.get("full_name", ""),
             )
             db.add(item)
         db.commit()
@@ -199,7 +199,6 @@ async def printer_add(request: Request):
                     "mac",
                     "hostname",
                     "tarih",
-                    "islem_yapan",
                     "notlar",
                 ]:
                     if field in form:
@@ -207,6 +206,7 @@ async def printer_add(request: Request):
                         if field == "tarih":
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
+                item.islem_yapan = request.session.get("full_name", "")
         else:
             item = PrinterInventory(
                 yazici_markasi=form.get("yazici_markasi"),
@@ -219,7 +219,7 @@ async def printer_add(request: Request):
                     date.fromisoformat(form.get("tarih"))
                     if form.get("tarih")
                     else None,
-                islem_yapan=form.get("islem_yapan"),
+                islem_yapan=request.session.get("full_name", ""),
                 notlar=form.get("notlar"),
             )
             db.add(item)
@@ -281,13 +281,13 @@ async def inventory_add(request: Request):
                     "bagli_makina_no",
                     "ifs_no",
                     "tarih",
-                    "islem_yapan",
                 ]:
                     if field in form:
                         value = form.get(field)
                         if field == "tarih":
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
+                item.islem_yapan = request.session.get("full_name", "")
         else:
             item = HardwareInventory(
                 no=form.get("no"),
@@ -307,7 +307,7 @@ async def inventory_add(request: Request):
                     date.fromisoformat(form.get("tarih"))
                     if form.get("tarih")
                     else None,
-                islem_yapan=form.get("islem_yapan"),
+                islem_yapan=request.session.get("full_name", ""),
             )
             db.add(item)
         db.commit()
@@ -362,7 +362,6 @@ async def license_add(request: Request):
                     "envanter_no",
                     "ifs_no",
                     "tarih",
-                    "islem_yapan",
                     "notlar",
                 ]:
                     if field in form:
@@ -370,6 +369,7 @@ async def license_add(request: Request):
                         if field == "tarih":
                             value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
+                item.islem_yapan = request.session.get("full_name", "")
         else:
             item = LicenseInventory(
                 departman=form.get("departman"),
@@ -383,7 +383,7 @@ async def license_add(request: Request):
                     date.fromisoformat(form.get("tarih"))
                     if form.get("tarih")
                     else None,
-                islem_yapan=form.get("islem_yapan"),
+                islem_yapan=request.session.get("full_name", ""),
                 notlar=form.get("notlar"),
             )
             db.add(item)
