@@ -9,6 +9,7 @@ from .reporting import router as reporting_router
 from .admin import router as admin_router
 from .inventory_pages import router as inventory_pages_router
 from .inventory import router as inventory_router
+from .connections import router as connections_router
 
 router = APIRouter()
 router.include_router(auth_router)
@@ -18,5 +19,6 @@ router.include_router(reporting_router)
 router.include_router(admin_router)
 router.include_router(inventory_pages_router)
 router.include_router(inventory_router)
+router.include_router(connections_router)
 
 __all__ = ["router"]
