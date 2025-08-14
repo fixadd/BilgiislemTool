@@ -5,17 +5,15 @@ from datetime import date, datetime
 import csv
 from io import StringIO
 
-from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi import APIRouter, Depends, File, Request, UploadFile
+from fastapi.responses import RedirectResponse, StreamingResponse
 
 from utils.auth import require_login
 from models import (
     AccessoryInventory,
     HardwareInventory,
     LicenseInventory,
-    LookupItem,
     PrinterInventory,
-    RequestItem,
     SessionLocal,
     StockItem,
     DeletedHardwareInventory,
@@ -23,7 +21,7 @@ from models import (
     DeletedPrinterInventory,
     DeletedStockItem,
 )
-from utils import get_table_columns, load_settings, save_settings, templates, log_action
+from utils import get_table_columns, load_settings, save_settings, log_action
 
 
 router = APIRouter(dependencies=[Depends(require_login)])
@@ -89,25 +87,6 @@ def _soft_delete(ids: list[int], model, deleted_model) -> None:
         db.close()
 
 
-@router.get("/stock", response_class=HTMLResponse)
-def stock_page(request: Request) -> HTMLResponse:
-    """Render the stock tracking page with empty defaults."""
-    context = {
-        "stocks": [],
-        "columns": [],
-        "column_widths": {},
-        "lookups": {},
-        "offset": 0,
-        "page": 1,
-        "total_pages": 1,
-        "q": "",
-        "per_page": 25,
-        "table_name": "stock",
-        "filters": [],
-    }
-    return templates.TemplateResponse(request, "stok.html", context)
-
-
 @router.post("/stock/add")
 async def stock_add(request: Request):
     """Create or update a stock item from form data."""
@@ -168,24 +147,6 @@ async def stock_add(request: Request):
     return RedirectResponse("/stock", status_code=303)
 
 
-@router.get("/printer", response_class=HTMLResponse)
-def printer_page(request: Request) -> HTMLResponse:
-    """Render the printer inventory page with empty defaults."""
-    context = {
-        "printers": [],
-        "columns": [],
-        "column_widths": {},
-        "offset": 0,
-        "page": 1,
-        "total_pages": 1,
-        "q": "",
-        "per_page": 25,
-        "table_name": "printer",
-        "filters": [],
-    }
-    return templates.TemplateResponse(request, "yazici.html", context)
-
-
 @router.post("/printer/add")
 async def printer_add(request: Request):
     """Create or update a printer inventory item."""
@@ -242,26 +203,6 @@ async def printer_upload(request: Request, excel_file: UploadFile = File(...)):
     """Accept a printer inventory Excel upload (currently discarded)."""
     await excel_file.read()
     return RedirectResponse("/printer", status_code=303)
-
-
-@router.get("/inventory", response_class=HTMLResponse)
-def inventory_page(request: Request) -> HTMLResponse:
-    """Render the hardware inventory page."""
-    context = {
-        "items": [],
-        "columns": [],
-        "column_widths": {},
-        "lookups": {},
-        "offset": 0,
-        "page": 1,
-        "total_pages": 1,
-        "q": "",
-        "per_page": 25,
-        "table_name": "inventory",
-        "filters": [],
-        "count": 0,
-    }
-    return templates.TemplateResponse(request, "envanter.html", context)
 
 
 @router.post("/inventory/add")
@@ -332,26 +273,6 @@ async def inventory_upload(request: Request, excel_file: UploadFile = File(...))
     """Accept a hardware inventory Excel upload (currently discarded)."""
     await excel_file.read()
     return RedirectResponse("/inventory", status_code=303)
-
-
-@router.get("/license", response_class=HTMLResponse)
-def license_page(request: Request) -> HTMLResponse:
-    """Render the license inventory page."""
-    context = {
-        "licenses": [],
-        "columns": [],
-        "column_widths": {},
-        "lookups": {},
-        "offset": 0,
-        "page": 1,
-        "total_pages": 1,
-        "q": "",
-        "per_page": 25,
-        "table_name": "license",
-        "filters": [],
-        "count": 0,
-    }
-    return templates.TemplateResponse(request, "lisans.html", context)
 
 
 @router.post("/license/add")
@@ -476,93 +397,6 @@ async def accessories_upload(request: Request, excel_file: UploadFile = File(...
 def accessories_export():
     """Export accessories inventory as CSV."""
     return _export_model(AccessoryInventory, "accessories.csv")
-
-
-@router.get("/requests", response_class=HTMLResponse)
-def requests_page(request: Request) -> HTMLResponse:
-    """Render the requests tracking page."""
-    lookups = {
-        "donanim_tipi": [],
-        "marka": [],
-        "model": [],
-        "yazilim_adi": [],
-        "urun_adi": [],
-    }
-    context = {
-        "groups": {},
-        "lookups": lookups,
-        "today": date.today().isoformat(),
-    }
-    return templates.TemplateResponse(request, "talep.html", context)
-
-
-@router.post("/requests/add")
-async def requests_add(request: Request):
-    """Add a request item."""
-    form = await request.form()
-    db = SessionLocal()
-    try:
-        item = RequestItem(
-            donanim_tipi=form.get("donanim_tipi"),
-            marka=form.get("marka"),
-            model=form.get("model"),
-            yazilim_adi=form.get("yazilim_adi"),
-            urun_adi=form.get("urun_adi") or form.get("model") or "",
-            adet=int(form.get("adet") or 0),
-            tarih=
-                date.fromisoformat(form.get("tarih"))
-                if form.get("tarih")
-                else None,
-            ifs_no=form.get("ifs_no"),
-            aciklama=form.get("aciklama"),
-            talep_acan=request.session.get("user", ""),
-        )
-        db.add(item)
-        db.commit()
-        log_action(
-            db,
-            request.session.get("username", ""),
-            f"Added request item {item.id}",
-        )
-    finally:
-        db.close()
-    return RedirectResponse("/requests", status_code=303)
-
-
-@router.get("/lists", response_class=HTMLResponse)
-def lists_page(request: Request) -> HTMLResponse:
-    """Render the lists management page."""
-    context = {
-        "brands": [],
-        "locations": [],
-        "types": [],
-        "softwares": [],
-        "factories": [],
-        "departments": [],
-        "blocks": [],
-        "models": [],
-        "printer_brands": [],
-        "printer_models": [],
-        "products": [],
-    }
-    return templates.TemplateResponse(request, "listeler.html", context)
-
-
-@router.post("/lists/add")
-async def lists_add(request: Request, item_type: str = Form(...), name: str = Form(...)):
-    """Add a lookup list item."""
-    db = SessionLocal()
-    try:
-        db.add(LookupItem(type=item_type, name=name))
-        db.commit()
-        log_action(
-            db,
-            request.session.get("username", ""),
-            f"Added lookup {item_type}: {name}",
-        )
-    finally:
-        db.close()
-    return RedirectResponse("/lists", status_code=303)
 
 
 @router.get("/inventory/export")
