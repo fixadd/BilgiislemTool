@@ -19,7 +19,7 @@ router.include_router(stock_router, prefix="/stock")
 router.include_router(reporting_router)
 router.include_router(admin_router)
 router.include_router(inventory_pages_router)
-router.include_router(inventory_router, prefix="/inventory-api")
+router.include_router(inventory_router)
 router.include_router(connections_router)
 router.include_router(trash_router)
 

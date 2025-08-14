@@ -6,7 +6,7 @@ import csv
 from io import StringIO
 
 from fastapi import APIRouter, Depends, File, Request, UploadFile
-from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 from utils.auth import require_login
 from models import (
@@ -22,6 +22,7 @@ from models import (
     DeletedStockItem,
 )
 from utils import get_table_columns, load_settings, save_settings, log_action
+from .stock import list_stock as stock_list
 
 
 router = APIRouter(dependencies=[Depends(require_login)])
@@ -145,6 +146,12 @@ async def stock_add(request: Request):
     finally:
         db.close()
     return RedirectResponse("/stock", status_code=303)
+
+
+@router.get("/stock", response_class=HTMLResponse)
+def stock_list_page(request: Request) -> HTMLResponse:
+    """Render the stock list page."""
+    return stock_list(request)
 
 
 @router.post("/printer/add")
