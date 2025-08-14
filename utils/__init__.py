@@ -44,7 +44,9 @@ def save_settings(data: dict) -> None:
 
 def get_table_columns(table_name: str) -> List[str]:
     """Return a list of column names for the given table."""
-    return [col["name"] for col in inspect(engine).get_columns(table_name)]
+    columns = [col["name"] for col in inspect(engine).get_columns(table_name)]
+    # Skip primary key identifiers which are not meant for display/editing
+    return [c for c in columns if c != "id"]
 
 
 def cleanup_deleted(db: Session) -> None:
