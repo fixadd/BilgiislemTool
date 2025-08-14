@@ -3,13 +3,15 @@
 from fastapi import APIRouter
 
 from .auth import router as auth_router
-from .inventory import router as inventory_router
+from .hardware import router as hardware_router
+from .stock import router as stock_router
 from .reporting import router as reporting_router
 from .admin import router as admin_router
 
 router = APIRouter()
 router.include_router(auth_router)
-router.include_router(inventory_router)
+router.include_router(hardware_router, prefix="/hardware")
+router.include_router(stock_router, prefix="/stock")
 router.include_router(reporting_router)
 router.include_router(admin_router)
 
