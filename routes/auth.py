@@ -34,6 +34,7 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     )
 
 
+@router.get("/logout")
 @router.post("/logout")
 def logout(request: Request):
     """Clear the current session."""
