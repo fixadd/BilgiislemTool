@@ -30,7 +30,16 @@ def test_log_action():
 
 
 def test_ping_route():
+    init_db()
+    db = SessionLocal()
+    db.add(User(username="ping_admin", password=pwd_context.hash("secret")))
+    db.commit()
+    db.close()
+
     client = TestClient(main.app)
+    client.post(
+        "/login", data={"username": "ping_admin", "password": "secret"}, follow_redirects=False
+    )
     response = client.get("/ping")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

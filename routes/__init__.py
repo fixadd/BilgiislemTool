@@ -562,13 +562,18 @@ async def lists_add(request: Request, item_type: str = Form(...), name: str = Fo
 
 
 @router.get("/ping")
-def ping() -> dict[str, str]:
+def ping(request: Request):
+    """Simple authenticated health check."""
+    if redirect := require_login(request):
+        return redirect
     return {"status": "ok"}
 
 
 @router.get("/table-columns")
-def table_columns(table_name: str) -> dict[str, list[str]]:
+def table_columns(request: Request, table_name: str):
     """Return available columns for the requested table."""
+    if redirect := require_login(request):
+        return redirect
     model = MODEL_MAP.get(table_name)
     if not model:
         return {"columns": []}
@@ -577,15 +582,19 @@ def table_columns(table_name: str) -> dict[str, list[str]]:
 
 
 @router.get("/column-settings")
-def column_settings(table_name: str) -> dict:
+def column_settings(request: Request, table_name: str):
     """Fetch stored column settings for a table."""
+    if redirect := require_login(request):
+        return redirect
     settings = load_settings()
     return settings.get(table_name, {})
 
 
 @router.post("/column-settings")
-def save_column_settings(table_name: str, data: dict) -> dict[str, str]:
+def save_column_settings(request: Request, table_name: str, data: dict):
     """Persist column settings for a table."""
+    if redirect := require_login(request):
+        return redirect
     settings = load_settings()
     settings[table_name] = data
     save_settings(settings)
@@ -593,8 +602,10 @@ def save_column_settings(table_name: str, data: dict) -> dict[str, str]:
 
 
 @router.get("/column-values")
-def column_values(table_name: str, column: str | None = None) -> dict[str, list]:
+def column_values(request: Request, table_name: str, column: str | None = None):
     """Return distinct values for a column to power client-side filters."""
+    if redirect := require_login(request):
+        return redirect
     if not column:
         return {"values": []}
     model = MODEL_MAP.get(table_name)
