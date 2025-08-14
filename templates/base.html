@@ -8,7 +8,7 @@
   <style>
     *{ box-sizing: border-box; }
     body{ margin:0; font-family: Arial, sans-serif; color:#111; overflow-x:auto; }
-    .table-container{ width:max-content; min-width:100%; }
+    .table-container{ width:max-content; min-width:100%; overflow:auto; }
     .table-fixed{ table-layout:auto; width:max-content; min-width:100%; }
     .table-fixed td{ white-space:normal; word-break:break-word; }
     .table-resizable th,
@@ -113,6 +113,14 @@
       });
     }
     document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('table').forEach(tbl => {
+        if (!tbl.parentElement.classList.contains('table-container')) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'table-container';
+          tbl.parentNode.insertBefore(wrapper, tbl);
+          wrapper.appendChild(tbl);
+        }
+      });
       document.querySelectorAll('table.table-resizable').forEach(makeTableResizable);
       const searchForm = document.getElementById('search-form');
       const filtersContainer = document.getElementById('filters-container');
