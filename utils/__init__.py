@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import date, timedelta
+from pathlib import Path
 from typing import List
 
 from fastapi.templating import Jinja2Templates
@@ -16,8 +17,9 @@ from models import (
     DeletedStockItem,
 )
 
-# Reusable Jinja2 template loader
-templates = Jinja2Templates(directory="templates")
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+# Reusable Jinja2 template loader using an absolute path
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Settings file path used by load_settings/save_settings
 SETTINGS_FILE = os.path.join(
