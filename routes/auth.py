@@ -23,6 +23,8 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         user = db.query(User).filter(User.username == username).first()
         if user and pwd_context.verify(password, user.password):
             request.session["user_id"] = user.id
+            request.session["username"] = user.username
+            request.session["is_admin"] = user.is_admin
             return RedirectResponse("/", status_code=303)
     finally:
         db.close()

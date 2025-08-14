@@ -113,3 +113,25 @@ def test_admin_can_create_user():
         assert db.query(User).filter_by(username="new_user").first() is not None
     finally:
         db.close()
+
+
+def test_connections_route_requires_admin():
+    create_user("conn_admin", is_admin=True)
+    create_user("conn_user", password="pass2", is_admin=False)
+    with TestClient(main.app) as client:
+        client.post(
+            "/login",
+            data={"username": "conn_user", "password": "pass2"},
+            follow_redirects=False,
+        )
+        resp = client.get("/connections", follow_redirects=False)
+        assert resp.status_code == 403
+
+        client.post("/logout", follow_redirects=False)
+        client.post(
+            "/login",
+            data={"username": "conn_admin", "password": "secret"},
+            follow_redirects=False,
+        )
+        resp = client.get("/connections")
+        assert resp.status_code == 200
