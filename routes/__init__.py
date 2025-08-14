@@ -18,6 +18,13 @@ from models import (
 
 router = APIRouter()
 
+
+def require_login(request: Request) -> RedirectResponse | None:
+    """Redirect to the login page when the user is unauthenticated."""
+    if not request.session.get("user"):
+        return RedirectResponse("/login", status_code=303)
+    return None
+
 # Mapping from short table identifiers used in the UI to the actual
 # SQLAlchemy model classes. This allows API endpoints to operate on
 # different tables in a generic manner.
@@ -38,6 +45,8 @@ def root(request: Request) -> HTMLResponse:
     is empty or not yet configured.
     """
 
+    if redirect := require_login(request):
+        return redirect
     context = {
         "request": request,
         "factories": {},
@@ -74,10 +83,18 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     )
 
 
+@router.get("/logout")
+def logout(request: Request):
+    """Log the user out and redirect to the login page."""
+    request.session.clear()
+    return RedirectResponse("/login", status_code=303)
+
+
 @router.get("/stock", response_class=HTMLResponse)
 def stock_page(request: Request) -> HTMLResponse:
     """Render the stock tracking page with empty defaults."""
-
+    if redirect := require_login(request):
+        return redirect
     context = {
         "request": request,
         "stocks": [],
@@ -98,14 +115,16 @@ def stock_page(request: Request) -> HTMLResponse:
 @router.get("/stock/status", response_class=HTMLResponse)
 def stock_status_page(request: Request) -> HTMLResponse:
     """Render simple stock status page."""
-
+    if redirect := require_login(request):
+        return redirect
     return templates.TemplateResponse("stok_durumu.html", {"request": request})
 
 
 @router.post("/stock/add")
 async def stock_add(request: Request):
     """Create or update a stock item from form data."""
-
+    if redirect := require_login(request):
+        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -163,7 +182,8 @@ async def stock_add(request: Request):
 @router.get("/printer", response_class=HTMLResponse)
 def printer_page(request: Request) -> HTMLResponse:
     """Render the printer inventory page with empty defaults."""
-
+    if redirect := require_login(request):
+        return redirect
     context = {
         "request": request,
         "printers": [],
@@ -176,14 +196,15 @@ def printer_page(request: Request) -> HTMLResponse:
         "per_page": 25,
         "table_name": "printer",
         "filters": [],
-    } 
+    }
     return templates.TemplateResponse("yazici.html", context)
 
 
 @router.post("/printer/add")
 async def printer_add(request: Request):
     """Create or update a printer inventory item."""
-
+    if redirect := require_login(request):
+        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -230,9 +251,10 @@ async def printer_add(request: Request):
 
 
 @router.post("/printer/upload")
-async def printer_upload(excel_file: UploadFile = File(...)):
+async def printer_upload(request: Request, excel_file: UploadFile = File(...)):
     """Accept a printer inventory Excel upload (currently discarded)."""
-
+    if redirect := require_login(request):
+        return redirect
     await excel_file.read()
     return RedirectResponse("/printer", status_code=303)
 
@@ -240,7 +262,8 @@ async def printer_upload(excel_file: UploadFile = File(...)):
 @router.get("/home", response_class=HTMLResponse)
 def home_page(request: Request) -> HTMLResponse:
     """Render the dashboard from the /home path."""
-
+    if redirect := require_login(request):
+        return redirect
     context = {
         "request": request,
         "factories": {},
@@ -254,7 +277,8 @@ def home_page(request: Request) -> HTMLResponse:
 @router.get("/inventory", response_class=HTMLResponse)
 def inventory_page(request: Request) -> HTMLResponse:
     """Render the hardware inventory page."""
-
+    if redirect := require_login(request):
+        return redirect
     context = {
         "request": request,
         "items": [],
@@ -276,7 +300,8 @@ def inventory_page(request: Request) -> HTMLResponse:
 @router.post("/inventory/add")
 async def inventory_add(request: Request):
     """Create or update a hardware inventory record."""
-
+    if redirect := require_login(request):
+        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -335,9 +360,10 @@ async def inventory_add(request: Request):
 
 
 @router.post("/inventory/upload")
-async def inventory_upload(excel_file: UploadFile = File(...)):
+async def inventory_upload(request: Request, excel_file: UploadFile = File(...)):
     """Accept a hardware inventory Excel upload (currently discarded)."""
-
+    if redirect := require_login(request):
+        return redirect
     await excel_file.read()
     return RedirectResponse("/inventory", status_code=303)
 
@@ -345,7 +371,8 @@ async def inventory_upload(excel_file: UploadFile = File(...)):
 @router.get("/license", response_class=HTMLResponse)
 def license_page(request: Request) -> HTMLResponse:
     """Render the license inventory page."""
-
+    if redirect := require_login(request):
+        return redirect
     context = {
         "request": request,
         "licenses": [],
@@ -367,7 +394,8 @@ def license_page(request: Request) -> HTMLResponse:
 @router.post("/license/add")
 async def license_add(request: Request):
     """Create or update a software license record."""
-
+    if redirect := require_login(request):
+        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -416,9 +444,10 @@ async def license_add(request: Request):
 
 
 @router.post("/license/upload")
-async def license_upload(excel_file: UploadFile = File(...)):
+async def license_upload(request: Request, excel_file: UploadFile = File(...)):
     """Accept a license inventory Excel upload (currently discarded)."""
-
+    if redirect := require_login(request):
+        return redirect
     await excel_file.read()
     return RedirectResponse("/license", status_code=303)
 
@@ -426,7 +455,8 @@ async def license_upload(excel_file: UploadFile = File(...)):
 @router.get("/accessories", response_class=HTMLResponse)
 def accessories_page(request: Request) -> HTMLResponse:
     """Render the accessories tracking page."""
-
+    if redirect := require_login(request):
+        return redirect
     return templates.TemplateResponse(
         "aksesuar.html", {"request": request, "items": []}
     )
@@ -435,7 +465,8 @@ def accessories_page(request: Request) -> HTMLResponse:
 @router.get("/requests", response_class=HTMLResponse)
 def requests_page(request: Request) -> HTMLResponse:
     """Render the requests tracking page."""
-
+    if redirect := require_login(request):
+        return redirect
     lookups = {
         "donanim_tipi": [],
         "marka": [],
@@ -455,7 +486,8 @@ def requests_page(request: Request) -> HTMLResponse:
 @router.post("/requests/add")
 async def requests_add(request: Request):
     """Add a request record."""
-
+    if redirect := require_login(request):
+        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -485,7 +517,8 @@ async def requests_add(request: Request):
 @router.get("/profile", response_class=HTMLResponse)
 def profile_page(request: Request) -> HTMLResponse:
     """Render a simple profile page."""
-
+    if redirect := require_login(request):
+        return redirect
     user = {"first_name": "", "last_name": "", "email": ""}
     return templates.TemplateResponse("profile.html", {"request": request, "user": user})
 
@@ -493,14 +526,16 @@ def profile_page(request: Request) -> HTMLResponse:
 @router.get("/change-password", response_class=HTMLResponse)
 def change_password_page(request: Request) -> HTMLResponse:
     """Render change password page."""
-
+    if redirect := require_login(request):
+        return redirect
     return templates.TemplateResponse("change_password.html", {"request": request})
 
 
 @router.get("/lists", response_class=HTMLResponse)
 def lists_page(request: Request) -> HTMLResponse:
     """Render the lists management page."""
-
+    if redirect := require_login(request):
+        return redirect
     context = {
         "request": request,
         "brands": [],
@@ -519,9 +554,11 @@ def lists_page(request: Request) -> HTMLResponse:
 
 
 @router.post("/lists/add")
-async def lists_add(item_type: str = Form(...), name: str = Form(...)):
+async def lists_add(request: Request, item_type: str = Form(...), name: str = Form(...)):
     """Add a lookup list item."""
 
+    if redirect := require_login(request):
+        return redirect
     db = SessionLocal()
     try:
         db.add(LookupItem(type=item_type, name=name))
