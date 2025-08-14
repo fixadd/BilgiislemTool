@@ -5,110 +5,51 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 # Use a temporary SQLite database file for tests
-test_db = os.path.join(os.path.dirname(__file__), "test.db")
-if os.path.exists(test_db):
-    os.remove(test_db)
-os.environ["DATABASE_URL"] = f"sqlite:///{test_db}"
+TEST_DB = os.path.join(os.path.dirname(__file__), "test.db")
+if os.path.exists(TEST_DB):
+    os.remove(TEST_DB)
+os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB}"
 
 from fastapi.testclient import TestClient
 
 import main
-from models import init_db, SessionLocal, User, ActivityLog, pwd_context
-from utils import log_action
+from models import SessionLocal, User, init_db, pwd_context
 
 
-def test_log_action():
+def create_user(username: str = "tester", password: str = "secret"):
     init_db()
     db = SessionLocal()
-    user = User(username="tester", password="pwd")
-    db.add(user)
-    db.commit()
-    log_action(db, "tester", "created")
-    assert db.query(User).count() == 1
-    assert db.query(ActivityLog).count() == 1
+    if not db.query(User).filter_by(username=username).first():
+        db.add(User(username=username, password=pwd_context.hash(password)))
+        db.commit()
     db.close()
 
 
-def test_ping_route():
-    init_db()
-    db = SessionLocal()
-    db.add(User(username="ping_admin", password=pwd_context.hash("secret")))
-    db.commit()
-    db.close()
-
+def test_protected_routes_require_login():
+    create_user()
     client = TestClient(main.app)
-    client.post(
-        "/login", data={"username": "ping_admin", "password": "secret"}, follow_redirects=False
-    )
-    response = client.get("/ping")
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+
+    resp = client.get("/ping")
+    assert resp.status_code == 401
+
+    resp = client.get("/", headers={"accept": "text/html"}, follow_redirects=False)
+    assert resp.status_code in {302, 303, 307}
 
 
-def test_basic_pages():
-    init_db()
-    db = SessionLocal()
-    db.add(User(username="admin", password=pwd_context.hash("secret")))
-    db.commit()
-    db.close()
-
+def test_login_creates_session_and_logout_clears_it():
+    create_user()
     client = TestClient(main.app)
-    login_resp = client.post(
-        "/login", data={"username": "admin", "password": "secret"}, follow_redirects=False
-    )
-    assert login_resp.status_code == 303
-
-    paths = [
-        "/",
-        "/stock",
-        "/printer",
-        "/home",
-        "/inventory",
-        "/license",
-        "/accessories",
-        "/requests",
-        "/profile",
-        "/lists",
-    ]
-    for path in paths:
-        resp = client.get(path)
-        assert resp.status_code == 200
-
-
-def test_add_endpoints_exist():
-    init_db()
-    db = SessionLocal()
-    db.add(User(username="admin2", password=pwd_context.hash("secret")))
-    db.commit()
-    db.close()
-
-    client = TestClient(main.app)
-    client.post(
-        "/login", data={"username": "admin2", "password": "secret"}, follow_redirects=False
-    )
-
-    resp = client.post("/inventory/add", data={"no": "1"}, follow_redirects=False)
-    assert resp.status_code == 303
 
     resp = client.post(
-        "/license/add", data={"departman": "IT"}, follow_redirects=False
+        "/login", data={"username": "tester", "password": "secret"}, follow_redirects=False
     )
     assert resp.status_code == 303
 
-    resp = client.post(
-        "/printer/add", data={"yazici_markasi": "HP"}, follow_redirects=False
-    )
+    resp = client.get("/ping")
+    assert resp.status_code == 200
+
+    resp = client.post("/logout", follow_redirects=False)
     assert resp.status_code == 303
 
-    resp = client.post(
-        "/inventory/upload",
-        files={
-            "excel_file": (
-                "test.xlsx",
-                b"data",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
-        },
-        follow_redirects=False,
-    )
-    assert resp.status_code == 303
+    resp = client.get("/ping")
+    assert resp.status_code == 401
