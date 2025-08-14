@@ -4,6 +4,8 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy import or_, String
+import math
 
 from models import (
     HardwareInventory,
@@ -32,25 +34,52 @@ MODEL_MAP = {
 @router.get("/inventory", response_class=HTMLResponse)
 def inventory_page(request: Request) -> HTMLResponse:
     """Render the hardware inventory page."""
+    params = request.query_params
+    q = params.get("q", "")
+    filter_field = params.get("filter_field")
+    filter_value = params.get("filter_value")
+    page = int(params.get("page", 1))
+    per_page = int(params.get("per_page", 25))
+
     db = SessionLocal()
     try:
-        items = db.query(HardwareInventory).all()
+        query = db.query(HardwareInventory)
+
+        if filter_field and filter_value and hasattr(HardwareInventory, filter_field):
+            query = query.filter(getattr(HardwareInventory, filter_field) == filter_value)
+
+        if q:
+            search_conditions = []
+            for column in HardwareInventory.__table__.columns:
+                if isinstance(column.type, String):
+                    search_conditions.append(column.ilike(f"%{q}%"))
+            if search_conditions:
+                query = query.filter(or_(*search_conditions))
+
+        total_count = query.count()
+        total_pages = max(1, math.ceil(total_count / per_page))
+        offset = (page - 1) * per_page
+        items = query.offset(offset).limit(per_page).all()
     finally:
         db.close()
+
     context = {
         "request": request,
         "items": items,
         "columns": get_table_columns(HardwareInventory.__tablename__),
         "column_widths": {},
         "lookups": {},
-        "offset": 0,
-        "page": 1,
-        "total_pages": 1,
-        "q": "",
-        "per_page": 25,
+        "offset": offset,
+        "page": page,
+        "total_pages": total_pages,
+        "q": q,
+        "per_page": per_page,
         "table_name": "inventory",
-        "filters": [],
-        "count": len(items),
+        "filters":
+            ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "count": total_count,
+        "filter_field": filter_field,
+        "filter_value": filter_value,
     }
     return templates.TemplateResponse("envanter.html", context)
 
@@ -58,25 +87,52 @@ def inventory_page(request: Request) -> HTMLResponse:
 @router.get("/printer", response_class=HTMLResponse)
 def printer_page(request: Request) -> HTMLResponse:
     """Render the printer inventory page."""
+    params = request.query_params
+    q = params.get("q", "")
+    filter_field = params.get("filter_field")
+    filter_value = params.get("filter_value")
+    page = int(params.get("page", 1))
+    per_page = int(params.get("per_page", 25))
+
     db = SessionLocal()
     try:
-        printers = db.query(PrinterInventory).all()
+        query = db.query(PrinterInventory)
+
+        if filter_field and filter_value and hasattr(PrinterInventory, filter_field):
+            query = query.filter(getattr(PrinterInventory, filter_field) == filter_value)
+
+        if q:
+            search_conditions = []
+            for column in PrinterInventory.__table__.columns:
+                if isinstance(column.type, String):
+                    search_conditions.append(column.ilike(f"%{q}%"))
+            if search_conditions:
+                query = query.filter(or_(*search_conditions))
+
+        total_count = query.count()
+        total_pages = max(1, math.ceil(total_count / per_page))
+        offset = (page - 1) * per_page
+        printers = query.offset(offset).limit(per_page).all()
     finally:
         db.close()
+
     context = {
         "request": request,
         "printers": printers,
         "columns": get_table_columns(PrinterInventory.__tablename__),
         "column_widths": {},
         "lookups": {},
-        "offset": 0,
-        "page": 1,
-        "total_pages": 1,
-        "q": "",
-        "per_page": 25,
+        "offset": offset,
+        "page": page,
+        "total_pages": total_pages,
+        "q": q,
+        "per_page": per_page,
         "table_name": "printer",
-        "filters": [],
-        "count": len(printers),
+        "filters":
+            ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "count": total_count,
+        "filter_field": filter_field,
+        "filter_value": filter_value,
     }
     return templates.TemplateResponse("yazici.html", context)
 
@@ -84,25 +140,52 @@ def printer_page(request: Request) -> HTMLResponse:
 @router.get("/license", response_class=HTMLResponse)
 def license_page(request: Request) -> HTMLResponse:
     """Render the software license inventory page."""
+    params = request.query_params
+    q = params.get("q", "")
+    filter_field = params.get("filter_field")
+    filter_value = params.get("filter_value")
+    page = int(params.get("page", 1))
+    per_page = int(params.get("per_page", 25))
+
     db = SessionLocal()
     try:
-        licenses = db.query(LicenseInventory).all()
+        query = db.query(LicenseInventory)
+
+        if filter_field and filter_value and hasattr(LicenseInventory, filter_field):
+            query = query.filter(getattr(LicenseInventory, filter_field) == filter_value)
+
+        if q:
+            search_conditions = []
+            for column in LicenseInventory.__table__.columns:
+                if isinstance(column.type, String):
+                    search_conditions.append(column.ilike(f"%{q}%"))
+            if search_conditions:
+                query = query.filter(or_(*search_conditions))
+
+        total_count = query.count()
+        total_pages = max(1, math.ceil(total_count / per_page))
+        offset = (page - 1) * per_page
+        licenses = query.offset(offset).limit(per_page).all()
     finally:
         db.close()
+
     context = {
         "request": request,
         "licenses": licenses,
         "columns": get_table_columns(LicenseInventory.__tablename__),
         "column_widths": {},
         "lookups": {},
-        "offset": 0,
-        "page": 1,
-        "total_pages": 1,
-        "q": "",
-        "per_page": 25,
+        "offset": offset,
+        "page": page,
+        "total_pages": total_pages,
+        "q": q,
+        "per_page": per_page,
         "table_name": "license",
-        "filters": [],
-        "count": len(licenses),
+        "filters":
+            ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "count": total_count,
+        "filter_field": filter_field,
+        "filter_value": filter_value,
     }
     return templates.TemplateResponse("lisans.html", context)
 
