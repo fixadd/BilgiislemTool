@@ -184,10 +184,9 @@
         {% endfor %}
       </tbody>
     </table>
-  </div>
 
-<nav aria-label="Sayfalar">
-  <ul class="pagination justify-content-center">
+    <nav aria-label="Sayfalar" class="mt-2">
+      <ul class="pagination justify-content-center">
     {% set start = ((page - 1) // 10) * 10 + 1 %}
     {% set end = start + 9 if start + 9 < total_pages else total_pages %}
     {% if page > 1 %}
