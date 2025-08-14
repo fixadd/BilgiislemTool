@@ -1,9 +1,12 @@
 """Inventory management related endpoints."""
 
-from datetime import date
+from datetime import date, datetime
+
+import csv
+from io import StringIO
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 from utils.auth import require_login
 from models import (
@@ -14,6 +17,10 @@ from models import (
     RequestItem,
     SessionLocal,
     StockItem,
+    DeletedHardwareInventory,
+    DeletedLicenseInventory,
+    DeletedPrinterInventory,
+    DeletedStockItem,
 )
 from utils import get_table_columns, load_settings, save_settings, templates
 
@@ -30,6 +37,54 @@ MODEL_MAP = {
     "license": LicenseInventory,
     "inventory": HardwareInventory,
 }
+
+
+def _export_model(model, filename: str) -> StreamingResponse:
+    """Export all records of a model as CSV."""
+    db = SessionLocal()
+    try:
+        items = db.query(model).all()
+        output = StringIO()
+        writer = csv.writer(output)
+        columns = [col.name for col in model.__table__.columns]
+        writer.writerow(columns)
+        for item in items:
+            row = []
+            for col in columns:
+                value = getattr(item, col)
+                if isinstance(value, (date, datetime)):
+                    value = value.isoformat()
+                row.append(value)
+            writer.writerow(row)
+        output.seek(0)
+        return StreamingResponse(
+            output,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    finally:
+        db.close()
+
+
+def _soft_delete(ids: list[int], model, deleted_model) -> None:
+    """Move selected records to their deleted counterparts."""
+    if not ids:
+        return
+    db = SessionLocal()
+    try:
+        records = db.query(model).filter(model.id.in_(ids)).all()
+        for record in records:
+            data = {
+                col.name: getattr(record, col.name)
+                for col in model.__table__.columns
+                if col.name != "id"
+            }
+            deleted = deleted_model(**data, deleted_at=date.today())
+            db.add(deleted)
+            db.delete(record)
+        db.commit()
+    finally:
+        db.close()
 
 
 @router.get("/stock", response_class=HTMLResponse)
@@ -428,6 +483,66 @@ async def lists_add(request: Request, item_type: str = Form(...), name: str = Fo
     finally:
         db.close()
     return RedirectResponse("/lists", status_code=303)
+
+
+@router.get("/inventory/export")
+def inventory_export():
+    """Export hardware inventory as CSV."""
+    return _export_model(HardwareInventory, "inventory.csv")
+
+
+@router.get("/stock/export")
+def stock_export():
+    """Export stock items as CSV."""
+    return _export_model(StockItem, "stock.csv")
+
+
+@router.get("/license/export")
+def license_export():
+    """Export license inventory as CSV."""
+    return _export_model(LicenseInventory, "license.csv")
+
+
+@router.get("/printer/export")
+def printer_export():
+    """Export printer inventory as CSV."""
+    return _export_model(PrinterInventory, "printer.csv")
+
+
+@router.post("/inventory/delete")
+async def inventory_delete(request: Request):
+    """Soft delete selected hardware inventory items."""
+    body = await request.json()
+    ids = [int(i) for i in body.get("ids", [])]
+    _soft_delete(ids, HardwareInventory, DeletedHardwareInventory)
+    return {"status": "ok"}
+
+
+@router.post("/stock/delete")
+async def stock_delete(request: Request):
+    """Soft delete selected stock items."""
+    body = await request.json()
+    ids = [int(i) for i in body.get("ids", [])]
+    _soft_delete(ids, StockItem, DeletedStockItem)
+    return {"status": "ok"}
+
+
+@router.post("/license/delete")
+async def license_delete(request: Request):
+    """Soft delete selected license items."""
+    body = await request.json()
+    ids = [int(i) for i in body.get("ids", [])]
+    _soft_delete(ids, LicenseInventory, DeletedLicenseInventory)
+    return {"status": "ok"}
+
+
+@router.post("/printer/delete")
+async def printer_delete(request: Request):
+    """Soft delete selected printer inventory items."""
+    body = await request.json()
+    ids = [int(i) for i in body.get("ids", [])]
+    _soft_delete(ids, PrinterInventory, DeletedPrinterInventory)
+    return {"status": "ok"}
 
 
 @router.get("/table-columns")
