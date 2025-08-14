@@ -254,8 +254,17 @@ def requests_page(request: Request) -> HTMLResponse:
         "yazilim_adi": [],
         "urun_adi": [],
     }
+
+    db = SessionLocal()
+    try:
+        groups = {}
+        for item in db.query(RequestItem).all():
+            groups.setdefault(item.ifs_no, []).append(item)
+    finally:
+        db.close()
+
     context = {
-        "groups": {},
+        "groups": groups,
         "lookups": lookups,
         "today": date.today().isoformat(),
     }
@@ -268,19 +277,44 @@ async def requests_add(request: Request):
     form = await request.form()
     db = SessionLocal()
     try:
-        item = RequestItem(
-            donanim_tipi=form.get("donanim_tipi"),
-            marka=form.get("marka"),
-            model=form.get("model"),
-            yazilim_adi=form.get("yazilim_adi"),
-            urun_adi=form.get("urun_adi") or form.get("model") or "",
-            adet=int(form.get("adet") or 0),
-            tarih=date.fromisoformat(form.get("tarih")) if form.get("tarih") else None,
-            ifs_no=form.get("ifs_no"),
-            aciklama=form.get("aciklama"),
-            talep_acan=str(request.session.get("user_id", "")),
-        )
-        db.add(item)
+        kategoriler = form.getlist("kategori")
+        donanim_tipleri = form.getlist("donanim_tipi")
+        markalar = form.getlist("marka")
+        modeller = form.getlist("model")
+        yazilim_adlari = form.getlist("yazilim_adi")
+        urun_adlari = form.getlist("urun_adi")
+        adetler = form.getlist("adet")
+        tarihler = form.getlist("tarih")
+        ifs_nolar = form.getlist("ifs_no")
+        aciklamalar = form.getlist("aciklama")
+
+        for kategori, donanim_tipi, marka, model, yazilim_adi, urun_adi, adet, tarih_val, ifs_no, aciklama in zip(
+            kategoriler,
+            donanim_tipleri,
+            markalar,
+            modeller,
+            yazilim_adlari,
+            urun_adlari,
+            adetler,
+            tarihler,
+            ifs_nolar,
+            aciklamalar,
+        ):
+            item = RequestItem(
+                kategori=kategori,
+                donanim_tipi=donanim_tipi,
+                marka=marka,
+                model=model,
+                yazilim_adi=yazilim_adi,
+                urun_adi=urun_adi or model or "",
+                adet=int(adet or 0),
+                tarih=date.fromisoformat(tarih_val) if tarih_val else None,
+                ifs_no=ifs_no,
+                aciklama=aciklama,
+                talep_acan=str(request.session.get("user_id", "")),
+            )
+            db.add(item)
+
         db.commit()
     finally:
         db.close()
