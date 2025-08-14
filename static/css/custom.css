@@ -13,9 +13,9 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 }
 
 /* Sadece TABLO alanı scroll alacak konteyner */
+
 .table-scroll {
   flex: 1 1 auto;
-  /* Üstteki başlık/toolbar yüksekliğine göre şu değeri ayarla: 80–140px arası olur */
   height: calc(100vh - 100px);
   overflow: auto;                /* hem yatay hem dikey scroll */
   border: 1px solid #eee;
@@ -23,10 +23,9 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   background: #fff;
 }
 
-/* Tablo ekrana sığmaya çalışsın; sığmazsa yatay scroll aç */
+/* Tablo ekrana sığsın; gerekirse yatay scroll açılsın */
 .table-scroll table {
-  min-width: 100%;
-  width: max-content;            /* kolonlar genişse yatay scroll mümkün */
+  width: 100%;
   table-layout: auto;
 }
 
