@@ -172,7 +172,8 @@
           if (!window.filterEndpoint || !window.tableName) return;
           fetch(`${window.filterEndpoint}?table_name=${encodeURIComponent(window.tableName)}&column=${encodeURIComponent(fieldSel.value)}`)
             .then(r => r.json())
-            .then(vals => {
+            .then(data => {
+              const vals = data.values || [];
               valueSel.innerHTML = '<option value="">Seçiniz</option>';
               vals.forEach(v => {
                 const o = document.createElement('option');
