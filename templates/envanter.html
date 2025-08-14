@@ -189,24 +189,25 @@
       </tbody>
     </table>
 
-    <nav aria-label="Sayfalar" class="mt-2">
-      <ul class="pagination justify-content-center">
-    {% set start = ((page - 1) // 10) * 10 + 1 %}
-    {% set end = start + 9 if start + 9 < total_pages else total_pages %}
-    {% if page > 1 %}
-    <li class="page-item"><a class="page-link" href="/inventory?page={{ page - 1 }}&per_page={{ per_page }}&q={{ q }}">Önceki</a></li>
-    {% endif %}
-    {% for p in range(start, end + 1) %}
-    <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="/inventory?page={{ p }}&per_page={{ per_page }}&q={{ q }}">{{ p }}</a></li>
-    {% endfor %}
-    {% if page < total_pages %}
-    <li class="page-item"><a class="page-link" href="/inventory?page={{ page + 1 }}&per_page={{ per_page }}&q={{ q }}">Sonraki</a></li>
-    <li class="page-item"><a class="page-link" href="/inventory?page={{ total_pages }}&per_page={{ per_page }}&q={{ q }}">&raquo;&raquo;</a></li>
-    {% endif %}
-  </ul>
+  </div>
+
+  <nav aria-label="Sayfalar" class="mt-2">
+    <ul class="pagination justify-content-center">
+  {% set start = ((page - 1) // 10) * 10 + 1 %}
+  {% set end = start + 9 if start + 9 < total_pages else total_pages %}
+  {% if page > 1 %}
+  <li class="page-item"><a class="page-link" href="/inventory?page={{ page - 1 }}&per_page={{ per_page }}&q={{ q }}">Önceki</a></li>
+  {% endif %}
+  {% for p in range(start, end + 1) %}
+  <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="/inventory?page={{ p }}&per_page={{ per_page }}&q={{ q }}">{{ p }}</a></li>
+  {% endfor %}
+  {% if page < total_pages %}
+  <li class="page-item"><a class="page-link" href="/inventory?page={{ page + 1 }}&per_page={{ per_page }}&q={{ q }}">Sonraki</a></li>
+  <li class="page-item"><a class="page-link" href="/inventory?page={{ total_pages }}&per_page={{ per_page }}&q={{ q }}">&raquo;&raquo;</a></li>
+  {% endif %}
+</ul>
 </nav>
 
-</div>
 
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
