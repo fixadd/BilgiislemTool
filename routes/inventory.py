@@ -2,10 +2,10 @@
 
 from datetime import date
 
-from fastapi import APIRouter, File, Form, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from . import require_login
+from utils.auth import require_login
 from models import (
     HardwareInventory,
     LicenseInventory,
@@ -18,7 +18,7 @@ from models import (
 from utils import get_table_columns, load_settings, save_settings, templates
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_login)])
 
 
 # Mapping from short table identifiers used in the UI to the actual
@@ -35,9 +35,6 @@ MODEL_MAP = {
 @router.get("/stock", response_class=HTMLResponse)
 def stock_page(request: Request) -> HTMLResponse:
     """Render the stock tracking page with empty defaults."""
-
-    if redirect := require_login(request):
-        return redirect
     context = {
         "stocks": [],
         "columns": [],
@@ -57,9 +54,6 @@ def stock_page(request: Request) -> HTMLResponse:
 @router.post("/stock/add")
 async def stock_add(request: Request):
     """Create or update a stock item from form data."""
-
-    if redirect := require_login(request):
-        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -117,9 +111,6 @@ async def stock_add(request: Request):
 @router.get("/printer", response_class=HTMLResponse)
 def printer_page(request: Request) -> HTMLResponse:
     """Render the printer inventory page with empty defaults."""
-
-    if redirect := require_login(request):
-        return redirect
     context = {
         "printers": [],
         "columns": [],
@@ -138,9 +129,6 @@ def printer_page(request: Request) -> HTMLResponse:
 @router.post("/printer/add")
 async def printer_add(request: Request):
     """Create or update a printer inventory item."""
-
-    if redirect := require_login(request):
-        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -189,9 +177,6 @@ async def printer_add(request: Request):
 @router.post("/printer/upload")
 async def printer_upload(request: Request, excel_file: UploadFile = File(...)):
     """Accept a printer inventory Excel upload (currently discarded)."""
-
-    if redirect := require_login(request):
-        return redirect
     await excel_file.read()
     return RedirectResponse("/printer", status_code=303)
 
@@ -199,9 +184,6 @@ async def printer_upload(request: Request, excel_file: UploadFile = File(...)):
 @router.get("/inventory", response_class=HTMLResponse)
 def inventory_page(request: Request) -> HTMLResponse:
     """Render the hardware inventory page."""
-
-    if redirect := require_login(request):
-        return redirect
     context = {
         "items": [],
         "columns": [],
@@ -222,9 +204,6 @@ def inventory_page(request: Request) -> HTMLResponse:
 @router.post("/inventory/add")
 async def inventory_add(request: Request):
     """Create or update a hardware inventory record."""
-
-    if redirect := require_login(request):
-        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -285,9 +264,6 @@ async def inventory_add(request: Request):
 @router.post("/inventory/upload")
 async def inventory_upload(request: Request, excel_file: UploadFile = File(...)):
     """Accept a hardware inventory Excel upload (currently discarded)."""
-
-    if redirect := require_login(request):
-        return redirect
     await excel_file.read()
     return RedirectResponse("/inventory", status_code=303)
 
@@ -295,9 +271,6 @@ async def inventory_upload(request: Request, excel_file: UploadFile = File(...))
 @router.get("/license", response_class=HTMLResponse)
 def license_page(request: Request) -> HTMLResponse:
     """Render the license inventory page."""
-
-    if redirect := require_login(request):
-        return redirect
     context = {
         "licenses": [],
         "columns": [],
@@ -318,9 +291,6 @@ def license_page(request: Request) -> HTMLResponse:
 @router.post("/license/add")
 async def license_add(request: Request):
     """Create or update a software license record."""
-
-    if redirect := require_login(request):
-        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -371,9 +341,6 @@ async def license_add(request: Request):
 @router.post("/license/upload")
 async def license_upload(request: Request, excel_file: UploadFile = File(...)):
     """Accept a license inventory Excel upload (currently discarded)."""
-
-    if redirect := require_login(request):
-        return redirect
     await excel_file.read()
     return RedirectResponse("/license", status_code=303)
 
@@ -381,9 +348,6 @@ async def license_upload(request: Request, excel_file: UploadFile = File(...)):
 @router.get("/accessories", response_class=HTMLResponse)
 def accessories_page(request: Request) -> HTMLResponse:
     """Render the accessories tracking page."""
-
-    if redirect := require_login(request):
-        return redirect
     return templates.TemplateResponse(
         request, "aksesuar.html", {"items": []}
     )
@@ -392,9 +356,6 @@ def accessories_page(request: Request) -> HTMLResponse:
 @router.get("/requests", response_class=HTMLResponse)
 def requests_page(request: Request) -> HTMLResponse:
     """Render the requests tracking page."""
-
-    if redirect := require_login(request):
-        return redirect
     lookups = {
         "donanim_tipi": [],
         "marka": [],
@@ -413,9 +374,6 @@ def requests_page(request: Request) -> HTMLResponse:
 @router.post("/requests/add")
 async def requests_add(request: Request):
     """Add a request item."""
-
-    if redirect := require_login(request):
-        return redirect
     form = await request.form()
     db = SessionLocal()
     try:
@@ -444,9 +402,6 @@ async def requests_add(request: Request):
 @router.get("/lists", response_class=HTMLResponse)
 def lists_page(request: Request) -> HTMLResponse:
     """Render the lists management page."""
-
-    if redirect := require_login(request):
-        return redirect
     context = {
         "brands": [],
         "locations": [],
@@ -466,9 +421,6 @@ def lists_page(request: Request) -> HTMLResponse:
 @router.post("/lists/add")
 async def lists_add(request: Request, item_type: str = Form(...), name: str = Form(...)):
     """Add a lookup list item."""
-
-    if redirect := require_login(request):
-        return redirect
     db = SessionLocal()
     try:
         db.add(LookupItem(type=item_type, name=name))
@@ -481,9 +433,6 @@ async def lists_add(request: Request, item_type: str = Form(...), name: str = Fo
 @router.get("/table-columns")
 def table_columns(request: Request, table_name: str):
     """Return available columns for the requested table."""
-
-    if redirect := require_login(request):
-        return redirect
     model = MODEL_MAP.get(table_name)
     if not model:
         return {"columns": []}
@@ -494,9 +443,6 @@ def table_columns(request: Request, table_name: str):
 @router.get("/column-settings")
 def column_settings(request: Request, table_name: str):
     """Fetch stored column settings for a table."""
-
-    if redirect := require_login(request):
-        return redirect
     settings = load_settings()
     return settings.get(table_name, {})
 
@@ -504,9 +450,6 @@ def column_settings(request: Request, table_name: str):
 @router.post("/column-settings")
 def save_column_settings(request: Request, table_name: str, data: dict):
     """Persist column settings for a table."""
-
-    if redirect := require_login(request):
-        return redirect
     settings = load_settings()
     settings[table_name] = data
     save_settings(settings)
@@ -516,9 +459,6 @@ def save_column_settings(request: Request, table_name: str, data: dict):
 @router.get("/column-values")
 def column_values(request: Request, table_name: str, column: str | None = None):
     """Return distinct values for a column to power client-side filters."""
-
-    if redirect := require_login(request):
-        return redirect
     if not column:
         return {"values": []}
     model = MODEL_MAP.get(table_name)
