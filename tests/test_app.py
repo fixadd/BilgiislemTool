@@ -4,8 +4,11 @@ import sys
 # Ensure project root is on sys.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-# Use in-memory SQLite for tests
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+# Use a temporary SQLite database file for tests
+test_db = os.path.join(os.path.dirname(__file__), "test.db")
+if os.path.exists(test_db):
+    os.remove(test_db)
+os.environ["DATABASE_URL"] = f"sqlite:///{test_db}"
 
 from fastapi.testclient import TestClient
 
@@ -51,3 +54,38 @@ def test_basic_pages():
     for path in paths:
         resp = client.get(path)
         assert resp.status_code == 200
+
+
+def test_add_endpoints_exist():
+    init_db()
+    db = SessionLocal()
+    try:
+        client = TestClient(main.app)
+
+        resp = client.post("/inventory/add", data={"no": "1"}, follow_redirects=False)
+        assert resp.status_code == 303
+
+        resp = client.post(
+            "/license/add", data={"departman": "IT"}, follow_redirects=False
+        )
+        assert resp.status_code == 303
+
+        resp = client.post(
+            "/printer/add", data={"yazici_markasi": "HP"}, follow_redirects=False
+        )
+        assert resp.status_code == 303
+
+        resp = client.post(
+            "/inventory/upload",
+            files={
+                "excel_file": (
+                    "test.xlsx",
+                    b"data",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+    finally:
+        db.close()

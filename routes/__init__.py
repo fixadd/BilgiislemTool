@@ -1,6 +1,6 @@
 from datetime import date
 
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from utils import templates, load_settings, save_settings, get_table_columns
@@ -176,8 +176,65 @@ def printer_page(request: Request) -> HTMLResponse:
         "per_page": 25,
         "table_name": "printer",
         "filters": [],
-    }
+    } 
     return templates.TemplateResponse("yazici.html", context)
+
+
+@router.post("/printer/add")
+async def printer_add(request: Request):
+    """Create or update a printer inventory item."""
+
+    form = await request.form()
+    db = SessionLocal()
+    try:
+        printer_id = form.get("printer_id")
+        if printer_id:
+            item = db.query(PrinterInventory).get(int(printer_id))
+            if item:
+                for field in [
+                    "yazici_markasi",
+                    "yazici_modeli",
+                    "kullanim_alani",
+                    "ip_adresi",
+                    "mac",
+                    "hostname",
+                    "tarih",
+                    "islem_yapan",
+                    "notlar",
+                ]:
+                    if field in form:
+                        value = form.get(field)
+                        if field == "tarih":
+                            value = date.fromisoformat(value) if value else None
+                        setattr(item, field, value)
+        else:
+            item = PrinterInventory(
+                yazici_markasi=form.get("yazici_markasi"),
+                yazici_modeli=form.get("yazici_modeli"),
+                kullanim_alani=form.get("kullanim_alani"),
+                ip_adresi=form.get("ip_adresi"),
+                mac=form.get("mac"),
+                hostname=form.get("hostname"),
+                tarih=
+                    date.fromisoformat(form.get("tarih"))
+                    if form.get("tarih")
+                    else None,
+                islem_yapan=form.get("islem_yapan"),
+                notlar=form.get("notlar"),
+            )
+            db.add(item)
+        db.commit()
+    finally:
+        db.close()
+    return RedirectResponse("/printer", status_code=303)
+
+
+@router.post("/printer/upload")
+async def printer_upload(excel_file: UploadFile = File(...)):
+    """Accept a printer inventory Excel upload (currently discarded)."""
+
+    await excel_file.read()
+    return RedirectResponse("/printer", status_code=303)
 
 
 @router.get("/home", response_class=HTMLResponse)
@@ -216,6 +273,75 @@ def inventory_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("envanter.html", context)
 
 
+@router.post("/inventory/add")
+async def inventory_add(request: Request):
+    """Create or update a hardware inventory record."""
+
+    form = await request.form()
+    db = SessionLocal()
+    try:
+        item_id = form.get("item_id")
+        if item_id:
+            item = db.query(HardwareInventory).get(int(item_id))
+            if item:
+                for field in [
+                    "no",
+                    "fabrika",
+                    "blok",
+                    "departman",
+                    "donanim_tipi",
+                    "bilgisayar_adi",
+                    "marka",
+                    "model",
+                    "seri_no",
+                    "sorumlu_personel",
+                    "kullanim_alani",
+                    "bagli_makina_no",
+                    "ifs_no",
+                    "tarih",
+                    "islem_yapan",
+                ]:
+                    if field in form:
+                        value = form.get(field)
+                        if field == "tarih":
+                            value = date.fromisoformat(value) if value else None
+                        setattr(item, field, value)
+        else:
+            item = HardwareInventory(
+                no=form.get("no"),
+                fabrika=form.get("fabrika"),
+                blok=form.get("blok"),
+                departman=form.get("departman"),
+                donanim_tipi=form.get("donanim_tipi"),
+                bilgisayar_adi=form.get("bilgisayar_adi"),
+                marka=form.get("marka"),
+                model=form.get("model"),
+                seri_no=form.get("seri_no"),
+                sorumlu_personel=form.get("sorumlu_personel"),
+                kullanim_alani=form.get("kullanim_alani"),
+                bagli_makina_no=form.get("bagli_makina_no"),
+                ifs_no=form.get("ifs_no"),
+                tarih=
+                    date.fromisoformat(form.get("tarih"))
+                    if form.get("tarih")
+                    else None,
+                islem_yapan=form.get("islem_yapan"),
+            )
+            db.add(item)
+        db.commit()
+    finally:
+        db.close()
+    return RedirectResponse("/inventory", status_code=303)
+
+
+@router.post("/inventory/upload")
+async def inventory_upload(excel_file: UploadFile = File(...)):
+    """Accept a hardware inventory Excel upload (currently discarded)."""
+
+    await excel_file.read()
+    return RedirectResponse("/inventory", status_code=303)
+
+
 @router.get("/license", response_class=HTMLResponse)
 def license_page(request: Request) -> HTMLResponse:
     """Render the license inventory page."""
@@ -236,6 +362,65 @@ def license_page(request: Request) -> HTMLResponse:
         "count": 0,
     }
     return templates.TemplateResponse("lisans.html", context)
+
+
+@router.post("/license/add")
+async def license_add(request: Request):
+    """Create or update a software license record."""
+
+    form = await request.form()
+    db = SessionLocal()
+    try:
+        license_id = form.get("license_id")
+        if license_id:
+            item = db.query(LicenseInventory).get(int(license_id))
+            if item:
+                for field in [
+                    "departman",
+                    "kullanici",
+                    "yazilim_adi",
+                    "lisans_anahtari",
+                    "mail_adresi",
+                    "envanter_no",
+                    "ifs_no",
+                    "tarih",
+                    "islem_yapan",
+                    "notlar",
+                ]:
+                    if field in form:
+                        value = form.get(field)
+                        if field == "tarih":
+                            value = date.fromisoformat(value) if value else None
+                        setattr(item, field, value)
+        else:
+            item = LicenseInventory(
+                departman=form.get("departman"),
+                kullanici=form.get("kullanici"),
+                yazilim_adi=form.get("yazilim_adi"),
+                lisans_anahtari=form.get("lisans_anahtari"),
+                mail_adresi=form.get("mail_adresi"),
+                envanter_no=form.get("envanter_no"),
+                ifs_no=form.get("ifs_no"),
+                tarih=
+                    date.fromisoformat(form.get("tarih"))
+                    if form.get("tarih")
+                    else None,
+                islem_yapan=form.get("islem_yapan"),
+                notlar=form.get("notlar"),
+            )
+            db.add(item)
+        db.commit()
+    finally:
+        db.close()
+    return RedirectResponse("/license", status_code=303)
+
+
+@router.post("/license/upload")
+async def license_upload(excel_file: UploadFile = File(...)):
+    """Accept a license inventory Excel upload (currently discarded)."""
+
+    await excel_file.read()
+    return RedirectResponse("/license", status_code=303)
 
 
 @router.get("/accessories", response_class=HTMLResponse)
