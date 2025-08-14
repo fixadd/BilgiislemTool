@@ -7,6 +7,7 @@ from .hardware import router as hardware_router
 from .stock import router as stock_router
 from .reporting import router as reporting_router
 from .admin import router as admin_router
+from .inventory_pages import router as inventory_pages_router
 
 router = APIRouter()
 router.include_router(auth_router)
@@ -14,5 +15,6 @@ router.include_router(hardware_router, prefix="/hardware")
 router.include_router(stock_router, prefix="/stock")
 router.include_router(reporting_router)
 router.include_router(admin_router)
+router.include_router(inventory_pages_router)
 
 __all__ = ["router"]
