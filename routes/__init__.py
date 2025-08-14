@@ -48,20 +48,19 @@ def root(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     context = {
-        "request": request,
         "factories": {},
         "actions": [],
         "type_labels": [],
         "type_counts": [],
     }
-    return templates.TemplateResponse("main.html", context)
+    return templates.TemplateResponse(request, "main.html", context)
 
 
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, error: str | None = None) -> HTMLResponse:
     """Render the login page."""
 
-    return templates.TemplateResponse("login.html", {"request": request, "error": error})
+    return templates.TemplateResponse(request, "login.html", {"error": error})
 
 
 @router.post("/login")
@@ -77,8 +76,9 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     finally:
         db.close()
     return templates.TemplateResponse(
+        request,
         "login.html",
-        {"request": request, "error": "Invalid credentials"},
+        {"error": "Invalid credentials"},
         status_code=401,
     )
 
@@ -96,7 +96,6 @@ def stock_page(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     context = {
-        "request": request,
         "stocks": [],
         "columns": [],
         "column_widths": {},
@@ -109,7 +108,7 @@ def stock_page(request: Request) -> HTMLResponse:
         "table_name": "stock",
         "filters": [],
     }
-    return templates.TemplateResponse("stok.html", context)
+    return templates.TemplateResponse(request, "stok.html", context)
 
 
 @router.get("/stock/status", response_class=HTMLResponse)
@@ -117,7 +116,7 @@ def stock_status_page(request: Request) -> HTMLResponse:
     """Render simple stock status page."""
     if redirect := require_login(request):
         return redirect
-    return templates.TemplateResponse("stok_durumu.html", {"request": request})
+    return templates.TemplateResponse(request, "stok_durumu.html")
 
 
 @router.post("/stock/add")
@@ -185,7 +184,6 @@ def printer_page(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     context = {
-        "request": request,
         "printers": [],
         "columns": [],
         "column_widths": {},
@@ -197,7 +195,7 @@ def printer_page(request: Request) -> HTMLResponse:
         "table_name": "printer",
         "filters": [],
     }
-    return templates.TemplateResponse("yazici.html", context)
+    return templates.TemplateResponse(request, "yazici.html", context)
 
 
 @router.post("/printer/add")
@@ -265,13 +263,12 @@ def home_page(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     context = {
-        "request": request,
         "factories": {},
         "actions": [],
         "type_labels": [],
         "type_counts": [],
     }
-    return templates.TemplateResponse("main.html", context)
+    return templates.TemplateResponse(request, "main.html", context)
 
 
 @router.get("/inventory", response_class=HTMLResponse)
@@ -280,7 +277,6 @@ def inventory_page(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     context = {
-        "request": request,
         "items": [],
         "columns": [],
         "column_widths": {},
@@ -294,7 +290,7 @@ def inventory_page(request: Request) -> HTMLResponse:
         "filters": [],
         "count": 0,
     }
-    return templates.TemplateResponse("envanter.html", context)
+    return templates.TemplateResponse(request, "envanter.html", context)
 
 
 @router.post("/inventory/add")
@@ -374,7 +370,6 @@ def license_page(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     context = {
-        "request": request,
         "licenses": [],
         "columns": [],
         "column_widths": {},
@@ -388,7 +383,7 @@ def license_page(request: Request) -> HTMLResponse:
         "filters": [],
         "count": 0,
     }
-    return templates.TemplateResponse("lisans.html", context)
+    return templates.TemplateResponse(request, "lisans.html", context)
 
 
 @router.post("/license/add")
@@ -458,7 +453,7 @@ def accessories_page(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     return templates.TemplateResponse(
-        "aksesuar.html", {"request": request, "items": []}
+        request, "aksesuar.html", {"items": []}
     )
 
 
@@ -475,12 +470,11 @@ def requests_page(request: Request) -> HTMLResponse:
         "urun_adi": [],
     }
     context = {
-        "request": request,
         "groups": {},
         "lookups": lookups,
         "today": date.today().isoformat(),
     }
-    return templates.TemplateResponse("talep.html", context)
+    return templates.TemplateResponse(request, "talep.html", context)
 
 
 @router.post("/requests/add")
@@ -520,7 +514,7 @@ def profile_page(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     user = {"first_name": "", "last_name": "", "email": ""}
-    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request, "profile.html", {"user": user})
 
 
 @router.get("/change-password", response_class=HTMLResponse)
@@ -528,7 +522,7 @@ def change_password_page(request: Request) -> HTMLResponse:
     """Render change password page."""
     if redirect := require_login(request):
         return redirect
-    return templates.TemplateResponse("change_password.html", {"request": request})
+    return templates.TemplateResponse(request, "change_password.html")
 
 
 @router.get("/lists", response_class=HTMLResponse)
@@ -537,7 +531,6 @@ def lists_page(request: Request) -> HTMLResponse:
     if redirect := require_login(request):
         return redirect
     context = {
-        "request": request,
         "brands": [],
         "locations": [],
         "types": [],
@@ -550,7 +543,7 @@ def lists_page(request: Request) -> HTMLResponse:
         "printer_models": [],
         "products": [],
     }
-    return templates.TemplateResponse("listeler.html", context)
+    return templates.TemplateResponse(request, "listeler.html", context)
 
 
 @router.post("/lists/add")
