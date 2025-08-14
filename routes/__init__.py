@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
@@ -88,6 +90,122 @@ def printer_page(request: Request) -> HTMLResponse:
         "filters": [],
     }
     return templates.TemplateResponse("yazici.html", context)
+
+
+@router.get("/home", response_class=HTMLResponse)
+def home_page(request: Request) -> HTMLResponse:
+    """Render the dashboard from the /home path."""
+
+    context = {
+        "request": request,
+        "factories": {},
+        "actions": [],
+        "type_labels": [],
+        "type_counts": [],
+    }
+    return templates.TemplateResponse("main.html", context)
+
+
+@router.get("/inventory", response_class=HTMLResponse)
+def inventory_page(request: Request) -> HTMLResponse:
+    """Render the hardware inventory page."""
+
+    context = {
+        "request": request,
+        "items": [],
+        "columns": [],
+        "column_widths": {},
+        "lookups": {},
+        "offset": 0,
+        "page": 1,
+        "total_pages": 1,
+        "q": "",
+        "per_page": 25,
+        "table_name": "inventory",
+        "filters": [],
+        "count": 0,
+    }
+    return templates.TemplateResponse("envanter.html", context)
+
+
+@router.get("/license", response_class=HTMLResponse)
+def license_page(request: Request) -> HTMLResponse:
+    """Render the license inventory page."""
+
+    context = {
+        "request": request,
+        "licenses": [],
+        "columns": [],
+        "column_widths": {},
+        "lookups": {},
+        "offset": 0,
+        "page": 1,
+        "total_pages": 1,
+        "q": "",
+        "per_page": 25,
+        "table_name": "license",
+        "filters": [],
+        "count": 0,
+    }
+    return templates.TemplateResponse("lisans.html", context)
+
+
+@router.get("/accessories", response_class=HTMLResponse)
+def accessories_page(request: Request) -> HTMLResponse:
+    """Render the accessories tracking page."""
+
+    return templates.TemplateResponse(
+        "aksesuar.html", {"request": request, "items": []}
+    )
+
+
+@router.get("/requests", response_class=HTMLResponse)
+def requests_page(request: Request) -> HTMLResponse:
+    """Render the requests tracking page."""
+
+    lookups = {
+        "donanim_tipi": [],
+        "marka": [],
+        "model": [],
+        "yazilim_adi": [],
+        "urun_adi": [],
+    }
+    context = {
+        "request": request,
+        "groups": {},
+        "lookups": lookups,
+        "today": date.today().isoformat(),
+    }
+    return templates.TemplateResponse("talep.html", context)
+
+
+@router.get("/profile", response_class=HTMLResponse)
+def profile_page(request: Request) -> HTMLResponse:
+    """Render a simple profile page."""
+
+    user = {"first_name": "", "last_name": "", "email": ""}
+    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+
+
+@router.get("/lists", response_class=HTMLResponse)
+def lists_page(request: Request) -> HTMLResponse:
+    """Render the lists management page."""
+
+    context = {
+        "request": request,
+        "brands": [],
+        "locations": [],
+        "types": [],
+        "softwares": [],
+        "factories": [],
+        "departments": [],
+        "blocks": [],
+        "models": [],
+        "printer_brands": [],
+        "printer_models": [],
+        "products": [],
+    }
+    return templates.TemplateResponse("listeler.html", context)
 
 
 @router.get("/ping")
