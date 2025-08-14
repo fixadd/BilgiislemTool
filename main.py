@@ -8,6 +8,7 @@ from routes import router as api_router
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="super-secret-key")
 app.mount("/image", StaticFiles(directory="image"), name="image")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.on_event("startup")

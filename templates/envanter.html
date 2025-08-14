@@ -18,12 +18,13 @@
 } %}
 {% block title %}Envanter Takip{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center">
-  <h2>Donanım Envanteri</h2>
-  <span class="badge bg-secondary">{{ count }} kayıt var</span>
-</div>
+<div class="container-fluid p-2 content">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <h1 class="h4 m-0">Donanım Envanteri</h1>
+    <span class="badge bg-secondary">{{ count }} kayıt var</span>
+  </div>
 
-<div class="d-flex gap-2 mb-3">
+  <div class="d-flex gap-2 mb-2">
   <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#settingsModal">
     <i class="bi bi-gear"></i>
   </button>
@@ -160,26 +161,30 @@
   </div>
 </div>
 
-<div class="table-container">
-<table class="table table-striped table-fixed table-resizable">
-    <tr>
-        <th><input type="checkbox" id="select-all"></th>
-        <th>#</th>
-        {% for col in columns %}
-        <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ column_labels.get(col, col.replace('_', ' ').title()) }}</th>
+  <div class="table-scroll">
+    <table class="table table-sm table-striped table-hover table-fixed table-resizable mb-0">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="select-all"></th>
+          <th>#</th>
+          {% for col in columns %}
+          <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ column_labels.get(col, col.replace('_', ' ').title()) }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in items %}
+        <tr>
+          <td><input class="form-check-input row-check" type="checkbox" value="{{ i.id }}"></td>
+          <td>{{ loop.index + offset }}</td>
+          {% for col in columns %}
+          <td data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ i|attr(col) }}</td>
+          {% endfor %}
+        </tr>
         {% endfor %}
-    </tr>
-    {% for i in items %}
-    <tr>
-        <td><input class="form-check-input row-check" type="checkbox" value="{{ i.id }}"></td>
-        <td>{{ loop.index + offset }}</td>
-        {% for col in columns %}
-        <td data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px; white-space: normal; word-break: break-word;"{% else %} style="white-space: normal; word-break: break-word;"{% endif %}>{{ i|attr(col) }}</td>
-        {% endfor %}
-    </tr>
-    {% endfor %}
-</table>
-</div>
+      </tbody>
+    </table>
+  </div>
 
 <nav aria-label="Sayfalar">
   <ul class="pagination justify-content-center">
@@ -197,6 +202,8 @@
     {% endif %}
   </ul>
 </nav>
+
+</div>
 
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">

@@ -1,0 +1,57 @@
+/* Sayfa genel scroll'u kapat, içerikler kendi içinde scroll alsın */
+html, body { height: 100%; margin: 0; overflow: hidden; }
+
+/* Sol menü kendi içinde scroll alsın */
+.sidebar { height: 100vh; overflow-y: auto; }
+
+/* İçerik alanı (sağ taraf) dikey esnesin */
+.content, .main-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;     /* yatay taşmada esneyebilsin */
+  padding: 8px;     /* kenar boşluklarını küçült */
+}
+
+/* Sadece TABLO alanı scroll alacak konteyner */
+.table-scroll {
+  flex: 1 1 auto;
+  /* Üstteki başlık/toolbar yüksekliğine göre şu değeri ayarla: 80–140px arası olur */
+  height: calc(100vh - 100px);
+  overflow: auto;                /* hem yatay hem dikey scroll */
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* Tablo ekrana sığmaya çalışsın; sığmazsa yatay scroll aç */
+.table-scroll table {
+  min-width: 100%;
+  width: max-content;            /* kolonlar genişse yatay scroll mümkün */
+  table-layout: auto;
+}
+
+/* Hücreleri tek satırda tut; taşarsa yatay scroll kullanılsın */
+.table-scroll th,
+.table-scroll td { white-space: nowrap; }
+
+/* Başlık satırı sabit */
+.table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+}
+
+/* (Opsiyonel) İlk sütunu sabitlemek istersen aç */
+ /*
+.table-scroll th:first-child,
+.table-scroll td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: #fff;
+}
+*/
+
+/* Bootstrap konteyner boşluklarını azalt */
+.container-fluid { padding-left: 8px; padding-right: 8px; }
