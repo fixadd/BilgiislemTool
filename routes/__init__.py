@@ -1,7 +1,7 @@
 from datetime import date
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from utils import templates, load_settings, save_settings, get_table_columns
 from models import (
@@ -10,6 +10,10 @@ from models import (
     PrinterInventory,
     LicenseInventory,
     HardwareInventory,
+    RequestItem,
+    LookupItem,
+    User,
+    pwd_context,
 )
 
 router = APIRouter()
@@ -51,6 +55,25 @@ def login_page(request: Request, error: str | None = None) -> HTMLResponse:
     return templates.TemplateResponse("login.html", {"request": request, "error": error})
 
 
+@router.post("/login")
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    """Basic form-based login."""
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        if user and pwd_context.verify(password, user.password):
+            request.session["user"] = user.username
+            return RedirectResponse("/", status_code=303)
+    finally:
+        db.close()
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request, "error": "Invalid credentials"},
+        status_code=401,
+    )
+
+
 @router.get("/stock", response_class=HTMLResponse)
 def stock_page(request: Request) -> HTMLResponse:
     """Render the stock tracking page with empty defaults."""
@@ -70,6 +93,71 @@ def stock_page(request: Request) -> HTMLResponse:
         "filters": [],
     }
     return templates.TemplateResponse("stok.html", context)
+
+
+@router.get("/stock/status", response_class=HTMLResponse)
+def stock_status_page(request: Request) -> HTMLResponse:
+    """Render simple stock status page."""
+
+    return templates.TemplateResponse("stok_durumu.html", {"request": request})
+
+
+@router.post("/stock/add")
+async def stock_add(request: Request):
+    """Create or update a stock item from form data."""
+
+    form = await request.form()
+    db = SessionLocal()
+    try:
+        stock_id = form.get("stock_id")
+        if stock_id:
+            item = db.query(StockItem).get(int(stock_id))
+            if item:
+                for field in [
+                    "urun_adi",
+                    "kategori",
+                    "marka",
+                    "adet",
+                    "departman",
+                    "guncelleme_tarihi",
+                    "islem",
+                    "tarih",
+                    "ifs_no",
+                    "aciklama",
+                    "islem_yapan",
+                ]:
+                    if field in form:
+                        value = form.get(field)
+                        if field in {"adet"}:
+                            value = int(value) if value else None
+                        elif field in {"guncelleme_tarihi", "tarih"}:
+                            value = date.fromisoformat(value) if value else None
+                        setattr(item, field, value)
+        else:
+            item = StockItem(
+                urun_adi=form.get("urun_adi"),
+                kategori=form.get("kategori"),
+                marka=form.get("marka"),
+                adet=int(form.get("adet") or 0),
+                departman=form.get("departman"),
+                guncelleme_tarihi=
+                    date.fromisoformat(form.get("guncelleme_tarihi"))
+                    if form.get("guncelleme_tarihi")
+                    else None,
+                islem=form.get("islem"),
+                tarih=
+                    date.fromisoformat(form.get("tarih"))
+                    if form.get("tarih")
+                    else None,
+                ifs_no=form.get("ifs_no"),
+                aciklama=form.get("aciklama"),
+                islem_yapan=form.get("islem_yapan"),
+            )
+            db.add(item)
+        db.commit()
+    finally:
+        db.close()
+    return RedirectResponse("/stock", status_code=303)
 
 
 @router.get("/printer", response_class=HTMLResponse)
@@ -179,12 +267,49 @@ def requests_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("talep.html", context)
 
 
+@router.post("/requests/add")
+async def requests_add(request: Request):
+    """Add a request record."""
+
+    form = await request.form()
+    db = SessionLocal()
+    try:
+        item = RequestItem(
+            kategori=form.get("kategori"),
+            donanim_tipi=form.get("donanim_tipi"),
+            marka=form.get("marka"),
+            model=form.get("model"),
+            yazilim_adi=form.get("yazilim_adi"),
+            urun_adi=form.get("urun_adi") or form.get("model") or "",
+            adet=int(form.get("adet") or 0),
+            tarih=
+                date.fromisoformat(form.get("tarih"))
+                if form.get("tarih")
+                else None,
+            ifs_no=form.get("ifs_no"),
+            aciklama=form.get("aciklama"),
+            talep_acan=request.session.get("user", ""),
+        )
+        db.add(item)
+        db.commit()
+    finally:
+        db.close()
+    return RedirectResponse("/requests", status_code=303)
+
+
 @router.get("/profile", response_class=HTMLResponse)
 def profile_page(request: Request) -> HTMLResponse:
     """Render a simple profile page."""
 
     user = {"first_name": "", "last_name": "", "email": ""}
     return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+
+
+@router.get("/change-password", response_class=HTMLResponse)
+def change_password_page(request: Request) -> HTMLResponse:
+    """Render change password page."""
+
+    return templates.TemplateResponse("change_password.html", {"request": request})
 
 
 @router.get("/lists", response_class=HTMLResponse)
@@ -206,6 +331,19 @@ def lists_page(request: Request) -> HTMLResponse:
         "products": [],
     }
     return templates.TemplateResponse("listeler.html", context)
+
+
+@router.post("/lists/add")
+async def lists_add(item_type: str = Form(...), name: str = Form(...)):
+    """Add a lookup list item."""
+
+    db = SessionLocal()
+    try:
+        db.add(LookupItem(type=item_type, name=name))
+        db.commit()
+    finally:
+        db.close()
+    return RedirectResponse("/lists", status_code=303)
 
 
 @router.get("/ping")
