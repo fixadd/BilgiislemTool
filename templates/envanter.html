@@ -59,7 +59,7 @@
         <i class="bi bi-x"></i>
       </button>
     </div>
-    <select id="per-page" name="per_page" class="form-select" style="max-width: 100px;">
+    <select id="per-page" name="per_page" class="form-select form-select-sm" style="max-width: 100px;">
       {% for opt in [25,50,100] %}
       <option value="{{ opt }}" {% if per_page == opt %}selected{% endif %}>{{ opt }}</option>
       {% endfor %}
@@ -68,7 +68,7 @@
 </div>
 
 <form id="uploadForm" action="/inventory/upload" method="post" enctype="multipart/form-data" style="display:none;">
-    <input id="excelInput" type="file" class="form-control" name="excel_file" accept=".xls,.xlsx" required>
+    <input id="excelInput" type="file" class="form-control form-control-sm" name="excel_file" accept=".xls,.xlsx" required>
 </form>
 
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
@@ -103,7 +103,7 @@
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
-              <select class="form-select" name="{{ col }}" required>
+              <select class="form-select form-select-sm" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
                 <option value="{{ val }}">{{ val }}</option>
@@ -112,7 +112,7 @@
               {% elif col == 'tarih' %}
               <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% else %}
-              <input type="text" class="form-control" name="{{ col }}" required>
+              <input type="text" class="form-control form-control-sm" name="{{ col }}" required>
               {% endif %}
             </div>
             {% endif %}
@@ -141,7 +141,7 @@
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
-              <select class="form-select" name="{{ col }}" required>
+              <select class="form-select form-select-sm" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
                 <option value="{{ val }}">{{ val }}</option>
@@ -150,7 +150,7 @@
               {% elif col == 'tarih' %}
               <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% else %}
-              <input type="text" class="form-control" name="{{ col }}" required>
+              <input type="text" class="form-control form-control-sm" name="{{ col }}" required>
               {% endif %}
             </div>
             {% endif %}
