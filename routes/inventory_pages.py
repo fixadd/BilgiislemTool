@@ -73,6 +73,16 @@ def inventory_page(request: Request) -> HTMLResponse:
             f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
             for u in users
         ]
+        lookups = {
+            "sorumlu_personel": user_names,
+            "fabrika": [i.name for i in db.query(LookupItem).filter_by(type="fabrika").all()],
+            "blok": [i.name for i in db.query(LookupItem).filter_by(type="blok").all()],
+            "departman": [i.name for i in db.query(LookupItem).filter_by(type="departman").all()],
+            "donanim_tipi": [i.name for i in db.query(LookupItem).filter_by(type="donanim_tipi").all()],
+            "marka": [i.name for i in db.query(LookupItem).filter_by(type="marka").all()],
+            "model": [i.name for i in db.query(LookupItem).filter_by(type="model").all()],
+            "kullanim_alani": ["kullanıcı", "üretim", "dışarı"],
+        }
     finally:
         db.close()
 
@@ -81,7 +91,7 @@ def inventory_page(request: Request) -> HTMLResponse:
         "items": items,
         "columns": get_table_columns(HardwareInventory.__tablename__),
         "column_widths": {},
-        "lookups": {"sorumlu_personel": user_names},
+        "lookups": lookups,
         "offset": offset,
         "page": page,
         "total_pages": total_pages,

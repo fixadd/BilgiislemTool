@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set column_labels = {
-  'no': 'No',
+  'no': 'Envanter No',
   'fabrika': 'Fabrika',
   'blok': 'Blok',
   'departman': 'Departman',
@@ -99,24 +99,23 @@
           <div class="modal-body">
             <div class="row row-cols-4 g-3">
             {% for col in columns %}
-            {% if col not in ['islem_yapan', 'ifs_no'] %}
+            {% if col not in ['islem_yapan', 'ifs_no', 'tarih'] %}
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
-              <select class="form-select form-select-sm w-200" name="{{ col }}" required>
+              <select class="form-select form-select-sm w-200" name="{{ col }}" {% if col != 'bagli_makina_no' %}required{% endif %}>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
                 <option value="{{ val }}">{{ val }}</option>
                 {% endfor %}
               </select>
-              {% elif col == 'tarih' %}
-              <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% else %}
-              <input type="text" class="form-control form-control-sm w-200" name="{{ col }}" required>
+              <input type="text" class="form-control form-control-sm w-200" name="{{ col }}" {% if col != 'bagli_makina_no' %}required{% endif %}>
               {% endif %}
             </div>
             {% endif %}
             {% endfor %}
+            <input type="hidden" name="tarih" value="{{ today }}">
             </div>
           </div>
         <div class="modal-footer">
@@ -137,24 +136,23 @@
           <div class="modal-body">
             <div class="row row-cols-4 g-3">
             {% for col in columns %}
-            {% if col not in ['islem_yapan', 'ifs_no'] %}
+            {% if col not in ['islem_yapan', 'ifs_no', 'tarih'] %}
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
-              <select class="form-select form-select-sm w-200" name="{{ col }}" required>
+              <select class="form-select form-select-sm w-200" name="{{ col }}" {% if col != 'bagli_makina_no' %}required{% endif %}>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
                 <option value="{{ val }}">{{ val }}</option>
                 {% endfor %}
               </select>
-              {% elif col == 'tarih' %}
-              <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% else %}
-              <input type="text" class="form-control form-control-sm w-200" name="{{ col }}" required>
+              <input type="text" class="form-control form-control-sm w-200" name="{{ col }}" {% if col != 'bagli_makina_no' %}required{% endif %}>
               {% endif %}
             </div>
             {% endif %}
             {% endfor %}
+            <input type="hidden" name="tarih" value="{{ today }}">
             </div>
           </div>
         <div class="modal-footer">
