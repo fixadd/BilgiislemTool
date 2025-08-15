@@ -17,6 +17,7 @@ from models import (
     SessionLocal,
     StockItem,
     User,
+    pwd_context,
 )
 from utils import get_table_columns, load_settings, save_settings, templates
 from utils.auth import require_login
@@ -429,6 +430,49 @@ def profile_page(request: Request) -> HTMLResponse:
     finally:
         db.close()
     return templates.TemplateResponse(request, "profile.html", {"user": user})
+
+
+@router.get("/change-password", response_class=HTMLResponse)
+def change_password_form(request: Request) -> HTMLResponse:
+    """Display the password change form."""
+    return templates.TemplateResponse(request, "change_password.html")
+
+
+@router.post("/change-password")
+def change_password(
+    request: Request,
+    old_password: str = Form(...),
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+):
+    """Allow the current user to update their password."""
+    if new_password != confirm_password:
+        return templates.TemplateResponse(
+            request,
+            "change_password.html",
+            {"error": "Yeni şifreler uyuşmuyor"},
+            status_code=400,
+        )
+
+    db = SessionLocal()
+    try:
+        user_id = request.session.get("user_id")
+        user = db.query(User).get(user_id) if user_id else None
+        if not user or not pwd_context.verify(old_password, user.password):
+            return templates.TemplateResponse(
+                request,
+                "change_password.html",
+                {"error": "Mevcut şifre yanlış"},
+                status_code=400,
+            )
+
+        user.password = pwd_context.hash(new_password)
+        user.must_change_password = False
+        db.commit()
+    finally:
+        db.close()
+
+    return RedirectResponse("/profile", status_code=303)
 
 
 @router.get("/table-columns")

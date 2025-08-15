@@ -19,7 +19,11 @@ from models import SessionLocal, User, init_db, pwd_context, StockItem
 def create_user(username: str = "tester", password: str = "secret", is_admin: bool = False):
     init_db()
     db = SessionLocal()
-    if not db.query(User).filter_by(username=username).first():
+    user = db.query(User).filter_by(username=username).first()
+    if user:
+        user.password = pwd_context.hash(password)
+        user.is_admin = is_admin
+    else:
         db.add(
             User(
                 username=username,
@@ -27,7 +31,7 @@ def create_user(username: str = "tester", password: str = "secret", is_admin: bo
                 is_admin=is_admin,
             )
         )
-        db.commit()
+    db.commit()
     db.close()
 
 
@@ -164,3 +168,41 @@ def test_stock_multiple_filters():
         assert resp.status_code == 200
         assert "Item1" in resp.text
         assert "Item2" not in resp.text
+
+
+def test_change_password_flow():
+    create_user()
+    with TestClient(main.app) as client:
+        client.post(
+            "/login",
+            data={"username": "tester", "password": "secret"},
+            follow_redirects=False,
+        )
+        resp = client.get("/change-password")
+        assert resp.status_code == 200
+
+        resp = client.post(
+            "/change-password",
+            data={
+                "old_password": "secret",
+                "new_password": "newpass",
+                "confirm_password": "newpass",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+
+        client.post("/logout", follow_redirects=False)
+        resp = client.post(
+            "/login",
+            data={"username": "tester", "password": "secret"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 401
+
+        resp = client.post(
+            "/login",
+            data={"username": "tester", "password": "newpass"},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
