@@ -21,8 +21,8 @@
   <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#settingsModal">
     <i class="bi bi-gear"></i>
   </button>
-  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-    <i class="bi bi-plus"></i>
+  <button class="btn btn-success d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#addModal">
+    <i class="bi bi-plus"></i> Yeni Kayıt
   </button>
   <div class="dropdown">
     <button class="btn btn-success dropdown-toggle" type="button" id="uploadDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
@@ -71,7 +71,7 @@
         <h5 class="modal-title" id="settingsModalLabel">Kolon Ayarları</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
-        <div class="modal-body"></div>
+        <div class="modal-body"><ul id="columns-list" class="list-group"></ul></div>
         <div class="modal-footer">
           <button id="save-settings" type="button" class="btn btn-primary">Kaydet</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
