@@ -58,8 +58,31 @@
         <form action="/login" method="post">
             <input type="text" name="username" placeholder="Kullanıcı Adı" required>
             <input type="password" name="password" placeholder="Şifre" required>
+            <label style="display:flex;align-items:center;margin:0.5rem 0;">
+                <input type="checkbox" name="remember" style="margin-right:0.5rem;"> Beni Hatırla
+            </label>
             <button type="submit">Giriş Yap</button>
         </form>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const getCookie = (name) => {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(";").shift();
+            };
+            const username = getCookie("username");
+            const password = getCookie("password");
+            if (username) {
+                document.querySelector('input[name="username"]').value = username;
+            }
+            if (password) {
+                document.querySelector('input[name="password"]').value = password;
+            }
+            if (username || password) {
+                document.querySelector('input[name="remember"]').checked = true;
+            }
+        });
+    </script>
 </body>
 </html>

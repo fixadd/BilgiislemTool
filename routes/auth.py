@@ -16,7 +16,12 @@ def login_form(request: Request) -> HTMLResponse:
 
 
 @router.post("/login")
-def login(request: Request, username: str = Form(...), password: str = Form(...)):
+def login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    remember: bool = Form(False),
+):
     """Verify user credentials and establish a session."""
     db = SessionLocal()
     try:
@@ -28,7 +33,15 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
             request.session["full_name"] = (
                 f"{user.first_name or ''} {user.last_name or ''}".strip()
             )
-            return RedirectResponse("/", status_code=303)
+            response = RedirectResponse("/", status_code=303)
+            if remember:
+                max_age = 60 * 60 * 24 * 30  # 30 days
+                response.set_cookie("username", username, max_age=max_age)
+                response.set_cookie("password", password, max_age=max_age)
+            else:
+                response.delete_cookie("username")
+                response.delete_cookie("password")
+            return response
     finally:
         db.close()
     return templates.TemplateResponse(
