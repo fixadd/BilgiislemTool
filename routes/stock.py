@@ -19,17 +19,22 @@ def list_stock(request: Request) -> HTMLResponse:
     """Render stock list."""
     params = request.query_params
     q = params.get("q", "")
-    filter_field = params.get("filter_field")
-    filter_value = params.get("filter_value")
+    filter_fields = params.getlist("filter_field")
+    filter_values = params.getlist("filter_value")
+    filter_field = filter_fields[0] if filter_fields else None
+    filter_value = filter_values[0] if filter_values else None
     page = int(params.get("page", 1))
     per_page = int(params.get("per_page", 25))
 
+    filters = []
     db = SessionLocal()
     try:
         query = db.query(StockItem)
 
-        if filter_field and filter_value and hasattr(StockItem, filter_field):
-            query = query.filter(getattr(StockItem, filter_field) == filter_value)
+        for field, value in zip(filter_fields, filter_values):
+            if field and value and hasattr(StockItem, field):
+                query = query.filter(getattr(StockItem, field) == value)
+                filters.append({"field": field, "value": value})
 
         if q:
             search_conditions = []
@@ -58,8 +63,7 @@ def list_stock(request: Request) -> HTMLResponse:
         "q": q,
         "per_page": per_page,
         "table_name": "stock",
-        "filters":
-            ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "filters": filters,
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,

@@ -38,17 +38,22 @@ def inventory_page(request: Request) -> HTMLResponse:
     """Render the hardware inventory page."""
     params = request.query_params
     q = params.get("q", "")
-    filter_field = params.get("filter_field")
-    filter_value = params.get("filter_value")
+    filter_fields = params.getlist("filter_field")
+    filter_values = params.getlist("filter_value")
+    filter_field = filter_fields[0] if filter_fields else None
+    filter_value = filter_values[0] if filter_values else None
     page = int(params.get("page", 1))
     per_page = int(params.get("per_page", 25))
 
+    filters = []
     db = SessionLocal()
     try:
         query = db.query(HardwareInventory)
 
-        if filter_field and filter_value and hasattr(HardwareInventory, filter_field):
-            query = query.filter(getattr(HardwareInventory, filter_field) == filter_value)
+        for field, value in zip(filter_fields, filter_values):
+            if field and value and hasattr(HardwareInventory, field):
+                query = query.filter(getattr(HardwareInventory, field) == value)
+                filters.append({"field": field, "value": value})
 
         if q:
             search_conditions = []
@@ -77,8 +82,7 @@ def inventory_page(request: Request) -> HTMLResponse:
         "q": q,
         "per_page": per_page,
         "table_name": "inventory",
-        "filters":
-            ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "filters": filters,
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
@@ -91,17 +95,22 @@ def printer_page(request: Request) -> HTMLResponse:
     """Render the printer inventory page."""
     params = request.query_params
     q = params.get("q", "")
-    filter_field = params.get("filter_field")
-    filter_value = params.get("filter_value")
+    filter_fields = params.getlist("filter_field")
+    filter_values = params.getlist("filter_value")
+    filter_field = filter_fields[0] if filter_fields else None
+    filter_value = filter_values[0] if filter_values else None
     page = int(params.get("page", 1))
     per_page = int(params.get("per_page", 25))
 
+    filters = []
     db = SessionLocal()
     try:
         query = db.query(PrinterInventory)
 
-        if filter_field and filter_value and hasattr(PrinterInventory, filter_field):
-            query = query.filter(getattr(PrinterInventory, filter_field) == filter_value)
+        for field, value in zip(filter_fields, filter_values):
+            if field and value and hasattr(PrinterInventory, field):
+                query = query.filter(getattr(PrinterInventory, field) == value)
+                filters.append({"field": field, "value": value})
 
         if q:
             search_conditions = []
@@ -130,8 +139,7 @@ def printer_page(request: Request) -> HTMLResponse:
         "q": q,
         "per_page": per_page,
         "table_name": "printer",
-        "filters":
-            ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "filters": filters,
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
@@ -144,17 +152,22 @@ def license_page(request: Request) -> HTMLResponse:
     """Render the software license inventory page."""
     params = request.query_params
     q = params.get("q", "")
-    filter_field = params.get("filter_field")
-    filter_value = params.get("filter_value")
+    filter_fields = params.getlist("filter_field")
+    filter_values = params.getlist("filter_value")
+    filter_field = filter_fields[0] if filter_fields else None
+    filter_value = filter_values[0] if filter_values else None
     page = int(params.get("page", 1))
     per_page = int(params.get("per_page", 25))
 
+    filters = []
     db = SessionLocal()
     try:
         query = db.query(LicenseInventory)
 
-        if filter_field and filter_value and hasattr(LicenseInventory, filter_field):
-            query = query.filter(getattr(LicenseInventory, filter_field) == filter_value)
+        for field, value in zip(filter_fields, filter_values):
+            if field and value and hasattr(LicenseInventory, field):
+                query = query.filter(getattr(LicenseInventory, field) == value)
+                filters.append({"field": field, "value": value})
 
         if q:
             search_conditions = []
@@ -183,8 +196,7 @@ def license_page(request: Request) -> HTMLResponse:
         "q": q,
         "per_page": per_page,
         "table_name": "license",
-        "filters":
-            ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "filters": filters,
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
@@ -197,17 +209,22 @@ def accessories_page(request: Request) -> HTMLResponse:
     """Render the accessories inventory page."""
     params = request.query_params
     q = params.get("q", "")
-    filter_field = params.get("filter_field")
-    filter_value = params.get("filter_value")
+    filter_fields = params.getlist("filter_field")
+    filter_values = params.getlist("filter_value")
+    filter_field = filter_fields[0] if filter_fields else None
+    filter_value = filter_values[0] if filter_values else None
     page = int(params.get("page", 1))
     per_page = int(params.get("per_page", 25))
 
+    filters = []
     db = SessionLocal()
     try:
         query = db.query(AccessoryInventory)
 
-        if filter_field and filter_value and hasattr(AccessoryInventory, filter_field):
-            query = query.filter(getattr(AccessoryInventory, filter_field) == filter_value)
+        for field, value in zip(filter_fields, filter_values):
+            if field and value and hasattr(AccessoryInventory, field):
+                query = query.filter(getattr(AccessoryInventory, field) == value)
+                filters.append({"field": field, "value": value})
 
         if q:
             search_conditions = []
@@ -236,7 +253,7 @@ def accessories_page(request: Request) -> HTMLResponse:
         "q": q,
         "per_page": per_page,
         "table_name": "accessory",
-        "filters": ([{"field": filter_field, "value": filter_value}] if filter_field and filter_value else []),
+        "filters": filters,
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
