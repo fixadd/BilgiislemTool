@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, Request, Form
+from fastapi import APIRouter, Depends, Request, Form, Body
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from sqlalchemy import or_, String
 import math
@@ -493,7 +493,9 @@ def column_settings(request: Request, table_name: str):
 
 
 @router.post("/column-settings")
-def save_column_settings(request: Request, table_name: str, data: dict):
+def save_column_settings(
+    request: Request, table_name: str, data: dict = Body(...)
+):
     """Persist column settings for a table."""
     settings = load_settings()
     settings[table_name] = data
