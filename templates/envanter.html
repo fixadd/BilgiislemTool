@@ -97,7 +97,7 @@
       <form id="editForm" action="/inventory/add" method="post">
         <input type="hidden" name="item_id">
           <div class="modal-body">
-            <div class="row row-cols-1 row-cols-md-4 g-3">
+            <div class="row row-cols-1 g-3">
             {% for col in columns %}
             {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="col">
@@ -135,7 +135,7 @@
       </div>
       <form id="addForm" action="/inventory/add" method="post">
           <div class="modal-body">
-            <div class="row row-cols-1 row-cols-md-4 g-3">
+            <div class="row row-cols-1 g-3">
             {% for col in columns %}
             {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="col">
