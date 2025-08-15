@@ -1,4 +1,6 @@
 import os
+import secrets
+import logging
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -12,7 +14,11 @@ app = FastAPI()
 
 secret_key = os.getenv("SESSION_SECRET")
 if not secret_key:
-    raise RuntimeError("SESSION_SECRET environment variable is not set")
+    secret_key = secrets.token_hex(32)
+    logging.warning(
+        "SESSION_SECRET environment variable is not set. Generated a random secret key; "
+        "sessions will reset on application restart."
+    )
 
 app.add_middleware(SessionMiddleware, secret_key=secret_key)
 app.mount("/image", StaticFiles(directory="image"), name="image")
