@@ -333,8 +333,8 @@ accEnvInput?.addEventListener('change', async () => {
     const res = await fetch(`/inventory/fetch/${val}`);
     if (res.ok) {
         const data = await res.json();
-        const dept = document.querySelector('#addForm input[name="departman"]');
-        const user = document.querySelector('#addForm input[name="kullanici"]');
+    const dept = document.querySelector('#addForm input[name="departman"]');
+    const user = document.querySelector('#addForm [name="kullanici"]');
         if (data.departman && dept) dept.value = data.departman;
         if (data.sorumlu_personel && user) user.value = data.sorumlu_personel;
     }
