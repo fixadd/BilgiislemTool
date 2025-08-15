@@ -103,7 +103,7 @@
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
-              <select class="form-select form-select-sm" name="{{ col }}" required>
+              <select class="form-select form-select-sm w-200" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
                 <option value="{{ val }}">{{ val }}</option>
@@ -112,7 +112,7 @@
               {% elif col == 'tarih' %}
               <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% else %}
-              <input type="text" class="form-control form-control-sm" name="{{ col }}" required>
+              <input type="text" class="form-control form-control-sm w-200" name="{{ col }}" required>
               {% endif %}
             </div>
             {% endif %}
@@ -141,7 +141,7 @@
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
-              <select class="form-select form-select-sm" name="{{ col }}" required>
+              <select class="form-select form-select-sm w-200" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
                 <option value="{{ val }}">{{ val }}</option>
@@ -150,7 +150,7 @@
               {% elif col == 'tarih' %}
               <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% else %}
-              <input type="text" class="form-control form-control-sm" name="{{ col }}" required>
+              <input type="text" class="form-control form-control-sm w-200" name="{{ col }}" required>
               {% endif %}
             </div>
             {% endif %}
