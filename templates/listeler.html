@@ -3,14 +3,35 @@
 {% block content %}
 
 <style>
-  /* SADECE ana listedeki satırları etkiler (modallar etkilenmez) */
-  .list-group.inventory-rows > .list-group-item {
-    height: 200px !important;
-    min-height: 200px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 1rem !important;
+  /* Ana listeyi 200 px eninde yap ve ortala */
+  .list-group.inventory-rows{
+    width: 200px;
+    margin: 0 auto; /* ortala; sola/sağa yaslamak istersen: margin:0 0 0 auto; veya 0 auto 0 0; */
+  }
+
+  /* Satır düzeni: doğal yükseklik, dar en için düzenleme */
+  .list-group.inventory-rows > .list-group-item{
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .5rem .75rem;
+  }
+
+  /* Metin uzun olursa üç nokta ile kessin */
+  .list-group.inventory-rows > .list-group-item > span{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  /* Buton dar alanda taşmasın */
+  .list-group.inventory-rows .btn{
+    flex: none;
+    padding: .25rem .375rem;
   }
 </style>
 
@@ -361,7 +382,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Silme butonları (mevcut davranış)
   document.querySelectorAll('.delete-item').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -386,20 +406,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
-
-  // Emniyet: CSS uygulanmıyorsa JS ile zorla
-  document.querySelectorAll('.list-group.inventory-rows > .list-group-item').forEach(el => {
-    el.style.height = '200px';
-    el.style.minHeight = '200px';
-    el.style.display = 'flex';
-    el.style.alignItems = 'center';
-    el.style.justifyContent = 'space-between';
-    el.style.paddingTop = '0';
-    el.style.paddingBottom = '0';
-    el.style.paddingLeft = '1rem';
-    el.style.paddingRight = '1rem';
-  });
 });
 </script>
-
 {% endblock %}
