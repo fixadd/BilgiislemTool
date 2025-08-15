@@ -2,6 +2,44 @@
 {% block title %}Kayıtlar{% endblock %}
 {% block content %}
 <h2>Kayıtlar</h2>
+
+<form method="get" class="mb-3">
+  <label for="log_type">Log türü:</label>
+  <select id="log_type" name="log_type" onchange="this.form.submit()">
+    <option value="inventory" {% if log_type != 'activity' %}selected{% endif %}>Envanter</option>
+    <option value="activity" {% if log_type == 'activity' %}selected{% endif %}>Kullanıcı</option>
+  </select>
+  {% if log_type != 'activity' %}
+  <label for="user_id" class="ms-3">Kullanıcı:</label>
+  <select id="user_id" name="user_id" onchange="this.form.submit()">
+    <option value="">Hepsi</option>
+    {% for u in users %}
+      <option value="{{ u.id }}" {% if selected_user_id == u.id %}selected{% endif %}>{{ u.username }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
+</form>
+
+{% if log_type == 'activity' %}
+<table class="table table-striped table-fixed">
+  <thead>
+    <tr>
+      <th>Tarih</th>
+      <th>Kullanıcı</th>
+      <th>İşlem</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for log in logs %}
+    <tr>
+      <td>{{ log.timestamp }}</td>
+      <td>{{ log.username }}</td>
+      <td>{{ log.action }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
 <table class="table table-striped table-fixed">
   <thead>
     <tr>
@@ -23,8 +61,8 @@
       <td>{{ log.inventory_type }}</td>
       <td>{{ log.inventory_id }}</td>
       <td>{{ log.action }}</td>
-      <td>{{ log.old_user_id or '' }}</td>
-      <td>{{ log.new_user_id or '' }}</td>
+      <td>{{ log.old_user_name or '' }}</td>
+      <td>{{ log.new_user_name or '' }}</td>
       <td>{{ log.old_location or '' }}</td>
       <td>{{ log.new_location or '' }}</td>
       <td>{{ log.note or '' }}</td>
@@ -32,4 +70,5 @@
   {% endfor %}
   </tbody>
 </table>
+{% endif %}
 {% endblock %}

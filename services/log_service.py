@@ -45,25 +45,39 @@ def get_inventory_logs(
     limit: int = 200,
     offset: int = 0,
 ) -> List[Dict[str, Any]]:
-    base = "SELECT * FROM inventory_logs"
+    base = (
+        "SELECT il.*, uo.username AS old_user_name, un.username AS new_user_name "
+        "FROM inventory_logs il "
+        "LEFT JOIN users uo ON il.old_user_id = uo.id "
+        "LEFT JOIN users un ON il.new_user_id = un.id"
+    )
     conds: List[str] = []
     params: List[Any] = []
     if inventory_type:
-        conds.append("inventory_type = ?")
+        conds.append("il.inventory_type = ?")
         params.append(inventory_type)
     if inventory_id is not None:
-        conds.append("inventory_id = ?")
+        conds.append("il.inventory_id = ?")
         params.append(inventory_id)
     if user_id is not None:
-        conds.append("(old_user_id = ? OR new_user_id = ?)")
+        conds.append("(il.old_user_id = ? OR il.new_user_id = ?)")
         params.extend([user_id, user_id])
     if conds:
         base += " WHERE " + " AND ".join(conds)
-    base += " ORDER BY change_date DESC, id DESC LIMIT ? OFFSET ?"
+    base += " ORDER BY il.change_date DESC, il.id DESC LIMIT ? OFFSET ?"
     params.extend([limit, offset])
 
     with sqlite3.connect(DB_PATH) as con:
         con.row_factory = _row_to_dict
         cur = con.cursor()
         cur.execute(base, params)
+        return cur.fetchall()
+
+
+def get_activity_logs(limit: int = 200, offset: int = 0) -> List[Dict[str, Any]]:
+    q = "SELECT * FROM activity_log ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?"
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = _row_to_dict
+        cur = con.cursor()
+        cur.execute(q, (limit, offset))
         return cur.fetchall()
