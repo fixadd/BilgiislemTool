@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy import or_
 
 from models import SessionLocal, User, pwd_context
 from utils import templates
@@ -13,12 +14,25 @@ router = APIRouter(dependencies=[Depends(require_admin)])
 @router.get("/admin", response_class=HTMLResponse)
 def admin_page(request: Request) -> HTMLResponse:
     """List all users."""
+    params = request.query_params
+    q = params.get("q", "")
     db = SessionLocal()
     try:
-        users = db.query(User).all()
+        query = db.query(User)
+        if q:
+            pattern = f"%{q}%"
+            query = query.filter(
+                or_(
+                    User.username.ilike(pattern),
+                    User.first_name.ilike(pattern),
+                    User.last_name.ilike(pattern),
+                    User.email.ilike(pattern),
+                )
+            )
+        users = query.all()
     finally:
         db.close()
-    return templates.TemplateResponse(request, "admin.html", {"users": users})
+    return templates.TemplateResponse(request, "admin.html", {"users": users, "q": q})
 
 
 @router.post("/admin/create")
@@ -39,7 +53,7 @@ def create_user(
             return templates.TemplateResponse(
                 request,
                 "admin.html",
-                {"users": users, "error": "Kullanıcı mevcut"},
+                {"users": users, "error": "Kullanıcı mevcut", "q": ""},
                 status_code=400,
             )
         user = User(
