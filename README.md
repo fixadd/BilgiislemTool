@@ -2,15 +2,15 @@
 
 ## Environment Variables
 
-The application initializes an administrator account using credentials supplied via environment variables and requires a secret key for session handling.
+The application initializes an administrator account using credentials supplied via environment variables and uses a secret key for session handling.
 
 - `ADMIN_USERNAME` – Username for the initial administrator.
 - `ADMIN_PASSWORD` – Password for the initial administrator.
-- `SESSION_SECRET` – Secret key used to sign session cookies.
+- `SESSION_SECRET` – Secret key used to sign session cookies. If omitted, the application will generate a random value at startup and sessions will reset when the server restarts.
 
-All three variables must be defined before the application starts. If any variable is missing, the application will exit with an error instead of creating the admin user or starting the server.
+The admin credentials are optional; if not provided, no default admin user is created. Defining `SESSION_SECRET` is recommended for stable sessions, but the server will still start even if it is missing.
 
-When using Docker Compose, provide these variables in your environment or an `.env` file:
+When using Docker Compose, provide any desired variables in your environment or an `.env` file:
 
 ```
 ADMIN_USERNAME=your_admin_username
