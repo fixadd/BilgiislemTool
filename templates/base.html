@@ -64,6 +64,7 @@
         {% if request.session.get('is_admin') %}
         <li><a href="/admin" class="nav-link text-white {% if request.path.startswith('/admin') %}active{% endif %}">Admin Paneli</a></li>
         <li><a href="/connections" class="nav-link text-white {% if request.path.startswith('/connections') %}active{% endif %}">Bağlantılar</a></li>
+        <li><a href="/logs/records" class="nav-link text-white {% if request.path.startswith('/logs') %}active{% endif %}">Kayıtlar</a></li>
         {% endif %}
         <li><a href="/lists" class="nav-link text-white {% if request.path.startswith('/lists') %}active{% endif %}">Envanter Ekleme</a></li>
       </ul>
