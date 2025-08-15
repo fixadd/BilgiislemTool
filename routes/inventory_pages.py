@@ -68,6 +68,11 @@ def inventory_page(request: Request) -> HTMLResponse:
         total_pages = max(1, math.ceil(total_count / per_page))
         offset = (page - 1) * per_page
         items = query.offset(offset).limit(per_page).all()
+        users = db.query(User).all()
+        user_names = [
+            f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+            for u in users
+        ]
     finally:
         db.close()
 
@@ -76,7 +81,7 @@ def inventory_page(request: Request) -> HTMLResponse:
         "items": items,
         "columns": get_table_columns(HardwareInventory.__tablename__),
         "column_widths": {},
-        "lookups": {},
+        "lookups": {"sorumlu_personel": user_names},
         "offset": offset,
         "page": page,
         "total_pages": total_pages,
@@ -184,6 +189,11 @@ def license_page(request: Request) -> HTMLResponse:
         total_pages = max(1, math.ceil(total_count / per_page))
         offset = (page - 1) * per_page
         licenses = query.offset(offset).limit(per_page).all()
+        users = db.query(User).all()
+        user_names = [
+            f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+            for u in users
+        ]
     finally:
         db.close()
 
@@ -192,7 +202,7 @@ def license_page(request: Request) -> HTMLResponse:
         "licenses": licenses,
         "columns": get_table_columns(LicenseInventory.__tablename__),
         "column_widths": {},
-        "lookups": {},
+        "lookups": {"kullanici": user_names},
         "offset": offset,
         "page": page,
         "total_pages": total_pages,
@@ -242,6 +252,11 @@ def accessories_page(request: Request) -> HTMLResponse:
         total_pages = max(1, math.ceil(total_count / per_page))
         offset = (page - 1) * per_page
         accessories = query.offset(offset).limit(per_page).all()
+        users = db.query(User).all()
+        user_names = [
+            f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+            for u in users
+        ]
     finally:
         db.close()
 
@@ -250,7 +265,7 @@ def accessories_page(request: Request) -> HTMLResponse:
         "accessories": accessories,
         "columns": get_table_columns(AccessoryInventory.__tablename__),
         "column_widths": {},
-        "lookups": {},
+        "lookups": {"kullanici": user_names},
         "offset": offset,
         "page": page,
         "total_pages": total_pages,
