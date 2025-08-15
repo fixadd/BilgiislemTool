@@ -32,8 +32,8 @@
       <li><a class="dropdown-item" href="#" id="export-excel">Dışa Aktar</a></li>
     </ul>
   </div>
-  <button id="edit-selected" type="button" class="btn btn-warning" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-    <i class="bi bi-pencil"></i>
+  <button id="edit-selected" type="button" class="btn btn-warning d-flex align-items-center gap-1">
+    <i class="bi bi-pencil"></i> Düzenle
   </button>
   <form id="search-form" method="get" class="d-flex gap-2 align-items-center flex-nowrap">
     <div class="position-relative d-flex gap-2">
@@ -166,7 +166,7 @@
       <th><input type="checkbox" id="select-all"></th>
       <th>#</th>
       {% for col in columns %}
-      <th{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ column_labels.get(col, col.replace('_', ' ').title()) }}</th>
+      <th data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ column_labels.get(col, col.replace('_', ' ').title()) }}</th>
       {% endfor %}
   </tr>
   {% for a in accessories %}
@@ -210,7 +210,7 @@ window.initialFilters = {{ filters | tojson }};
 let currentSettings = {};
 fetch(`/column-settings?table_name=${tableName}`)
     .then(r => r.json())
-    .then(s => { currentSettings = s; });
+    .then(s => { currentSettings = s; applyColumnSettings(s); });
 const settingsModal = document.getElementById('settingsModal');
 settingsModal.addEventListener('show.bs.modal', async () => {
     const res = await fetch(`/table-columns?table_name=${tableName}`);
