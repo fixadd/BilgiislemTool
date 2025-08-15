@@ -5,7 +5,7 @@ from datetime import date, datetime
 import csv
 from io import StringIO
 
-from fastapi import APIRouter, Depends, File, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Request, UploadFile, Body
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
 
 from utils.auth import require_login
@@ -505,7 +505,7 @@ def column_settings(request: Request, table_name: str):
 
 
 @router.post("/column-settings")
-def save_column_settings(request: Request, table_name: str, data: dict):
+def save_column_settings(request: Request, table_name: str, data: dict = Body(...)):
     """Persist column settings for a table."""
     settings = load_settings()
     settings[table_name] = data
