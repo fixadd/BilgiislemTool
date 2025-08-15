@@ -13,7 +13,7 @@ os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB}"
 from fastapi.testclient import TestClient
 
 import main
-from models import SessionLocal, User, init_db, pwd_context
+from models import SessionLocal, User, init_db, pwd_context, StockItem
 
 
 def create_user(username: str = "tester", password: str = "secret", is_admin: bool = False):
@@ -134,4 +134,33 @@ def test_connections_route_requires_admin():
             follow_redirects=False,
         )
         resp = client.get("/connections")
+    assert resp.status_code == 200
+
+
+def test_stock_multiple_filters():
+    create_user()
+    db = SessionLocal()
+    try:
+        db.add(StockItem(urun_adi="Item1", kategori="cat1", marka="brand1", adet=1))
+        db.add(StockItem(urun_adi="Item2", kategori="cat1", marka="brand2", adet=1))
+        db.commit()
+    finally:
+        db.close()
+    with TestClient(main.app) as client:
+        client.post(
+            "/login",
+            data={"username": "tester", "password": "secret"},
+            follow_redirects=False,
+        )
+        resp = client.get(
+            "/stock",
+            params=[
+                ("filter_field", "kategori"),
+                ("filter_value", "cat1"),
+                ("filter_field", "marka"),
+                ("filter_value", "brand1"),
+            ],
+        )
         assert resp.status_code == 200
+        assert "Item1" in resp.text
+        assert "Item2" not in resp.text
