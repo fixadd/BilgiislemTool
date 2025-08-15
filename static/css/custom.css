@@ -72,3 +72,11 @@ html, body {
 .w-200 {
   width: 200px !important;
 }
+
+.inventory-rows .list-group-item {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+}
