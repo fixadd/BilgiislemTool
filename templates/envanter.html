@@ -99,7 +99,7 @@
           <div class="modal-body">
             <div class="row row-cols-1 row-cols-md-3 g-3">
             {% for col in columns %}
-            {% if col != 'islem_yapan' %}
+            {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
@@ -110,7 +110,7 @@
                 {% endfor %}
               </select>
               {% elif col == 'tarih' %}
-              <input type="date" class="form-control" name="{{ col }}" value="{{ today }}" required>
+              <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
@@ -137,7 +137,7 @@
           <div class="modal-body">
             <div class="row row-cols-1 row-cols-md-3 g-3">
             {% for col in columns %}
-            {% if col != 'islem_yapan' %}
+            {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="col">
               <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
               {% if lookups.get(col) %}
@@ -148,7 +148,7 @@
                 {% endfor %}
               </select>
               {% elif col == 'tarih' %}
-              <input type="date" class="form-control" name="{{ col }}" value="{{ today }}" required>
+              <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
