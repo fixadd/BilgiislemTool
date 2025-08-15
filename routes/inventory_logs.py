@@ -1,15 +1,24 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Depends
+from fastapi.responses import HTMLResponse
 from typing import Optional
 from pydantic import BaseModel
 
 from logs import InventoryLogCreate
 from services.log_service import add_inventory_log, get_inventory_logs
+from utils import templates
+from utils.auth import require_admin
 
 router = APIRouter(prefix="/logs", tags=["Inventory Logs"])
 
 @router.get("")
 def list_logs(type: Optional[str] = None, id: Optional[int] = None, limit: int = 200, offset: int = 0):
     return get_inventory_logs(inventory_type=type, inventory_id=id, limit=limit, offset=offset)
+
+
+@router.get("/records", response_class=HTMLResponse, dependencies=[Depends(require_admin)])
+def logs_page(request: Request, limit: int = 200, offset: int = 0):
+    logs = get_inventory_logs(limit=limit, offset=offset)
+    return templates.TemplateResponse("kayitlar.html", {"request": request, "logs": logs})
 
 @router.post("")
 def create_log(payload: InventoryLogCreate):
