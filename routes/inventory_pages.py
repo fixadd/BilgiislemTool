@@ -87,6 +87,7 @@ def inventory_page(request: Request) -> HTMLResponse:
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
+        "today": date.today().isoformat(),
     }
     return templates.TemplateResponse("envanter.html", context)
 
@@ -144,6 +145,7 @@ def printer_page(request: Request) -> HTMLResponse:
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
+        "today": date.today().isoformat(),
     }
     return templates.TemplateResponse("yazici.html", context)
 
@@ -201,6 +203,7 @@ def license_page(request: Request) -> HTMLResponse:
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
+        "today": date.today().isoformat(),
     }
     return templates.TemplateResponse("lisans.html", context)
 
@@ -258,6 +261,7 @@ def accessories_page(request: Request) -> HTMLResponse:
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
+        "today": date.today().isoformat(),
     }
     return templates.TemplateResponse("aksesuar.html", context)
 
