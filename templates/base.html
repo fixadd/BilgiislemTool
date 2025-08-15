@@ -113,6 +113,40 @@
         }
       });
     }
+    function applyColumnSettings(settings){
+      const table = document.querySelector('table.table-fixed, table.table-resizable');
+      if(!table || !settings) return;
+      const headerRow = table.querySelector('thead tr');
+      if(!headerRow) return;
+      const bodyRows = table.querySelectorAll('tbody tr');
+      const order = settings.order || Array.from(headerRow.querySelectorAll('th[data-col]')).map(th => th.dataset.col);
+      const visible = new Set(settings.visible || order);
+      const widths = settings.widths || {};
+      const headerMap = {};
+      headerRow.querySelectorAll('th[data-col]').forEach(th => { headerMap[th.dataset.col] = th; });
+      order.forEach(col => {
+        const th = headerMap[col];
+        if(th) headerRow.appendChild(th);
+      });
+      bodyRows.forEach(tr => {
+        const cellMap = {};
+        tr.querySelectorAll('td[data-col]').forEach(td => { cellMap[td.dataset.col] = td; });
+        order.forEach(col => {
+          const td = cellMap[col];
+          if(td) tr.appendChild(td);
+        });
+      });
+      order.forEach(col => {
+        const display = visible.has(col) ? '' : 'none';
+        const width = widths[col];
+        const th = headerMap[col];
+        if(th){ th.style.display = display; if(width) th.style.width = width + 'px'; }
+        bodyRows.forEach(tr => {
+          const td = tr.querySelector(`td[data-col='${col}']`);
+          if(td){ td.style.display = display; if(width) td.style.width = width + 'px'; }
+        });
+      });
+    }
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('table').forEach(tbl => {
         const parent = tbl.parentElement;
