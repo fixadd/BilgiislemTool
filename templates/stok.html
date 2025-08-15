@@ -136,31 +136,33 @@
       </div>
       <form id="addForm" action="/stock/add" method="post">
         <div class="modal-body">
-          {% for col in columns %}
-          {% if col != 'islem_yapan' %}
-          <div class="mb-3">
-            <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
-            {% if col == 'aciklama' %}
-            <textarea class="form-control" name="{{ col }}" required></textarea>
-            {% elif col == 'tarih' %}
-            <input type="date" class="form-control" name="{{ col }}" required>
-            {% elif col == 'adet' %}
-            <input type="number" class="form-control" name="{{ col }}" min="0" required>
-            {% else %}
-            {% if lookups.get(col) %}
-            <select class="form-select" name="{{ col }}" required>
-              <option value="" disabled selected>Seçiniz</option>
-              {% for val in lookups.get(col) %}
-              <option value="{{ val }}">{{ val }}</option>
-              {% endfor %}
-            </select>
-            {% else %}
-            <input type="text" class="form-control" name="{{ col }}" required>
+          <div class="row g-3">
+            {% for col in columns %}
+            {% if col != 'islem_yapan' %}
+            <div class="col-md-4 mb-3">
+              <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
+              {% if col == 'aciklama' %}
+              <textarea class="form-control" name="{{ col }}" required></textarea>
+              {% elif col == 'tarih' %}
+              <input type="date" class="form-control" name="{{ col }}" required>
+              {% elif col == 'adet' %}
+              <input type="number" class="form-control" name="{{ col }}" min="0" required>
+              {% else %}
+              {% if lookups.get(col) %}
+              <select class="form-select" name="{{ col }}" required>
+                <option value="" disabled selected>Seçiniz</option>
+                {% for val in lookups.get(col) %}
+                <option value="{{ val }}">{{ val }}</option>
+                {% endfor %}
+              </select>
+              {% else %}
+              <input type="text" class="form-control" name="{{ col }}" required>
+              {% endif %}
+              {% endif %}
+            </div>
             {% endif %}
-            {% endif %}
+            {% endfor %}
           </div>
-          {% endif %}
-          {% endfor %}
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>

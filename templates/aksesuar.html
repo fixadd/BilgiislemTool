@@ -125,31 +125,33 @@
       </div>
       <form id="addForm" action="/accessories/add" method="post">
           <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">Envanter No</label>
-              <input type="text" class="form-control" id="envanter_no_lookup">
-            </div>
-            {% for col in columns %}
-            {% if col not in ['islem_yapan', 'ifs_no'] %}
-            <div class="mb-3">
-              <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
-              {% if col == 'aciklama' %}
-              <textarea class="form-control" name="{{ col }}" required></textarea>
-              {% elif col == 'tarih' %}
-              <input type="hidden" name="{{ col }}" value="{{ today }}">
-              {% elif lookups.get(col) %}
-              <select class="form-select" name="{{ col }}" required>
-                <option value="" disabled selected>Seçiniz</option>
-                {% for val in lookups.get(col) %}
-                <option value="{{ val }}">{{ val }}</option>
-                {% endfor %}
-              </select>
-              {% else %}
-              <input type="text" class="form-control" name="{{ col }}" required>
+            <div class="row g-3">
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Envanter No</label>
+                <input type="text" class="form-control" id="envanter_no_lookup">
+              </div>
+              {% for col in columns %}
+              {% if col not in ['islem_yapan', 'ifs_no'] %}
+              <div class="col-md-4 mb-3">
+                <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
+                {% if col == 'aciklama' %}
+                <textarea class="form-control" name="{{ col }}" required></textarea>
+                {% elif col == 'tarih' %}
+                <input type="hidden" name="{{ col }}" value="{{ today }}">
+                {% elif lookups.get(col) %}
+                <select class="form-select" name="{{ col }}" required>
+                  <option value="" disabled selected>Seçiniz</option>
+                  {% for val in lookups.get(col) %}
+                  <option value="{{ val }}">{{ val }}</option>
+                  {% endfor %}
+                </select>
+                {% else %}
+                <input type="text" class="form-control" name="{{ col }}" required>
+                {% endif %}
+              </div>
               {% endif %}
+              {% endfor %}
             </div>
-            {% endif %}
-            {% endfor %}
           </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>
