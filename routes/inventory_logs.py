@@ -96,8 +96,8 @@ def move_item(req: MoveRequest):
 class RelabelRequest(BaseModel):
     inventory_type: str
     inventory_id: int
-    old_label: str
-    new_label: str
+    old_inventory_no: str
+    new_inventory_no: str
     changed_by: int
     note: Optional[str] = None
 
@@ -109,7 +109,9 @@ def relabel_item(req: RelabelRequest):
             inventory_id=req.inventory_id,
             action="relabel",
             changed_by=req.changed_by,
-            note=f"Label: {req.old_label} -> {req.new_label}",
+            old_inventory_no=req.old_inventory_no,
+            new_inventory_no=req.new_inventory_no,
+            note=req.note,
         )
     )
     return {"ok": True}

@@ -13,8 +13,8 @@ def _row_to_dict(cursor, row):
 def add_inventory_log(payload: InventoryLogCreate) -> int:
     q = """
     INSERT INTO inventory_logs
-    (inventory_type, inventory_id, old_user_id, new_user_id, old_location, new_location, action, note, changed_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (inventory_type, inventory_id, old_user_id, new_user_id, old_location, new_location, old_inventory_no, new_inventory_no, action, note, changed_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     with sqlite3.connect(DB_PATH) as con:
         cur = con.cursor()
@@ -27,6 +27,8 @@ def add_inventory_log(payload: InventoryLogCreate) -> int:
                 payload.new_user_id,
                 payload.old_location,
                 payload.new_location,
+                payload.old_inventory_no,
+                payload.new_inventory_no,
                 payload.action,
                 payload.note,
                 payload.changed_by,

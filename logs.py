@@ -14,6 +14,8 @@ class InventoryLogCreate(BaseModel):
     new_user_id: Optional[int] = None
     old_location: Optional[str] = None
     new_location: Optional[str] = None
+    old_inventory_no: Optional[str] = None
+    new_inventory_no: Optional[str] = None
     note: Optional[str] = None
 
 
@@ -28,4 +30,6 @@ class InventoryLog(BaseModel):
     new_user_id: Optional[int] = None
     old_location: Optional[str] = None
     new_location: Optional[str] = None
+    old_inventory_no: Optional[str] = None
+    new_inventory_no: Optional[str] = None
     note: Optional[str] = None

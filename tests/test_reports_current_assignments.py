@@ -8,6 +8,8 @@ def setup_db(db_path: str):
     con = sqlite3.connect(db_path)
     with open("db/migrations/001_inventory_logs.sql") as f:
         con.executescript(f.read())
+    with open("db/migrations/003_add_inventory_no_columns.sql") as f:
+        con.executescript(f.read())
     with open("db/migrations/002_inventory_latest_view.sql") as f:
         con.executescript(f.read())
     return con
