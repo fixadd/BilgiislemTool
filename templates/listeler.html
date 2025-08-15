@@ -2,149 +2,376 @@
 {% block title %}Envanter Ekleme{% endblock %}
 {% block content %}
 <h2>Envanter Ekleme</h2>
-<div class="row row-cols-1 row-cols-md-3 g-4">
-  <div class="col">
-    <h5>Marka</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="marka">
-      <input class="form-control" type="text" name="name" placeholder="Yeni marka" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for b in brands %}
-      <li class="list-group-item">{{ b.name }}</li>
-      {% endfor %}
-    </ol>
+<div class="list-group">
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Marka</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#markaModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Lokasyon</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="lokasyon">
-      <input class="form-control" type="text" name="name" placeholder="Yeni lokasyon" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for l in locations %}
-      <li class="list-group-item">{{ l.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Lokasyon</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#lokasyonModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Donanım Tipi</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="donanim_tipi">
-      <input class="form-control" type="text" name="name" placeholder="Yeni donanım tipi" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for c in types %}
-      <li class="list-group-item">{{ c.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Donanım Tipi</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#donanimModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Yazılım</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="yazilim">
-      <input class="form-control" type="text" name="name" placeholder="Yeni yazılım" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for s in softwares %}
-      <li class="list-group-item">{{ s.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Yazılım</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#yazilimModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Fabrika</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="fabrika">
-      <input class="form-control" type="text" name="name" placeholder="Yeni fabrika" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for f in factories %}
-      <li class="list-group-item">{{ f.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Fabrika</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#fabrikaModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Departman</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="departman">
-      <input class="form-control" type="text" name="name" placeholder="Yeni departman" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for d in departments %}
-      <li class="list-group-item">{{ d.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Departman</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#departmanModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Blok</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="blok">
-      <input class="form-control" type="text" name="name" placeholder="Yeni blok" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for b in blocks %}
-      <li class="list-group-item">{{ b.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Blok</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#blokModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Model</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="model">
-      <input class="form-control" type="text" name="name" placeholder="Yeni model" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for m in models %}
-      <li class="list-group-item">{{ m.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Model</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modelModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Yazıcı Markası</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="yazici_marka">
-      <input class="form-control" type="text" name="name" placeholder="Yeni yazıcı markası" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for pb in printer_brands %}
-      <li class="list-group-item">{{ pb.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Yazıcı Markası</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#yaziciMarkaModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Yazıcı Modeli</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="yazici_model">
-      <input class="form-control" type="text" name="name" placeholder="Yeni yazıcı modeli" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for pm in printer_models %}
-      <li class="list-group-item">{{ pm.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Yazıcı Modeli</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#yaziciModelModal"><i class="bi bi-list"></i></button>
   </div>
-  <div class="col">
-    <h5>Ürün Adı</h5>
-    <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
-      <input type="hidden" name="item_type" value="urun">
-      <input class="form-control" type="text" name="name" placeholder="Yeni ürün adı" required>
-      <button class="btn btn-success" type="submit">Ekle</button>
-    </form>
-    <ol class="list-group list-group-numbered">
-      {% for pr in products %}
-      <li class="list-group-item">{{ pr.name }}</li>
-      {% endfor %}
-    </ol>
+  <div class="list-group-item d-flex justify-content-between align-items-center">
+    <span>Ürün Adı</span>
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#urunModal"><i class="bi bi-list"></i></button>
   </div>
 </div>
+
+<!-- Marka Modal -->
+<div class="modal fade" id="markaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Marka</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="marka">
+          <input class="form-control" type="text" name="name" placeholder="Yeni marka" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for b in brands %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ b.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ b.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lokasyon Modal -->
+<div class="modal fade" id="lokasyonModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Lokasyon</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="lokasyon">
+          <input class="form-control" type="text" name="name" placeholder="Yeni lokasyon" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for l in locations %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ l.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ l.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Donanım Tipi Modal -->
+<div class="modal fade" id="donanimModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Donanım Tipi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="donanim_tipi">
+          <input class="form-control" type="text" name="name" placeholder="Yeni donanım tipi" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for c in types %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ c.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ c.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Yazılım Modal -->
+<div class="modal fade" id="yazilimModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Yazılım</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="yazilim">
+          <input class="form-control" type="text" name="name" placeholder="Yeni yazılım" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for s in softwares %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ s.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ s.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fabrika Modal -->
+<div class="modal fade" id="fabrikaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Fabrika</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="fabrika">
+          <input class="form-control" type="text" name="name" placeholder="Yeni fabrika" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for f in factories %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ f.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ f.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Departman Modal -->
+<div class="modal fade" id="departmanModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Departman</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="departman">
+          <input class="form-control" type="text" name="name" placeholder="Yeni departman" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for d in departments %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ d.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ d.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Blok Modal -->
+<div class="modal fade" id="blokModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Blok</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="blok">
+          <input class="form-control" type="text" name="name" placeholder="Yeni blok" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for b in blocks %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ b.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ b.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Model Modal -->
+<div class="modal fade" id="modelModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Model</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="model">
+          <input class="form-control" type="text" name="name" placeholder="Yeni model" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for m in models %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ m.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ m.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Yazıcı Marka Modal -->
+<div class="modal fade" id="yaziciMarkaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Yazıcı Markası</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="yazici_marka">
+          <input class="form-control" type="text" name="name" placeholder="Yeni yazıcı markası" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for pb in printer_brands %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ pb.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ pb.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Yazıcı Model Modal -->
+<div class="modal fade" id="yaziciModelModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Yazıcı Modeli</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="yazici_model">
+          <input class="form-control" type="text" name="name" placeholder="Yeni yazıcı modeli" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for pm in printer_models %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ pm.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ pm.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ürün Modal -->
+<div class="modal fade" id="urunModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ürün Adı</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/lists/add" method="post" class="d-flex gap-2 mb-3">
+          <input type="hidden" name="item_type" value="urun">
+          <input class="form-control" type="text" name="name" placeholder="Yeni ürün adı" required>
+          <button class="btn btn-success" type="submit">Ekle</button>
+        </form>
+        <ol class="list-group list-group-numbered">
+          {% for pr in products %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ pr.name }}
+            <button class="btn btn-sm btn-danger delete-item" data-id="{{ pr.id }}">Sil</button>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.delete-item').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const id = btn.dataset.id;
+      let resp = await fetch('/lists/delete', {
+        method: 'POST',
+        body: new URLSearchParams({ item_id: id })
+      });
+      let data = await resp.json();
+      if (data.status === 'used') {
+        if (!confirm('Bu başka yerlerde kullanılıyor. Silmek ister misiniz?')) {
+          return;
+        }
+        resp = await fetch('/lists/delete', {
+          method: 'POST',
+          body: new URLSearchParams({ item_id: id, force: '1' })
+        });
+        data = await resp.json();
+      }
+      if (data.status === 'deleted') {
+        btn.closest('li').remove();
+      }
+    });
+  });
+});
+</script>
 {% endblock %}
