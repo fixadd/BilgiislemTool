@@ -41,6 +41,7 @@ def add_inventory_log(payload: InventoryLogCreate) -> int:
 def get_inventory_logs(
     inventory_type: Optional[str] = None,
     inventory_id: Optional[int] = None,
+    user_id: Optional[int] = None,
     limit: int = 200,
     offset: int = 0,
 ) -> List[Dict[str, Any]]:
@@ -53,6 +54,9 @@ def get_inventory_logs(
     if inventory_id is not None:
         conds.append("inventory_id = ?")
         params.append(inventory_id)
+    if user_id is not None:
+        conds.append("(old_user_id = ? OR new_user_id = ?)")
+        params.extend([user_id, user_id])
     if conds:
         base += " WHERE " + " AND ".join(conds)
     base += " ORDER BY change_date DESC, id DESC LIMIT ? OFFSET ?"

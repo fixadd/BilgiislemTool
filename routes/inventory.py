@@ -259,10 +259,13 @@ async def inventory_add(request: Request):
     try:
         item_id = form.get("item_id")
         relabel = False
+        old_user = None
+        new_user = None
         if item_id:
             existing = db.query(HardwareInventory).get(int(item_id))
             if existing:
                 old_no = existing.no
+                old_user = existing.sorumlu_personel
                 data = {
                     col.name: getattr(existing, col.name)
                     for col in HardwareInventory.__table__.columns
@@ -286,6 +289,7 @@ async def inventory_add(request: Request):
                 ]:
                     if field in form:
                         data[field] = form.get(field)
+                new_user = data.get("sorumlu_personel")
                 data["tarih"] = date.today()
                 data["islem_yapan"] = request.session.get("full_name", "")
                 new_no = data.get("no")
@@ -333,6 +337,17 @@ async def inventory_add(request: Request):
             db.add(item)
             action = f"Added hardware item {item.id}"
         db.commit()
+        if item_id and old_user != new_user:
+            add_inventory_log(
+                InventoryLogCreate(
+                    inventory_type="pc",
+                    inventory_id=item.id,
+                    action="assign" if new_user else "return",
+                    changed_by=request.session.get("user_id", 0),
+                    old_user_id=int(old_user) if old_user else None,
+                    new_user_id=int(new_user) if new_user else None,
+                )
+            )
         if item_id and relabel:
             add_inventory_log(
                 InventoryLogCreate(
@@ -365,10 +380,13 @@ async def license_add(request: Request):
     try:
         license_id = form.get("license_id")
         relabel = False
+        old_user = None
+        new_user = None
         if license_id:
             existing = db.query(LicenseInventory).get(int(license_id))
             if existing:
                 old_no = existing.envanter_no
+                old_user = existing.kullanici
                 data = {
                     col.name: getattr(existing, col.name)
                     for col in LicenseInventory.__table__.columns
@@ -387,6 +405,7 @@ async def license_add(request: Request):
                 ]:
                     if field in form:
                         data[field] = form.get(field)
+                new_user = data.get("kullanici")
                 data["tarih"] = date.today()
                 data["islem_yapan"] = request.session.get("full_name", "")
                 new_no = data.get("envanter_no")
@@ -424,6 +443,17 @@ async def license_add(request: Request):
             db.add(item)
             action = f"Added license item {item.id}"
         db.commit()
+        if license_id and old_user != new_user:
+            add_inventory_log(
+                InventoryLogCreate(
+                    inventory_type="license",
+                    inventory_id=item.id,
+                    action="assign" if new_user else "return",
+                    changed_by=request.session.get("user_id", 0),
+                    old_user_id=int(old_user) if old_user else None,
+                    new_user_id=int(new_user) if new_user else None,
+                )
+            )
         if license_id and relabel:
             add_inventory_log(
                 InventoryLogCreate(
@@ -455,9 +485,12 @@ async def accessories_add(request: Request):
     db = SessionLocal()
     try:
         accessory_id = form.get("accessory_id")
+        old_user = None
+        new_user = None
         if accessory_id:
             existing = db.query(AccessoryInventory).get(int(accessory_id))
             if existing:
+                old_user = existing.kullanici
                 data = {
                     col.name: getattr(existing, col.name)
                     for col in AccessoryInventory.__table__.columns
@@ -477,6 +510,7 @@ async def accessories_add(request: Request):
                         if field == "adet":
                             value = int(value) if value else None
                         data[field] = value
+                new_user = data.get("kullanici")
                 data["tarih"] = date.today()
                 data["islem_yapan"] = request.session.get("full_name", "")
                 item = AccessoryInventory(**data)
@@ -508,6 +542,17 @@ async def accessories_add(request: Request):
             db.add(item)
             action = f"Added accessory item {item.id}"
         db.commit()
+        if accessory_id and old_user != new_user:
+            add_inventory_log(
+                InventoryLogCreate(
+                    inventory_type="accessory",
+                    inventory_id=item.id,
+                    action="assign" if new_user else "return",
+                    changed_by=request.session.get("user_id", 0),
+                    old_user_id=int(old_user) if old_user else None,
+                    new_user_id=int(new_user) if new_user else None,
+                )
+            )
         log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()

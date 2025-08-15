@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Query
 import sqlite3
+from services.log_service import get_inventory_logs
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 DB_PATH = "data/envanter.db"
@@ -64,3 +65,8 @@ def current_assignments(
         }
         for r in rows
     ]
+
+
+@router.get("/user-history")
+def user_history(user_id: int, limit: int = 200, offset: int = 0):
+    return get_inventory_logs(user_id=user_id, limit=limit, offset=offset)

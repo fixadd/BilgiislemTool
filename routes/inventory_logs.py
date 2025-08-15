@@ -11,8 +11,20 @@ from utils.auth import require_admin
 router = APIRouter(prefix="/logs", tags=["Inventory Logs"])
 
 @router.get("")
-def list_logs(type: Optional[str] = None, id: Optional[int] = None, limit: int = 200, offset: int = 0):
-    return get_inventory_logs(inventory_type=type, inventory_id=id, limit=limit, offset=offset)
+def list_logs(
+    type: Optional[str] = None,
+    id: Optional[int] = None,
+    user_id: Optional[int] = None,
+    limit: int = 200,
+    offset: int = 0,
+):
+    return get_inventory_logs(
+        inventory_type=type,
+        inventory_id=id,
+        user_id=user_id,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/records", response_class=HTMLResponse, dependencies=[Depends(require_admin)])
