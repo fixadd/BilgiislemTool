@@ -3,7 +3,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from sqlalchemy import or_, String
 import math
 
@@ -341,19 +341,23 @@ async def requests_add(request: Request):
 @router.get("/lists", response_class=HTMLResponse)
 def lists_page(request: Request) -> HTMLResponse:
     """Render the lists management page."""
-    context = {
-        "brands": [],
-        "locations": [],
-        "types": [],
-        "softwares": [],
-        "factories": [],
-        "departments": [],
-        "blocks": [],
-        "models": [],
-        "printer_brands": [],
-        "printer_models": [],
-        "products": [],
-    }
+    db = SessionLocal()
+    try:
+        context = {
+            "brands": db.query(LookupItem).filter_by(type="marka").all(),
+            "locations": db.query(LookupItem).filter_by(type="lokasyon").all(),
+            "types": db.query(LookupItem).filter_by(type="donanim_tipi").all(),
+            "softwares": db.query(LookupItem).filter_by(type="yazilim").all(),
+            "factories": db.query(LookupItem).filter_by(type="fabrika").all(),
+            "departments": db.query(LookupItem).filter_by(type="departman").all(),
+            "blocks": db.query(LookupItem).filter_by(type="blok").all(),
+            "models": db.query(LookupItem).filter_by(type="model").all(),
+            "printer_brands": db.query(LookupItem).filter_by(type="yazici_marka").all(),
+            "printer_models": db.query(LookupItem).filter_by(type="yazici_model").all(),
+            "products": db.query(LookupItem).filter_by(type="urun").all(),
+        }
+    finally:
+        db.close()
     return templates.TemplateResponse(request, "listeler.html", context)
 
 
@@ -367,6 +371,50 @@ async def lists_add(request: Request, item_type: str = Form(...), name: str = Fo
     finally:
         db.close()
     return RedirectResponse("/lists", status_code=303)
+
+
+@router.post("/lists/delete")
+async def lists_delete(
+    request: Request,
+    item_id: int = Form(...),
+    force: int = Form(0),
+):
+    """Delete a lookup list item, optionally forcing if it's in use."""
+    db = SessionLocal()
+    try:
+        item = db.query(LookupItem).get(item_id)
+        if not item:
+            return JSONResponse({"status": "not_found"}, status_code=404)
+
+        def item_in_use() -> bool:
+            checks = {
+                "marka": [HardwareInventory.marka, StockItem.marka],
+                "model": [HardwareInventory.model],
+                "donanim_tipi": [HardwareInventory.donanim_tipi],
+                "fabrika": [HardwareInventory.fabrika],
+                "departman": [HardwareInventory.departman, LicenseInventory.departman],
+                "blok": [HardwareInventory.blok],
+                "lokasyon": [StockItem.departman],
+                "yazilim": [LicenseInventory.yazilim_adi],
+                "yazici_marka": [PrinterInventory.yazici_markasi],
+                "yazici_model": [PrinterInventory.yazici_modeli],
+                "urun": [StockItem.urun_adi],
+            }
+            columns = checks.get(item.type, [])
+            for col in columns:
+                model = col.class_
+                if db.query(model).filter(col == item.name).first():
+                    return True
+            return False
+
+        if not force and item_in_use():
+            return JSONResponse({"status": "used"})
+
+        db.delete(item)
+        db.commit()
+        return JSONResponse({"status": "deleted"})
+    finally:
+        db.close()
 
 
 @router.get("/profile", response_class=HTMLResponse)
