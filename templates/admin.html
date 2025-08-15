@@ -25,6 +25,10 @@
   </div>
   <button type="submit" class="btn btn-primary">Ekle</button>
 </form>
+<form method="get" action="/admin" class="mb-3 d-flex">
+  <input type="text" name="q" class="form-control me-2" placeholder="Kullanıcı Ara" value="{{ q }}">
+  <button type="submit" class="btn btn-secondary">Ara</button>
+</form>
 <table class="table">
   <thead>
     <tr><th>Kullanıcı Adı</th><th>İsim</th><th>Soyisim</th><th>Mail</th><th>Admin</th><th>İşlem</th></tr>
