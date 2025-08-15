@@ -19,6 +19,7 @@ from models import (
     DeletedHardwareInventory,
     DeletedLicenseInventory,
     DeletedPrinterInventory,
+    DeletedAccessoryInventory,
     DeletedStockItem,
 )
 from utils import get_table_columns, load_settings, save_settings, log_action
@@ -180,8 +181,15 @@ async def printer_add(request: Request):
     try:
         printer_id = form.get("printer_id")
         if printer_id:
-            item = db.query(PrinterInventory).get(int(printer_id))
-            if item:
+            existing = db.query(PrinterInventory).get(int(printer_id))
+            if existing:
+                data = {
+                    col.name: getattr(existing, col.name)
+                    for col in PrinterInventory.__table__.columns
+                    if col.name != "id"
+                }
+                deleted = DeletedPrinterInventory(**data, deleted_at=date.today())
+                db.add(deleted)
                 for field in [
                     "yazici_markasi",
                     "yazici_modeli",
@@ -192,9 +200,27 @@ async def printer_add(request: Request):
                     "notlar",
                 ]:
                     if field in form:
-                        setattr(item, field, form.get(field))
-                item.islem_yapan = request.session.get("full_name", "")
-            action = f"Updated printer item {printer_id}"
+                        data[field] = form.get(field)
+                data["tarih"] = date.today()
+                data["islem_yapan"] = request.session.get("full_name", "")
+                item = PrinterInventory(**data)
+                db.add(item)
+                db.delete(existing)
+                action = f"Updated printer item {printer_id}"
+            else:
+                item = PrinterInventory(
+                    yazici_markasi=form.get("yazici_markasi"),
+                    yazici_modeli=form.get("yazici_modeli"),
+                    kullanim_alani=form.get("kullanim_alani"),
+                    ip_adresi=form.get("ip_adresi"),
+                    mac=form.get("mac"),
+                    hostname=form.get("hostname"),
+                    tarih=date.today(),
+                    islem_yapan=request.session.get("full_name", ""),
+                    notlar=form.get("notlar"),
+                )
+                db.add(item)
+                action = f"Added printer item {item.id}"
         else:
             item = PrinterInventory(
                 yazici_markasi=form.get("yazici_markasi"),
@@ -231,8 +257,15 @@ async def inventory_add(request: Request):
     try:
         item_id = form.get("item_id")
         if item_id:
-            item = db.query(HardwareInventory).get(int(item_id))
-            if item:
+            existing = db.query(HardwareInventory).get(int(item_id))
+            if existing:
+                data = {
+                    col.name: getattr(existing, col.name)
+                    for col in HardwareInventory.__table__.columns
+                    if col.name != "id"
+                }
+                deleted = DeletedHardwareInventory(**data, deleted_at=date.today())
+                db.add(deleted)
                 for field in [
                     "no",
                     "fabrika",
@@ -248,9 +281,32 @@ async def inventory_add(request: Request):
                     "bagli_makina_no",
                 ]:
                     if field in form:
-                        setattr(item, field, form.get(field))
-                item.islem_yapan = request.session.get("full_name", "")
-            action = f"Updated hardware item {item_id}"
+                        data[field] = form.get(field)
+                data["tarih"] = date.today()
+                data["islem_yapan"] = request.session.get("full_name", "")
+                item = HardwareInventory(**data)
+                db.add(item)
+                db.delete(existing)
+                action = f"Updated hardware item {item_id}"
+            else:
+                item = HardwareInventory(
+                    no=form.get("no"),
+                    fabrika=form.get("fabrika"),
+                    blok=form.get("blok"),
+                    departman=form.get("departman"),
+                    donanim_tipi=form.get("donanim_tipi"),
+                    bilgisayar_adi=form.get("bilgisayar_adi"),
+                    marka=form.get("marka"),
+                    model=form.get("model"),
+                    seri_no=form.get("seri_no"),
+                    sorumlu_personel=form.get("sorumlu_personel"),
+                    kullanim_alani=form.get("kullanim_alani"),
+                    bagli_makina_no=form.get("bagli_makina_no"),
+                    tarih=date.today(),
+                    islem_yapan=request.session.get("full_name", ""),
+                )
+                db.add(item)
+                action = f"Added hardware item {item.id}"
         else:
             item = HardwareInventory(
                 no=form.get("no"),
@@ -292,8 +348,15 @@ async def license_add(request: Request):
     try:
         license_id = form.get("license_id")
         if license_id:
-            item = db.query(LicenseInventory).get(int(license_id))
-            if item:
+            existing = db.query(LicenseInventory).get(int(license_id))
+            if existing:
+                data = {
+                    col.name: getattr(existing, col.name)
+                    for col in LicenseInventory.__table__.columns
+                    if col.name != "id"
+                }
+                deleted = DeletedLicenseInventory(**data, deleted_at=date.today())
+                db.add(deleted)
                 for field in [
                     "departman",
                     "kullanici",
@@ -304,9 +367,27 @@ async def license_add(request: Request):
                     "notlar",
                 ]:
                     if field in form:
-                        setattr(item, field, form.get(field))
-                item.islem_yapan = request.session.get("full_name", "")
-            action = f"Updated license item {license_id}"
+                        data[field] = form.get(field)
+                data["tarih"] = date.today()
+                data["islem_yapan"] = request.session.get("full_name", "")
+                item = LicenseInventory(**data)
+                db.add(item)
+                db.delete(existing)
+                action = f"Updated license item {license_id}"
+            else:
+                item = LicenseInventory(
+                    departman=form.get("departman"),
+                    kullanici=form.get("kullanici"),
+                    yazilim_adi=form.get("yazilim_adi"),
+                    lisans_anahtari=form.get("lisans_anahtari"),
+                    mail_adresi=form.get("mail_adresi"),
+                    envanter_no=form.get("envanter_no"),
+                    tarih=date.today(),
+                    islem_yapan=request.session.get("full_name", ""),
+                    notlar=form.get("notlar"),
+                )
+                db.add(item)
+                action = f"Added license item {item.id}"
         else:
             item = LicenseInventory(
                 departman=form.get("departman"),
@@ -343,8 +424,15 @@ async def accessories_add(request: Request):
     try:
         accessory_id = form.get("accessory_id")
         if accessory_id:
-            item = db.query(AccessoryInventory).get(int(accessory_id))
-            if item:
+            existing = db.query(AccessoryInventory).get(int(accessory_id))
+            if existing:
+                data = {
+                    col.name: getattr(existing, col.name)
+                    for col in AccessoryInventory.__table__.columns
+                    if col.name != "id"
+                }
+                deleted = DeletedAccessoryInventory(**data, deleted_at=date.today())
+                db.add(deleted)
                 for field in [
                     "urun_adi",
                     "adet",
@@ -356,9 +444,25 @@ async def accessories_add(request: Request):
                         value = form.get(field)
                         if field == "adet":
                             value = int(value) if value else None
-                        setattr(item, field, value)
-                item.islem_yapan = request.session.get("full_name", "")
-            action = f"Updated accessory item {accessory_id}"
+                        data[field] = value
+                data["tarih"] = date.today()
+                data["islem_yapan"] = request.session.get("full_name", "")
+                item = AccessoryInventory(**data)
+                db.add(item)
+                db.delete(existing)
+                action = f"Updated accessory item {accessory_id}"
+            else:
+                item = AccessoryInventory(
+                    urun_adi=form.get("urun_adi"),
+                    adet=int(form.get("adet") or 0),
+                    tarih=date.today(),
+                    departman=form.get("departman"),
+                    kullanici=form.get("kullanici"),
+                    aciklama=form.get("aciklama"),
+                    islem_yapan=request.session.get("full_name", ""),
+                )
+                db.add(item)
+                action = f"Added accessory item {item.id}"
         else:
             item = AccessoryInventory(
                 urun_adi=form.get("urun_adi"),
