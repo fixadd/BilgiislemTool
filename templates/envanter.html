@@ -72,7 +72,7 @@
 </form>
 
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog w-200">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="settingsModalLabel">Kolon Ayarları</h5>
@@ -88,7 +88,7 @@
 </div>
 
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog w-200">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="editModalLabel">Kayıt Düzenle</h5>
@@ -97,7 +97,7 @@
       <form id="editForm" action="/inventory/add" method="post">
         <input type="hidden" name="item_id">
           <div class="modal-body">
-            <div class="row row-cols-1 row-cols-md-4 g-3">
+            <div class="row row-cols-1 g-3">
             {% for col in columns %}
             {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="col">
@@ -127,7 +127,7 @@
   </div>
 </div>
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog w-200">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="addModalLabel">Yeni Kayıt</h5>
@@ -135,7 +135,7 @@
       </div>
       <form id="addForm" action="/inventory/add" method="post">
           <div class="modal-body">
-            <div class="row row-cols-1 row-cols-md-4 g-3">
+            <div class="row row-cols-1 g-3">
             {% for col in columns %}
             {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="col">
@@ -210,7 +210,7 @@
 
 
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog w-200">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Silme Onayı</h5>
