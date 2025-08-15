@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Kullanıcı Yönetimi</h2>
 {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
-<button id="add-user-btn" class="btn btn-primary mb-3">Kullanıcı Ekle</button>
+<button id="add-user-btn" class="btn btn-primary mb-3"style="width: 400px;">Kullanıcı Ekle</button>
 <form id="add-user-form" method="post" action="/admin/create" class="mb-3 d-none">
   <div class="mb-3" style="width: 400px;">
     <input type="text" name="username" class="form-control" placeholder="Kullanıcı Adı" required>
