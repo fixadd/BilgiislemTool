@@ -4,9 +4,10 @@ from typing import Optional
 from pydantic import BaseModel
 
 from logs import InventoryLogCreate
-from services.log_service import add_inventory_log, get_inventory_logs
+from services.log_service import add_inventory_log, get_inventory_logs, get_activity_logs
 from utils import templates
 from utils.auth import require_admin
+from models import SessionLocal, User
 
 router = APIRouter(prefix="/logs", tags=["Inventory Logs"])
 
@@ -28,9 +29,34 @@ def list_logs(
 
 
 @router.get("/records", response_class=HTMLResponse, dependencies=[Depends(require_admin)])
-def logs_page(request: Request, limit: int = 200, offset: int = 0):
-    logs = get_inventory_logs(limit=limit, offset=offset)
-    return templates.TemplateResponse("kayitlar.html", {"request": request, "logs": logs})
+def logs_page(
+    request: Request,
+    log_type: str = "inventory",
+    user_id: Optional[int] = None,
+    limit: int = 200,
+    offset: int = 0,
+):
+    if log_type == "activity":
+        logs = get_activity_logs(limit=limit, offset=offset)
+        users = []
+    else:
+        logs = get_inventory_logs(user_id=user_id, limit=limit, offset=offset)
+        log_type = "inventory"
+        db = SessionLocal()
+        try:
+            users = db.query(User.id, User.username).order_by(User.username).all()
+        finally:
+            db.close()
+    return templates.TemplateResponse(
+        "kayitlar.html",
+        {
+            "request": request,
+            "logs": logs,
+            "log_type": log_type,
+            "users": users,
+            "selected_user_id": user_id,
+        },
+    )
 
 @router.post("")
 def create_log(payload: InventoryLogCreate):

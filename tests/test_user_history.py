@@ -48,6 +48,12 @@ def setup_log_db(path):
     for mig in ["001_inventory_logs.sql", "003_add_inventory_no_columns.sql"]:
         with open(f"db/migrations/{mig}") as f:
             con.executescript(f.read())
+    # minimal users table for join in get_inventory_logs
+    con.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT)")
+    con.executemany(
+        "INSERT INTO users (id, username) VALUES (?, ?)",
+        [(1, "user1"), (2, "user2")],
+    )
     con.commit()
     con.close()
 
