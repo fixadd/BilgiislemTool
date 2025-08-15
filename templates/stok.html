@@ -118,6 +118,7 @@
               </div>
               {% endif %}
               {% endfor %}
+              {% include 'partials/inventory_history.html' %}
             </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-warning">Kaydet</button>
@@ -345,6 +346,7 @@ editButton.addEventListener('click', () => {
     });
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
     modal.show();
+    loadHistory(tableName, form.stock_id.value);
 });
 
 const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
