@@ -10,6 +10,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN:-}
       - ADMIN_USERNAME
       - ADMIN_PASSWORD
+      - SESSION_SECRET
     volumes:
       - ./data:/app/data
       - ./image:/app/image     # hosttaki image klasörünü container’a bağla
