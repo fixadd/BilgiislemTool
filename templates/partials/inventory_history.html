@@ -1,0 +1,39 @@
+<div class="card mt-3">
+  <div class="card-header">Geçmiş</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>İşlem</th>
+          <th>Önceki Kullanıcı</th>
+          <th>Yeni Kullanıcı</th>
+          <th>Önceki Konum</th>
+          <th>Yeni Konum</th>
+          <th>Not</th>
+          <th>İşlemi Yapan</th>
+        </tr>
+      </thead>
+      <tbody id="history-rows"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+async function loadHistory(invType, invId){
+  const res = await fetch(`/logs?type=${encodeURIComponent(invType)}&id=${invId}`);
+  const rows = await res.json();
+  const tbody = document.getElementById('history-rows');
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${new Date(r.change_date).toLocaleString()}</td>
+      <td>${r.action}</td>
+      <td>${r.old_user_id ?? ''}</td>
+      <td>${r.new_user_id ?? ''}</td>
+      <td>${r.old_location ?? ''}</td>
+      <td>${r.new_location ?? ''}</td>
+      <td>${r.note ?? ''}</td>
+      <td>${r.changed_by}</td>
+    </tr>
+  `).join('');
+}
+</script>
