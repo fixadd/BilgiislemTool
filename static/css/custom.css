@@ -67,3 +67,8 @@ html, body {
 
 /* Kenar boşluklarını biraz kıs */
 .container-fluid { padding-left: 8px; padding-right: 8px; }
+
+/* Genel genişlik sınıfı */
+.w-200 {
+  width: 200px !important;
+}
