@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Envanter Ekleme{% endblock %}
 {% block content %}
+
+<style>
+  /* SADECE ana listedeki satırları etkiler (modallar etkilenmez) */
+  .list-group.inventory-rows > .list-group-item {
+    height: 200px !important;
+    min-height: 200px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 1rem !important;
+  }
+</style>
+
 <h2>Envanter Ekleme</h2>
 <div class="list-group inventory-rows">
   <div class="list-group-item d-flex justify-content-between align-items-center">
@@ -348,6 +361,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  // Silme butonları (mevcut davranış)
   document.querySelectorAll('.delete-item').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -372,6 +386,20 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  // Emniyet: CSS uygulanmıyorsa JS ile zorla
+  document.querySelectorAll('.list-group.inventory-rows > .list-group-item').forEach(el => {
+    el.style.height = '200px';
+    el.style.minHeight = '200px';
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'space-between';
+    el.style.paddingTop = '0';
+    el.style.paddingBottom = '0';
+    el.style.paddingLeft = '1rem';
+    el.style.paddingRight = '1rem';
+  });
 });
 </script>
+
 {% endblock %}
