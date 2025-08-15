@@ -23,6 +23,8 @@ from models import (
     DeletedStockItem,
 )
 from utils import get_table_columns, load_settings, save_settings, log_action
+from logs import InventoryLogCreate
+from services.log_service import add_inventory_log
 from .stock import list_stock as stock_list
 
 
@@ -256,9 +258,11 @@ async def inventory_add(request: Request):
     db = SessionLocal()
     try:
         item_id = form.get("item_id")
+        relabel = False
         if item_id:
             existing = db.query(HardwareInventory).get(int(item_id))
             if existing:
+                old_no = existing.no
                 data = {
                     col.name: getattr(existing, col.name)
                     for col in HardwareInventory.__table__.columns
@@ -284,10 +288,12 @@ async def inventory_add(request: Request):
                         data[field] = form.get(field)
                 data["tarih"] = date.today()
                 data["islem_yapan"] = request.session.get("full_name", "")
+                new_no = data.get("no")
                 item = HardwareInventory(**data)
                 db.add(item)
                 db.delete(existing)
                 action = f"Updated hardware item {item_id}"
+                relabel = old_no != new_no
             else:
                 item = HardwareInventory(
                     no=form.get("no"),
@@ -327,6 +333,17 @@ async def inventory_add(request: Request):
             db.add(item)
             action = f"Added hardware item {item.id}"
         db.commit()
+        if item_id and relabel:
+            add_inventory_log(
+                InventoryLogCreate(
+                    inventory_type="pc",
+                    inventory_id=item.id,
+                    action="relabel",
+                    changed_by=request.session.get("user_id", 0),
+                    old_inventory_no=old_no,
+                    new_inventory_no=new_no,
+                )
+            )
         log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()
@@ -347,9 +364,11 @@ async def license_add(request: Request):
     db = SessionLocal()
     try:
         license_id = form.get("license_id")
+        relabel = False
         if license_id:
             existing = db.query(LicenseInventory).get(int(license_id))
             if existing:
+                old_no = existing.envanter_no
                 data = {
                     col.name: getattr(existing, col.name)
                     for col in LicenseInventory.__table__.columns
@@ -370,10 +389,12 @@ async def license_add(request: Request):
                         data[field] = form.get(field)
                 data["tarih"] = date.today()
                 data["islem_yapan"] = request.session.get("full_name", "")
+                new_no = data.get("envanter_no")
                 item = LicenseInventory(**data)
                 db.add(item)
                 db.delete(existing)
                 action = f"Updated license item {license_id}"
+                relabel = old_no != new_no
             else:
                 item = LicenseInventory(
                     departman=form.get("departman"),
@@ -403,6 +424,17 @@ async def license_add(request: Request):
             db.add(item)
             action = f"Added license item {item.id}"
         db.commit()
+        if license_id and relabel:
+            add_inventory_log(
+                InventoryLogCreate(
+                    inventory_type="license",
+                    inventory_id=item.id,
+                    action="relabel",
+                    changed_by=request.session.get("user_id", 0),
+                    old_inventory_no=old_no,
+                    new_inventory_no=new_no,
+                )
+            )
         log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()
