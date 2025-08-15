@@ -5,23 +5,23 @@
 {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
 {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
 <form method="post" action="/connections">
-  <div class="mb-3">
+  <div class="mb-3"style="width: 400px;">
     <label class="form-label">Sunucu</label>
     <input type="text" name="server" class="form-control form-control-sm" required>
   </div>
-  <div class="mb-3">
+  <div class="mb-3"style="width: 400px;">
     <label class="form-label">Port</label>
     <input type="number" name="port" class="form-control form-control-sm" value="389">
   </div>
-  <div class="mb-3">
+  <div class="mb-3"style="width: 400px;">
     <label class="form-label">Kullanıcı DN</label>
     <input type="text" name="user_dn" class="form-control form-control-sm" required>
   </div>
-  <div class="mb-3">
+  <div class="mb-3"style="width: 400px;">
     <label class="form-label">Şifre</label>
     <input type="password" name="password" class="form-control form-control-sm" required>
   </div>
-  <div class="mb-3">
+  <div class="mb-3"style="width: 400px;">
     <label class="form-label">Base DN</label>
     <input type="text" name="base_dn" class="form-control form-control-sm" required>
   </div>
