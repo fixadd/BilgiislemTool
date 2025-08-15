@@ -148,6 +148,20 @@ class StockItem(Base):
     islem_yapan = Column(String)
 
 
+class DeletedAccessoryInventory(Base):
+    __tablename__ = "deleted_accessory_inventory"
+    id = Column(Integer, primary_key=True, index=True)
+    urun_adi = Column(String)
+    adet = Column(Integer)
+    tarih = Column(Date)
+    ifs_no = Column(String)
+    departman = Column(String)
+    kullanici = Column(String)
+    aciklama = Column(String)
+    islem_yapan = Column(String)
+    deleted_at = Column(Date)
+
+
 class AccessoryInventory(Base):
     __tablename__ = "accessory_inventory"
     id = Column(Integer, primary_key=True, index=True)
