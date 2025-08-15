@@ -207,6 +207,11 @@ class ActivityLog(Base):
 def init_db():
     """Create database tables if they don't exist."""
     Base.metadata.create_all(bind=engine)
+    mig_path = os.path.join(os.path.dirname(__file__), "db", "migrations", "001_inventory_logs.sql")
+    if os.path.exists(mig_path):
+        import sqlite3
+        with sqlite3.connect(DB_FILE) as con, open(mig_path, "r") as fh:
+            con.executescript(fh.read())
 
 
 def init_admin():
