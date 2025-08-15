@@ -92,13 +92,13 @@
         <input type="hidden" name="license_id">
           <div class="modal-body">
             {% for col in columns %}
-            {% if col != 'islem_yapan' %}
+            {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="mb-3">
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% if col == 'notlar' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
               {% elif col == 'tarih' %}
-              <input type="date" class="form-control" name="{{ col }}" value="{{ today }}" required>
+              <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% elif lookups.get(col) %}
               <select class="form-select" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
@@ -131,13 +131,13 @@
       <form id="addForm" action="/license/add" method="post">
           <div class="modal-body">
             {% for col in columns %}
-            {% if col != 'islem_yapan' %}
+            {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="mb-3">
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% if col == 'notlar' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
               {% elif col == 'tarih' %}
-              <input type="date" class="form-control" name="{{ col }}" value="{{ today }}" required>
+              <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% elif lookups.get(col) %}
               <select class="form-select" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>

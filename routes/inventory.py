@@ -189,14 +189,10 @@ async def printer_add(request: Request):
                     "ip_adresi",
                     "mac",
                     "hostname",
-                    "tarih",
                     "notlar",
                 ]:
                     if field in form:
-                        value = form.get(field)
-                        if field == "tarih":
-                            value = date.fromisoformat(value) if value else None
-                        setattr(item, field, value)
+                        setattr(item, field, form.get(field))
                 item.islem_yapan = request.session.get("full_name", "")
             action = f"Updated printer item {printer_id}"
         else:
@@ -207,10 +203,7 @@ async def printer_add(request: Request):
                 ip_adresi=form.get("ip_adresi"),
                 mac=form.get("mac"),
                 hostname=form.get("hostname"),
-                tarih=
-                    date.fromisoformat(form.get("tarih"))
-                    if form.get("tarih")
-                    else None,
+                tarih=date.today(),
                 islem_yapan=request.session.get("full_name", ""),
                 notlar=form.get("notlar"),
             )
@@ -253,14 +246,9 @@ async def inventory_add(request: Request):
                     "sorumlu_personel",
                     "kullanim_alani",
                     "bagli_makina_no",
-                    "ifs_no",
-                    "tarih",
                 ]:
                     if field in form:
-                        value = form.get(field)
-                        if field == "tarih":
-                            value = date.fromisoformat(value) if value else None
-                        setattr(item, field, value)
+                        setattr(item, field, form.get(field))
                 item.islem_yapan = request.session.get("full_name", "")
             action = f"Updated hardware item {item_id}"
         else:
@@ -277,11 +265,7 @@ async def inventory_add(request: Request):
                 sorumlu_personel=form.get("sorumlu_personel"),
                 kullanim_alani=form.get("kullanim_alani"),
                 bagli_makina_no=form.get("bagli_makina_no"),
-                ifs_no=form.get("ifs_no"),
-                tarih=
-                    date.fromisoformat(form.get("tarih"))
-                    if form.get("tarih")
-                    else None,
+                tarih=date.today(),
                 islem_yapan=request.session.get("full_name", ""),
             )
             db.add(item)
@@ -317,15 +301,10 @@ async def license_add(request: Request):
                     "lisans_anahtari",
                     "mail_adresi",
                     "envanter_no",
-                    "ifs_no",
-                    "tarih",
                     "notlar",
                 ]:
                     if field in form:
-                        value = form.get(field)
-                        if field == "tarih":
-                            value = date.fromisoformat(value) if value else None
-                        setattr(item, field, value)
+                        setattr(item, field, form.get(field))
                 item.islem_yapan = request.session.get("full_name", "")
             action = f"Updated license item {license_id}"
         else:
@@ -336,11 +315,7 @@ async def license_add(request: Request):
                 lisans_anahtari=form.get("lisans_anahtari"),
                 mail_adresi=form.get("mail_adresi"),
                 envanter_no=form.get("envanter_no"),
-                ifs_no=form.get("ifs_no"),
-                tarih=
-                    date.fromisoformat(form.get("tarih"))
-                    if form.get("tarih")
-                    else None,
+                tarih=date.today(),
                 islem_yapan=request.session.get("full_name", ""),
                 notlar=form.get("notlar"),
             )
@@ -373,8 +348,6 @@ async def accessories_add(request: Request):
                 for field in [
                     "urun_adi",
                     "adet",
-                    "tarih",
-                    "ifs_no",
                     "departman",
                     "kullanici",
                     "aciklama",
@@ -383,8 +356,6 @@ async def accessories_add(request: Request):
                         value = form.get(field)
                         if field == "adet":
                             value = int(value) if value else None
-                        elif field == "tarih":
-                            value = date.fromisoformat(value) if value else None
                         setattr(item, field, value)
                 item.islem_yapan = request.session.get("full_name", "")
             action = f"Updated accessory item {accessory_id}"
@@ -392,11 +363,7 @@ async def accessories_add(request: Request):
             item = AccessoryInventory(
                 urun_adi=form.get("urun_adi"),
                 adet=int(form.get("adet") or 0),
-                tarih=
-                    date.fromisoformat(form.get("tarih"))
-                    if form.get("tarih")
-                    else None,
-                ifs_no=form.get("ifs_no"),
+                tarih=date.today(),
                 departman=form.get("departman"),
                 kullanici=form.get("kullanici"),
                 aciklama=form.get("aciklama"),
