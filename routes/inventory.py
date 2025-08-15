@@ -6,7 +6,7 @@ import csv
 from io import StringIO
 
 from fastapi import APIRouter, Depends, File, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
 
 from utils.auth import require_login
 from models import (
@@ -38,6 +38,24 @@ MODEL_MAP = {
     "inventory": HardwareInventory,
     "accessory": AccessoryInventory,
 }
+
+
+@router.get("/inventory/fetch/{no}")
+def inventory_fetch(no: str):
+    """Fetch hardware inventory details by inventory number."""
+    db = SessionLocal()
+    try:
+        item = db.query(HardwareInventory).filter(HardwareInventory.no == no).first()
+        if not item:
+            return JSONResponse({"status": "not_found"}, status_code=404)
+        return {
+            "departman": item.departman,
+            "sorumlu_personel": item.sorumlu_personel,
+            "kullanim_alani": item.kullanim_alani,
+            "bilgisayar_adi": item.bilgisayar_adi,
+        }
+    finally:
+        db.close()
 
 
 def _export_model(model, filename: str) -> StreamingResponse:

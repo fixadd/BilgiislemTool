@@ -98,7 +98,7 @@
               {% if col == 'notlar' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
               {% elif col == 'tarih' %}
-              <input type="date" class="form-control" name="{{ col }}" required>
+              <input type="date" class="form-control" name="{{ col }}" value="{{ today }}" required>
               {% elif lookups.get(col) %}
               <select class="form-select" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
@@ -137,7 +137,7 @@
               {% if col == 'notlar' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
               {% elif col == 'tarih' %}
-              <input type="date" class="form-control" name="{{ col }}" required>
+              <input type="date" class="form-control" name="{{ col }}" value="{{ today }}" required>
               {% elif lookups.get(col) %}
               <select class="form-select" name="{{ col }}" required>
                 <option value="" disabled selected>Seçiniz</option>
@@ -359,5 +359,19 @@ if (perPageSelect) {
         document.getElementById('search-form').submit();
     });
 }
+
+const licenseEnvInput = document.querySelector('#addForm input[name="envanter_no"]');
+licenseEnvInput?.addEventListener('change', async () => {
+    const val = licenseEnvInput.value.trim();
+    if (!val) return;
+    const res = await fetch(`/inventory/fetch/${val}`);
+    if (res.ok) {
+        const data = await res.json();
+        const dept = document.querySelector('#addForm input[name="departman"]');
+        const user = document.querySelector('#addForm input[name="kullanici"]');
+        if (data.departman && dept) dept.value = data.departman;
+        if (data.sorumlu_personel && user) user.value = data.sorumlu_personel;
+    }
+});
 </script>
 {% endblock %}

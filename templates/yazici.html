@@ -102,7 +102,7 @@
                 {% endfor %}
               </select>
               {% elif col == 'tarih' %}
-              <input type="date" class="form-control" name="{{ col }}" required>
+              <input type="date" class="form-control" name="{{ col }}" value="{{ today }}" required>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
@@ -127,6 +127,10 @@
       </div>
       <form id="addForm" action="/printer/add" method="post">
           <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Envanter No</label>
+              <input type="text" class="form-control" id="envanter_no_lookup">
+            </div>
             {% for col in columns %}
             {% if col != 'islem_yapan' %}
             <div class="mb-3">
@@ -139,7 +143,7 @@
                 {% endfor %}
               </select>
               {% elif col == 'tarih' %}
-              <input type="date" class="form-control" name="{{ col }}" required>
+              <input type="date" class="form-control" name="{{ col }}" value="{{ today }}" required>
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
@@ -353,5 +357,19 @@ if (perPageSelect) {
         document.getElementById('search-form').submit();
     });
 }
+
+const printerEnvInput = document.getElementById('envanter_no_lookup');
+printerEnvInput?.addEventListener('change', async () => {
+    const val = printerEnvInput.value.trim();
+    if (!val) return;
+    const res = await fetch(`/inventory/fetch/${val}`);
+    if (res.ok) {
+        const data = await res.json();
+        const area = document.querySelector('#addForm input[name="kullanim_alani"]');
+        const host = document.querySelector('#addForm input[name="hostname"]');
+        if (data.kullanim_alani && area) area.value = data.kullanim_alani;
+        if (data.bilgisayar_adi && host) host.value = data.bilgisayar_adi;
+    }
+});
 </script>
 {% endblock %}
