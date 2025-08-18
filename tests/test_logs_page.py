@@ -43,8 +43,11 @@ def setup_log_db(tmp_path):
     with sqlite3.connect(log_db) as con:
         with open("db/migrations/001_inventory_logs.sql") as f:
             con.executescript(f.read())
-        # minimal users table required for joins in get_inventory_logs
-        con.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT)")
+        # minimal tables required for joins in get_inventory_logs
+        con.execute(
+            "CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, first_name TEXT, last_name TEXT)"
+        )
+        con.execute("CREATE TABLE lookup_items (id INTEGER PRIMARY KEY, name TEXT)")
     log_service.DB_PATH = str(log_db)
 
 
