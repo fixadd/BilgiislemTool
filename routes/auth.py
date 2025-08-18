@@ -2,8 +2,9 @@
 
 import secrets
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi_csrf_protect import CsrfProtect
 
 from models import SessionLocal, User, pwd_context
 from utils import templates
@@ -12,19 +13,26 @@ router = APIRouter()
 
 
 @router.get("/login", response_class=HTMLResponse)
-def login_form(request: Request) -> HTMLResponse:
+def login_form(request: Request, csrf_protect: CsrfProtect = Depends()) -> HTMLResponse:
     """Render the login form."""
-    return templates.TemplateResponse(request, "login.html")
+    token, signed = csrf_protect.generate_csrf_tokens()
+    response = templates.TemplateResponse(
+        request, "login.html", {"csrf_token": token}
+    )
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.post("/login")
-def login(
+async def login(
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     username: str = Form(...),
     password: str = Form(...),
     remember: bool = Form(False),
 ):
     """Verify user credentials and establish a session."""
+    await csrf_protect.validate_csrf(request)
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.username == username).first()
@@ -64,8 +72,12 @@ def login(
 
 @router.get("/logout")
 @router.post("/logout")
-def logout(request: Request):
+async def logout(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+):
     """Clear the current session."""
+    if request.method == "POST":
+        await csrf_protect.validate_csrf(request)
     request.session.clear()
     return RedirectResponse("/login", status_code=303)
 

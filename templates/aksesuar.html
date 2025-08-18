@@ -270,7 +270,7 @@ document.getElementById('save-settings').addEventListener('click', async () => {
     await fetch(`/column-settings?table_name=${tableName}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentSettings)
+        body: JSON.stringify({ ...currentSettings, csrf_token: csrfToken })
     });
     location.reload();
 });

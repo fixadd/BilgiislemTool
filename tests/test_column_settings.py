@@ -14,6 +14,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from routes.inventory_pages import router as inventory_pages_router
 from utils.auth import require_login
+from fastapi_csrf_protect import CsrfProtect
+from pydantic_settings import BaseSettings
 
 
 def create_app():
@@ -36,6 +38,17 @@ def setup_in_memory_db():
     models.Base.metadata.create_all(bind=engine)
 
 
+class CsrfSettings(BaseSettings):
+    secret_key: str = "test-secret"
+    token_key: str = "csrf_token"
+    token_location: str = "body"
+
+
+@CsrfProtect.load_config
+def get_csrf_config() -> CsrfSettings:
+    return CsrfSettings()
+
+
 def test_save_and_load_column_settings(tmp_path):
     setup_in_memory_db()
     utils.SETTINGS_FILE = str(tmp_path / "settings.json")
@@ -43,14 +56,19 @@ def test_save_and_load_column_settings(tmp_path):
     data_license = {"order": ["a"], "visible": ["a"], "widths": {"a": 100}}
     data_printer = {"order": ["b"], "visible": ["b"], "widths": {"b": 80}}
     with TestClient(app) as client:
+        csrf = CsrfProtect()
+        token, signed = csrf.generate_csrf_tokens()
+        client.cookies.set("fastapi-csrf-token", signed)
         resp = client.post(
-            "/column-settings?table_name=license", json=data_license
+            "/column-settings?table_name=license", json={**data_license, "csrf_token": token}
         )
         assert resp.status_code == 200
         resp = client.get("/column-settings?table_name=license")
         assert resp.json() == data_license
+        token, signed = csrf.generate_csrf_tokens()
+        client.cookies.set("fastapi-csrf-token", signed)
         resp = client.post(
-            "/column-settings?table_name=printer", json=data_printer
+            "/column-settings?table_name=printer", json={**data_printer, "csrf_token": token}
         )
         assert resp.status_code == 200
         resp = client.get("/column-settings?table_name=printer")

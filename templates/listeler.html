@@ -438,14 +438,14 @@ document.addEventListener('DOMContentLoaded', function () {
       const id = btn.dataset.id;
       let resp = await fetch('/lists/delete', {
         method: 'POST',
-        body: new URLSearchParams({ item_id: id })
+        body: new URLSearchParams({ item_id: id, csrf_token: csrfToken })
       });
       let data = await resp.json();
       if (data.status === 'used') {
         if (!confirm('Bu başka yerlerde kullanılıyor. Silmek ister misiniz?')) return;
         resp = await fetch('/lists/delete', {
           method: 'POST',
-          body: new URLSearchParams({ item_id: id, force: '1' })
+          body: new URLSearchParams({ item_id: id, force: '1', csrf_token: csrfToken })
         });
         data = await resp.json();
       }

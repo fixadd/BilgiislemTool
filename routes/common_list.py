@@ -5,6 +5,7 @@ import math
 
 from fastapi import Request
 from fastapi.responses import HTMLResponse
+from fastapi_csrf_protect import CsrfProtect
 from sqlalchemy import or_, String
 
 from models import SessionLocal, User
@@ -90,4 +91,9 @@ def list_items(
         "current_user_id": request.session.get("user_id"),
     }
     context[items_key] = items
-    return templates.TemplateResponse(template_name, context)
+    csrf_protect = CsrfProtect()
+    token, signed = csrf_protect.generate_csrf_tokens()
+    context["csrf_token"] = token
+    response = templates.TemplateResponse(request, template_name, context)
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
