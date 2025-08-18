@@ -164,23 +164,26 @@
 </div>
 
 <table class="table table-striped table-fixed table-resizable">
-
-  <tr>
+  <thead>
+    <tr>
       <th><input type="checkbox" id="select-all"></th>
       <th>#</th>
       {% for col in columns %}
       <th data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px;"{% endif %}>{{ column_labels.get(col, col.replace('_', ' ').title()) }}</th>
       {% endfor %}
-  </tr>
-  {% for l in licenses %}
-  <tr>
+    </tr>
+  </thead>
+  <tbody>
+    {% for l in licenses %}
+    <tr>
       <td><input class="form-check-input row-check" type="checkbox" value="{{ l.id }}"></td>
       <td>{{ loop.index + offset }}</td>
       {% for col in columns %}
       <td data-col="{{ col }}"{% if column_widths.get(col) %} style="width: {{ column_widths[col] }}px; white-space: normal; word-break: break-word;"{% else %} style="white-space: normal; word-break: break-word;"{% endif %}>{{ l|attr(col) }}</td>
       {% endfor %}
-  </tr>
-  {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
 
 <nav aria-label="Sayfalar">
