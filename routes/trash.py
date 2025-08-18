@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Dict, Tuple
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from models import (
@@ -100,60 +100,21 @@ def _restore_item(item_id: int, models_pair: Tuple[object, object]) -> None:
         db.close()
 
 
-@router.post("/inventory/restore/{item_id}")
-def restore_hardware(request: Request, item_id: int):
-    _restore_item(item_id, (DeletedHardwareInventory, HardwareInventory))
+@router.post("/{item_type}/restore/{item_id}")
+def restore_item(request: Request, item_type: str, item_id: int):
+    """Restore a soft-deleted item back to its active table."""
+    deleted_model = DELETED_MODELS.get(item_type)
+    active_model = ACTIVE_MODELS.get(item_type)
+    if not deleted_model or not active_model:
+        raise HTTPException(status_code=404, detail="Invalid item type")
+
+    _restore_item(item_id, (deleted_model, active_model))
     db = SessionLocal()
     try:
         log_action(
             db,
             request.session.get("username", ""),
-            f"Restored hardware item {item_id}",
-        )
-    finally:
-        db.close()
-    return RedirectResponse("/trash", status_code=303)
-
-
-@router.post("/license/restore/{item_id}")
-def restore_license(request: Request, item_id: int):
-    _restore_item(item_id, (DeletedLicenseInventory, LicenseInventory))
-    db = SessionLocal()
-    try:
-        log_action(
-            db,
-            request.session.get("username", ""),
-            f"Restored license item {item_id}",
-        )
-    finally:
-        db.close()
-    return RedirectResponse("/trash", status_code=303)
-
-
-@router.post("/printer/restore/{item_id}")
-def restore_printer(request: Request, item_id: int):
-    _restore_item(item_id, (DeletedPrinterInventory, PrinterInventory))
-    db = SessionLocal()
-    try:
-        log_action(
-            db,
-            request.session.get("username", ""),
-            f"Restored printer item {item_id}",
-        )
-    finally:
-        db.close()
-    return RedirectResponse("/trash", status_code=303)
-
-
-@router.post("/stock/restore/{item_id}")
-def restore_stock(request: Request, item_id: int):
-    _restore_item(item_id, (DeletedStockItem, StockItem))
-    db = SessionLocal()
-    try:
-        log_action(
-            db,
-            request.session.get("username", ""),
-            f"Restored stock item {item_id}",
+            f"Restored {item_type} item {item_id}",
         )
     finally:
         db.close()
