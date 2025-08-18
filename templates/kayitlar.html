@@ -55,10 +55,8 @@
       <th>Tür</th>
       <th>Envanter No</th>
       <th>İşlem</th>
-      <th>Eski Kullanıcı</th>
-      <th>Yeni Kullanıcı</th>
-      <th>Eski Konum</th>
-      <th>Yeni Konum</th>
+      <th>Kullanıcı Değişimi</th>
+      <th>Konum Değişimi</th>
       <th>Not</th>
     </tr>
   </thead>
@@ -69,10 +67,16 @@
       <td>{{ log.inventory_type }}</td>
       <td>{{ log.inventory_no or log.inventory_id }}</td>
       <td>{{ log.action }}</td>
-      <td>{{ log.old_user_name or '' }}</td>
-      <td>{{ log.new_user_name or '' }}</td>
-      <td>{{ log.old_location or '' }}</td>
-      <td>{{ log.new_location or '' }}</td>
+      <td>
+        {% if log.old_user_name or log.new_user_name %}
+          {{ log.old_user_name or '' }} &rarr; {{ log.new_user_name or '' }}
+        {% endif %}
+      </td>
+      <td>
+        {% if log.old_location or log.new_location %}
+          {{ log.old_location or '' }} &rarr; {{ log.new_location or '' }}
+        {% endif %}
+      </td>
       <td>{{ log.note or '' }}</td>
     </tr>
   {% endfor %}
