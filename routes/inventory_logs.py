@@ -4,7 +4,13 @@ from typing import Optional
 from pydantic import BaseModel
 
 from logs import InventoryLogCreate
-from services.log_service import add_inventory_log, get_inventory_logs, get_activity_logs
+from services.log_service import (
+    add_inventory_log,
+    get_inventory_logs,
+    get_activity_logs,
+    get_inventory_items,
+    get_latest_assignments,
+)
 from utils import templates
 from utils.auth import require_admin
 from models import SessionLocal, User
@@ -32,23 +38,41 @@ def list_logs(
 @router.get("/records", response_class=HTMLResponse, dependencies=[Depends(require_admin)])
 def logs_page(
     request: Request,
-    log_type: str = "inventory",
-    user_id: Optional[str] = None,
+    log_type: str = "user",
+    username: Optional[str] = None,
+    inventory_key: Optional[str] = None,
     limit: int = 200,
     offset: int = 0,
 ):
-    parsed_user_id = int(user_id) if user_id and user_id.isdigit() else None
-    if log_type == "activity":
-        logs = get_activity_logs(limit=limit, offset=offset)
-        users = []
-    else:
-        logs = get_inventory_logs(user_id=parsed_user_id, limit=limit, offset=offset)
-        log_type = "inventory"
+    logs = []
+    users = []
+    inventory_items = []
+    selected_inv_type = None
+    selected_inv_id = None
+
+    if log_type == "user":
+        logs = get_activity_logs(username=username, limit=limit, offset=offset)
         db = SessionLocal()
         try:
-            users = db.query(User.id, User.username).order_by(User.username).all()
+            users = [u[0] for u in db.query(User.username).order_by(User.username).all()]
         finally:
             db.close()
+    elif log_type == "inventory":
+        if inventory_key:
+            parts = inventory_key.split(":", 1)
+            if len(parts) == 2 and parts[1].isdigit():
+                selected_inv_type = parts[0]
+                selected_inv_id = int(parts[1])
+        logs = get_inventory_logs(
+            inventory_type=selected_inv_type,
+            inventory_id=selected_inv_id,
+            limit=limit,
+            offset=offset,
+        )
+        inventory_items = get_inventory_items()
+    else:  # log_type == 'all'
+        logs = get_latest_assignments(limit=limit, offset=offset)
+
     return templates.TemplateResponse(
         "kayitlar.html",
         {
@@ -56,7 +80,10 @@ def logs_page(
             "logs": logs,
             "log_type": log_type,
             "users": users,
-            "selected_user_id": parsed_user_id,
+            "inventory_items": inventory_items,
+            "selected_username": username,
+            "selected_inv_type": selected_inv_type,
+            "selected_inv_id": selected_inv_id,
         },
     )
 

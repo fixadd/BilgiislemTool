@@ -6,21 +6,30 @@
 <form method="get" class="mb-3">
   <label for="log_type">Log türü:</label>
   <select id="log_type" name="log_type" onchange="this.form.submit()">
-    <option value="inventory" {% if log_type != 'activity' %}selected{% endif %}>Envanter</option>
-    <option value="activity" {% if log_type == 'activity' %}selected{% endif %}>Kullanıcı</option>
+    <option value="user" {% if log_type == 'user' %}selected{% endif %}>Kullanıcı</option>
+    <option value="inventory" {% if log_type == 'inventory' %}selected{% endif %}>Envanter</option>
+    <option value="all" {% if log_type == 'all' %}selected{% endif %}>Hepsi</option>
   </select>
-  {% if log_type != 'activity' %}
-  <label for="user_id" class="ms-3">Kullanıcı:</label>
-  <select id="user_id" name="user_id" onchange="this.form.submit()">
+  {% if log_type == 'user' %}
+  <label for="username" class="ms-3">Kullanıcı:</label>
+  <select id="username" name="username" onchange="this.form.submit()">
     <option value="">Hepsi</option>
     {% for u in users %}
-      <option value="{{ u.id }}" {% if selected_user_id == u.id %}selected{% endif %}>{{ u.username }}</option>
+      <option value="{{ u }}" {% if selected_username == u %}selected{% endif %}>{{ u }}</option>
+    {% endfor %}
+  </select>
+  {% elif log_type == 'inventory' %}
+  <label for="inventory_key" class="ms-3">Envanter:</label>
+  <select id="inventory_key" name="inventory_key" onchange="this.form.submit()">
+    <option value="">Hepsi</option>
+    {% for item in inventory_items %}
+      <option value="{{ item.type }}:{{ item.id }}" {% if selected_inv_type == item.type and selected_inv_id == item.id %}selected{% endif %}>{{ item.name }}</option>
     {% endfor %}
   </select>
   {% endif %}
 </form>
 
-{% if log_type == 'activity' %}
+{% if log_type == 'user' %}
 <table class="table table-striped table-fixed">
   <thead>
     <tr>
@@ -39,7 +48,7 @@
   {% endfor %}
   </tbody>
 </table>
-{% else %}
+{% elif log_type == 'inventory' %}
 <table class="table table-striped table-fixed">
   <thead>
     <tr>
@@ -66,6 +75,31 @@
       <td>{{ log.old_location or '' }}</td>
       <td>{{ log.new_location or '' }}</td>
       <td>{{ log.note or '' }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<table class="table table-striped table-fixed">
+  <thead>
+    <tr>
+      <th>Tarih</th>
+      <th>Tür</th>
+      <th>ID</th>
+      <th>Kullanıcı</th>
+      <th>Konum</th>
+      <th>İşlem</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for log in logs %}
+    <tr>
+      <td>{{ log.change_date }}</td>
+      <td>{{ log.inventory_type }}</td>
+      <td>{{ log.inventory_id }}</td>
+      <td>{{ log.new_user_name or '' }}</td>
+      <td>{{ log.new_location or '' }}</td>
+      <td>{{ log.action }}</td>
     </tr>
   {% endfor %}
   </tbody>
