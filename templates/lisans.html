@@ -91,9 +91,10 @@
       <form id="editForm" action="/license/add" method="post">
         <input type="hidden" name="license_id">
           <div class="modal-body">
+            <div class="row g-3">
             {% for col in columns %}
             {% if col not in ['islem_yapan', 'ifs_no'] %}
-            <div class="mb-3">
+            <div class="col-md-4 mb-3">
               {% if col != 'tarih' %}
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% endif %}
@@ -114,6 +115,7 @@
             </div>
             {% endif %}
             {% endfor %}
+            </div>
             {% include 'partials/inventory_history.html' %}
           </div>
         <div class="modal-footer">
