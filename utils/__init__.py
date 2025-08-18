@@ -47,6 +47,10 @@ def get_table_columns(table_name: str) -> List[str]:
     columns = [col["name"] for col in inspect(engine).get_columns(table_name)]
     # Skip primary key identifiers which are not meant for display/editing
     cols = [c for c in columns if c != "id"]
+    # Ensure inventory number appears first if present
+    if "envanter_no" in cols:
+        cols.remove("envanter_no")
+        cols.insert(0, "envanter_no")
     # Ensure date and operator fields appear at the end consistently
     for field in ["tarih", "islem_yapan"]:
         if field in cols:

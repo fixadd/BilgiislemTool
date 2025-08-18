@@ -56,6 +56,8 @@ def inventory_fetch(no: str):
             "sorumlu_personel": item.sorumlu_personel,
             "kullanim_alani": item.kullanim_alani,
             "bilgisayar_adi": item.bilgisayar_adi,
+            "marka": item.marka,
+            "model": item.model,
             # Provide a generic product name for accessory lookups
             "urun_adi": item.bilgisayar_adi,
         }
@@ -195,6 +197,7 @@ async def printer_add(request: Request):
                 deleted = DeletedPrinterInventory(**data, deleted_at=date.today())
                 db.add(deleted)
                 for field in [
+                    "envanter_no",
                     "yazici_markasi",
                     "yazici_modeli",
                     "kullanim_alani",
@@ -213,6 +216,7 @@ async def printer_add(request: Request):
                 action = f"Updated printer item {printer_id}"
             else:
                 item = PrinterInventory(
+                    envanter_no=form.get("envanter_no"),
                     yazici_markasi=form.get("yazici_markasi"),
                     yazici_modeli=form.get("yazici_modeli"),
                     kullanim_alani=form.get("kullanim_alani"),
@@ -227,6 +231,7 @@ async def printer_add(request: Request):
                 action = f"Added printer item {item.id}"
         else:
             item = PrinterInventory(
+                envanter_no=form.get("envanter_no"),
                 yazici_markasi=form.get("yazici_markasi"),
                 yazici_modeli=form.get("yazici_modeli"),
                 kullanim_alani=form.get("kullanim_alani"),
