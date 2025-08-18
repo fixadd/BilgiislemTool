@@ -20,19 +20,24 @@
 </div>
 <script>
 async function loadHistory(invType, invId){
-  const res = await fetch(`/logs?type=${encodeURIComponent(invType)}&id=${invId}`);
+  // "inventory" is the page name for hardware items but the logs store
+  // them under the "pc" type. Map it before requesting the log data so
+  // that history is displayed correctly.
+  const typeMap = { inventory: "pc" };
+  const mappedType = typeMap[invType] || invType;
+  const res = await fetch(`/logs?type=${encodeURIComponent(mappedType)}&id=${invId}`);
   const rows = await res.json();
   const tbody = document.getElementById('history-rows');
   tbody.innerHTML = rows.map(r => `
     <tr>
       <td>${new Date(r.change_date).toLocaleString()}</td>
       <td>${r.action}</td>
-      <td>${r.old_user_id ?? ''}</td>
-      <td>${r.new_user_id ?? ''}</td>
+      <td>${r.old_user_name ?? ''}</td>
+      <td>${r.new_user_name ?? ''}</td>
       <td>${r.old_location ?? ''}</td>
       <td>${r.new_location ?? ''}</td>
       <td>${r.note ?? ''}</td>
-      <td>${r.changed_by}</td>
+      <td>${r.changed_by_name ?? ''}</td>
     </tr>
   `).join('');
 }
