@@ -74,8 +74,55 @@ def get_inventory_logs(
         return cur.fetchall()
 
 
-def get_activity_logs(limit: int = 200, offset: int = 0) -> List[Dict[str, Any]]:
-    q = "SELECT * FROM activity_log ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?"
+def get_activity_logs(
+    username: Optional[str] = None, limit: int = 200, offset: int = 0
+) -> List[Dict[str, Any]]:
+    q = "SELECT * FROM activity_log"
+    conds: List[str] = []
+    params: List[Any] = []
+    if username:
+        conds.append("username = ?")
+        params.append(username)
+    if conds:
+        q += " WHERE " + " AND ".join(conds)
+    q += " ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = _row_to_dict
+        cur = con.cursor()
+        cur.execute(q, params)
+        return cur.fetchall()
+
+
+def get_inventory_items() -> List[Dict[str, Any]]:
+    rows = []
+    parts = [
+        ("pc", "hardware_inventory", "bilgisayar_adi"),
+        ("license", "license_inventory", "yazilim_adi"),
+        ("accessory", "accessory_inventory", "urun_adi"),
+    ]
+    with sqlite3.connect(DB_PATH) as con:
+        cur = con.cursor()
+        for inv_type, table, col in parts:
+            try:
+                cur.execute(
+                    f"SELECT ?, id, {col} FROM {table}", (inv_type,)
+                )
+                rows.extend(cur.fetchall())
+            except sqlite3.OperationalError:
+                continue
+    rows.sort(key=lambda r: (r[2] or ""))
+    return [{"type": r[0], "id": r[1], "name": r[2]} for r in rows]
+
+
+def get_latest_assignments(limit: int = 200, offset: int = 0) -> List[Dict[str, Any]]:
+    q = (
+        "SELECT v.inventory_type, v.inventory_id, v.new_user_id, u.username AS new_user_name, "
+        "v.new_location, v.action, v.change_date, v.id "
+        "FROM v_inventory_latest v "
+        "LEFT JOIN users u ON v.new_user_id = u.id "
+        "ORDER BY v.change_date DESC, v.id DESC LIMIT ? OFFSET ?"
+    )
     with sqlite3.connect(DB_PATH) as con:
         con.row_factory = _row_to_dict
         cur = con.cursor()
