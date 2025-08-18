@@ -22,7 +22,7 @@
   <select id="inventory_no" name="inventory_no" onchange="this.form.submit()">
     <option value="">Hepsi</option>
     {% for item in inventory_items %}
-      <option value="{{ item.inv_no }}" {% if selected_inv_no == item.inv_no %}selected{% endif %}>{{ item.inv_no }} - {{ item.name }}</option>
+      <option value="{{ item.inv_no }}" {% if selected_inv_no == item.inv_no %}selected{% endif %}>{{ item.inv_no }}</option>
     {% endfor %}
   </select>
   {% endif %}
@@ -67,7 +67,7 @@
     <tr>
       <td>{{ log.change_date }}</td>
       <td>{{ log.inventory_type }}</td>
-      <td>{{ log.new_inventory_no or log.old_inventory_no or log.inventory_id }}</td>
+      <td>{{ log.inventory_no or log.inventory_id }}</td>
       <td>{{ log.action }}</td>
       <td>{{ log.old_user_name or '' }}</td>
       <td>{{ log.new_user_name or '' }}</td>
