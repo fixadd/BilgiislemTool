@@ -11,6 +11,7 @@ from sqlalchemy import (
     Boolean,
     create_engine,
     func,
+    ForeignKey,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from passlib.context import CryptContext
@@ -227,6 +228,14 @@ class ActivityLog(Base):
     username = Column(String)
     action = Column(String)
     timestamp = Column(DateTime, default=func.now())
+
+
+class RememberToken(Base):
+    __tablename__ = "remember_tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    token = Column(String, unique=True, index=True)
+    created_at = Column(DateTime, default=func.now())
 
 
 def init_db():

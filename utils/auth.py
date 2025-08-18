@@ -1,4 +1,5 @@
 from fastapi import HTTPException, Request
+from starlette.middleware.base import BaseHTTPMiddleware
 
 
 def require_login(request: Request):
@@ -34,3 +35,40 @@ def require_admin(request: Request):
     finally:
         db.close()
     return None
+
+
+class RememberMeMiddleware(BaseHTTPMiddleware):
+    """Populate sessions based on persistent remember-me tokens."""
+
+    async def dispatch(self, request: Request, call_next):
+        token = request.cookies.get("session_token")
+        invalid_token = False
+        if token:
+            from models import RememberToken, SessionLocal, User
+
+            db = SessionLocal()
+            try:
+                record = db.query(RememberToken).filter_by(token=token).first()
+                if record:
+                    if not request.session.get("user_id"):
+                        user = db.get(User, record.user_id)
+                        if user:
+                            request.session["user_id"] = user.id
+                            request.session["username"] = user.username
+                            request.session["is_admin"] = user.is_admin
+                            request.session["full_name"] = (
+                                f"{user.first_name or ''} {user.last_name or ''}".strip()
+                            )
+                        else:
+                            db.delete(record)
+                            db.commit()
+                            invalid_token = True
+                else:
+                    invalid_token = True
+                    request.session.clear()
+            finally:
+                db.close()
+        response = await call_next(request)
+        if invalid_token:
+            response.delete_cookie("session_token")
+        return response

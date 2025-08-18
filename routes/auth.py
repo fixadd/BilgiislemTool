@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi_csrf_protect import CsrfProtect
 
-from models import SessionLocal, User, pwd_context
+from models import RememberToken, SessionLocal, User, pwd_context
 from utils import templates
 
 router = APIRouter()
@@ -44,6 +44,9 @@ async def login(
                 f"{user.first_name or ''} {user.last_name or ''}".strip()
             )
             response = RedirectResponse("/", status_code=303)
+            db.query(RememberToken).filter(
+                RememberToken.user_id == user.id
+            ).delete()
             if remember:
                 max_age = 60 * 60 * 24 * 30  # 30 days
                 response.set_cookie("username", username, max_age=max_age)
@@ -56,9 +59,11 @@ async def login(
                     httponly=True,
                     samesite="lax",
                 )
+                db.add(RememberToken(user_id=user.id, token=token))
             else:
                 response.delete_cookie("username")
                 response.delete_cookie("session_token")
+            db.commit()
             return response
     finally:
         db.close()
@@ -78,8 +83,19 @@ async def logout(
     """Clear the current session."""
     if request.method == "POST":
         await csrf_protect.validate_csrf(request)
+    token = request.cookies.get("session_token")
+    if token:
+        db = SessionLocal()
+        try:
+            db.query(RememberToken).filter(RememberToken.token == token).delete()
+            db.commit()
+        finally:
+            db.close()
     request.session.clear()
-    return RedirectResponse("/login", status_code=303)
+    response = RedirectResponse("/login", status_code=303)
+    response.delete_cookie("session_token")
+    response.delete_cookie("username")
+    return response
 
 
 __all__ = ["router"]

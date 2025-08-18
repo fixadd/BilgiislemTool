@@ -13,6 +13,7 @@ from pydantic_settings import BaseSettings
 from models import init_db, init_admin, SessionLocal
 from routes import router as api_router
 from utils import cleanup_deleted
+from utils.auth import RememberMeMiddleware
 
 app = FastAPI()
 
@@ -24,6 +25,7 @@ if not secret_key:
         "sessions will reset on application restart."
     )
 
+app.add_middleware(RememberMeMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=secret_key)
 app.mount("/image", StaticFiles(directory="image"), name="image")
 app.mount("/static", StaticFiles(directory="static"), name="static")
