@@ -15,14 +15,15 @@ router = APIRouter(prefix="/logs", tags=["Inventory Logs"])
 def list_logs(
     type: Optional[str] = None,
     id: Optional[int] = None,
-    user_id: Optional[int] = None,
+    user_id: Optional[str] = None,
     limit: int = 200,
     offset: int = 0,
 ):
+    user_id_int = int(user_id) if user_id and user_id.isdigit() else None
     return get_inventory_logs(
         inventory_type=type,
         inventory_id=id,
-        user_id=user_id,
+        user_id=user_id_int,
         limit=limit,
         offset=offset,
     )
@@ -32,15 +33,16 @@ def list_logs(
 def logs_page(
     request: Request,
     log_type: str = "inventory",
-    user_id: Optional[int] = None,
+    user_id: Optional[str] = None,
     limit: int = 200,
     offset: int = 0,
 ):
+    parsed_user_id = int(user_id) if user_id and user_id.isdigit() else None
     if log_type == "activity":
         logs = get_activity_logs(limit=limit, offset=offset)
         users = []
     else:
-        logs = get_inventory_logs(user_id=user_id, limit=limit, offset=offset)
+        logs = get_inventory_logs(user_id=parsed_user_id, limit=limit, offset=offset)
         log_type = "inventory"
         db = SessionLocal()
         try:
@@ -54,7 +56,7 @@ def logs_page(
             "logs": logs,
             "log_type": log_type,
             "users": users,
-            "selected_user_id": user_id,
+            "selected_user_id": parsed_user_id,
         },
     )
 
