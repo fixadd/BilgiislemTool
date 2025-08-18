@@ -9,6 +9,7 @@ from services.log_service import (
     get_inventory_logs,
     get_activity_logs,
     get_inventory_items,
+    get_inventory_no,
 )
 from utils import templates
 from utils.auth import require_admin
@@ -102,6 +103,7 @@ class AssignRequest(BaseModel):
 @router.post("/assign")
 def assign_item(req: AssignRequest):
     old_user_id = None
+    inv_no = get_inventory_no(req.inventory_type, req.inventory_id)
     add_inventory_log(
         InventoryLogCreate(
             inventory_type=req.inventory_type,
@@ -111,6 +113,7 @@ def assign_item(req: AssignRequest):
             old_user_id=old_user_id,
             new_user_id=req.to_user_id,
             note=req.note,
+            new_inventory_no=inv_no,
         )
     )
     return {"ok": True}
@@ -124,6 +127,7 @@ class ReturnRequest(BaseModel):
 
 @router.post("/return")
 def return_item(req: ReturnRequest):
+    inv_no = get_inventory_no(req.inventory_type, req.inventory_id)
     add_inventory_log(
         InventoryLogCreate(
             inventory_type=req.inventory_type,
@@ -133,6 +137,7 @@ def return_item(req: ReturnRequest):
             old_user_id=req.from_user_id,
             new_user_id=None,
             note=req.note,
+            new_inventory_no=inv_no,
         )
     )
     return {"ok": True}
@@ -147,6 +152,7 @@ class MoveRequest(BaseModel):
 
 @router.post("/move")
 def move_item(req: MoveRequest):
+    inv_no = get_inventory_no(req.inventory_type, req.inventory_id)
     add_inventory_log(
         InventoryLogCreate(
             inventory_type=req.inventory_type,
@@ -156,6 +162,7 @@ def move_item(req: MoveRequest):
             old_location=req.old_location,
             new_location=req.new_location,
             note=req.note,
+            new_inventory_no=inv_no,
         )
     )
     return {"ok": True}
