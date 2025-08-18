@@ -19,12 +19,12 @@
   </select>
   {% elif log_type == 'inventory' %}
   <label for="inventory_no" class="ms-3">Envanter No:</label>
-  <input id="inventory_no" name="inventory_no" list="inventory_list" onchange="this.form.submit()" value="{{ selected_inv_no or '' }}">
-  <datalist id="inventory_list">
+  <select id="inventory_no" name="inventory_no" onchange="this.form.submit()">
+    <option value="">Hepsi</option>
     {% for item in inventory_items %}
-      <option value="{{ item.inv_no }}">{{ item.name }}</option>
+      <option value="{{ item.inv_no }}" {% if selected_inv_no == item.inv_no %}selected{% endif %}>{{ item.inv_no }} - {{ item.name }}</option>
     {% endfor %}
-  </datalist>
+  </select>
   {% endif %}
 </form>
 

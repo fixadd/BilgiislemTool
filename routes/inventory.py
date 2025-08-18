@@ -346,6 +346,7 @@ async def inventory_add(request: Request):
                     changed_by=request.session.get("user_id", 0),
                     old_user_id=int(old_user) if old_user and str(old_user).isdigit() else None,
                     new_user_id=int(new_user) if new_user and str(new_user).isdigit() else None,
+                    new_inventory_no=item.no,
                 )
             )
         if item_id and relabel:
@@ -452,6 +453,7 @@ async def license_add(request: Request):
                     changed_by=request.session.get("user_id", 0),
                     old_user_id=int(old_user) if old_user and str(old_user).isdigit() else None,
                     new_user_id=int(new_user) if new_user and str(new_user).isdigit() else None,
+                    new_inventory_no=item.envanter_no,
                 )
             )
         if license_id and relabel:

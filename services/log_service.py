@@ -119,6 +119,26 @@ def get_inventory_items() -> List[Dict[str, Any]]:
     ]
 
 
+def get_inventory_no(inventory_type: str, inventory_id: int) -> Optional[str]:
+    """Return the inventory number for the given item, if available."""
+    mapping = {
+        "pc": ("hardware_inventory", "no"),
+        "license": ("license_inventory", "envanter_no"),
+    }
+    table_col = mapping.get(inventory_type)
+    if not table_col:
+        return None
+    table, col = table_col
+    with sqlite3.connect(DB_PATH) as con:
+        cur = con.cursor()
+        try:
+            cur.execute(f"SELECT {col} FROM {table} WHERE id = ?", (inventory_id,))
+            row = cur.fetchone()
+            return row[0] if row else None
+        except sqlite3.OperationalError:
+            return None
+
+
 def get_latest_assignments(limit: int = 200, offset: int = 0) -> List[Dict[str, Any]]:
     q = (
         "SELECT v.inventory_type, v.inventory_id, v.new_user_id, u.username AS new_user_name, "
