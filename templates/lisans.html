@@ -40,16 +40,8 @@
   <button id="delete-selected" type="button" class="btn btn-danger d-flex align-items-center gap-1">
     <i class="bi bi-trash"></i> Sil
   </button>
-  <select id="assign-user" class="form-select" style="max-width:200px;">
-    <option value="">Kullanıcı Seç</option>
-    {% for u in users %}
-    <option value="{{ u.id }}">{{ u.name }}</option>
-    {% endfor %}
-  </select>
-  <button id="assign-selected" type="button" class="btn btn-info d-flex align-items-center gap-1">
-    <i class="bi bi-person-plus"></i> Ata
-  </button>
   <form id="search-form" method="get" class="d-flex gap-2 align-items-center flex-nowrap">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Ara..." style="max-width:200px;">
     <div class="position-relative d-flex gap-2">
       <div id="filters-container" class="filters-popup d-none flex-column gap-2">
         <div id="filter-rows" class="d-flex flex-column gap-2"></div>
@@ -341,31 +333,6 @@ document.getElementById('excelInput').addEventListener('change', async () => {
     }
 });
 
-document.getElementById('assign-selected').addEventListener('click', async () => {
-    const userId = document.getElementById('assign-user').value;
-    if (!userId) {
-        showAlert('Lütfen kullanıcı seçin');
-        return;
-    }
-    const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(cb => cb.value);
-    if (!ids.length) {
-        showAlert('Lütfen satır seçin');
-        return;
-    }
-    for (const id of ids) {
-        await fetch('/logs/assign', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                inventory_type: tableName,
-                inventory_id: parseInt(id),
-                to_user_id: parseInt(userId),
-                changed_by: currentUserId
-            })
-        });
-    }
-    location.reload();
-});
 
 editButton.addEventListener('click', () => {
     const checked = document.querySelectorAll('.row-check:checked');
