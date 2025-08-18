@@ -76,7 +76,7 @@ def make_admin(user_id: int):
     """Promote a user to admin."""
     db = SessionLocal()
     try:
-        user = db.query(User).get(user_id)
+        user = db.get(User, user_id)
         if user:
             user.is_admin = True
             db.commit()
@@ -90,7 +90,7 @@ def edit_user_form(request: Request, user_id: int) -> HTMLResponse:
     """Render the edit form for a user."""
     db = SessionLocal()
     try:
-        target = db.query(User).get(user_id)
+        target = db.get(User, user_id)
     finally:
         db.close()
     if not target:
@@ -112,7 +112,7 @@ def edit_user(
     """Update a user's details."""
     db = SessionLocal()
     try:
-        user = db.query(User).get(user_id)
+        user = db.get(User, user_id)
         if user:
             if password:
                 user.password = pwd_context.hash(password)
@@ -132,7 +132,7 @@ def delete_user(user_id: int):
     """Delete a user."""
     db = SessionLocal()
     try:
-        user = db.query(User).get(user_id)
+        user = db.get(User, user_id)
         if user:
             db.delete(user)
             db.commit()
