@@ -42,7 +42,7 @@
     {% endfor %}
     <td>{{ 15 - (today - i.deleted_at).days }}</td>
     <td>
-      <form action="/inventory/restore/{{ i.id }}" method="post" style="display:inline;">
+      <form action="/hardware/restore/{{ i.id }}" method="post" style="display:inline;">
         <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
       </form>
     </td>
