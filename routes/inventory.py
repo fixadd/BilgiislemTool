@@ -117,7 +117,7 @@ async def stock_add(request: Request):
     try:
         stock_id = form.get("stock_id")
         if stock_id:
-            item = db.query(StockItem).get(int(stock_id))
+            item = db.get(StockItem, int(stock_id))
             if item:
                 for field in [
                     "urun_adi",
@@ -183,7 +183,7 @@ async def printer_add(request: Request):
     try:
         printer_id = form.get("printer_id")
         if printer_id:
-            existing = db.query(PrinterInventory).get(int(printer_id))
+            existing = db.get(PrinterInventory, int(printer_id))
             if existing:
                 data = {
                     col.name: getattr(existing, col.name)
@@ -262,7 +262,7 @@ async def inventory_add(request: Request):
         old_user = None
         new_user = None
         if item_id:
-            existing = db.query(HardwareInventory).get(int(item_id))
+            existing = db.get(HardwareInventory, int(item_id))
             if existing:
                 old_no = existing.no
                 old_user = existing.sorumlu_personel
@@ -384,7 +384,7 @@ async def license_add(request: Request):
         old_user = None
         new_user = None
         if license_id:
-            existing = db.query(LicenseInventory).get(int(license_id))
+            existing = db.get(LicenseInventory, int(license_id))
             if existing:
                 old_no = existing.envanter_no
                 old_user = existing.kullanici
@@ -490,7 +490,7 @@ async def accessories_add(request: Request):
         old_user = None
         new_user = None
         if accessory_id:
-            existing = db.query(AccessoryInventory).get(int(accessory_id))
+            existing = db.get(AccessoryInventory, int(accessory_id))
             if existing:
                 old_user = existing.kullanici
                 data = {

@@ -85,7 +85,7 @@ def _restore_item(item_id: int, models_pair: Tuple[object, object]) -> None:
     deleted_model, active_model = models_pair
     db = SessionLocal()
     try:
-        item = db.query(deleted_model).get(item_id)
+        item = db.get(deleted_model, item_id)
         if item:
             data = {
                 col.name: getattr(item, col.name, None)

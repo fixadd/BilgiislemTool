@@ -28,7 +28,7 @@ def require_admin(request: Request):
     db = SessionLocal()
     try:
         user_id = request.session.get("user_id")
-        user = db.query(User).get(user_id)
+        user = db.get(User, user_id)
         if not user or not user.is_admin:
             raise HTTPException(status_code=403)
     finally:

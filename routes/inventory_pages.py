@@ -422,7 +422,7 @@ async def lists_delete(
     """Delete a lookup list item, optionally forcing if it's in use."""
     db = SessionLocal()
     try:
-        item = db.query(LookupItem).get(item_id)
+        item = db.get(LookupItem, item_id)
         if not item:
             return JSONResponse({"status": "not_found"}, status_code=404)
 
@@ -465,7 +465,7 @@ def profile_page(request: Request) -> HTMLResponse:
         user = None
         user_id = request.session.get("user_id")
         if user_id:
-            user = db.query(User).get(user_id)
+            user = db.get(User, user_id)
     finally:
         db.close()
     return templates.TemplateResponse(request, "profile.html", {"user": user})
@@ -496,7 +496,7 @@ def change_password(
     db = SessionLocal()
     try:
         user_id = request.session.get("user_id")
-        user = db.query(User).get(user_id) if user_id else None
+        user = db.get(User, user_id) if user_id else None
         if not user or not pwd_context.verify(old_password, user.password):
             return templates.TemplateResponse(
                 request,
