@@ -138,45 +138,45 @@ def printer_page(
     filters = []
     query = db.query(PrinterInventory)
 
-        for field, value in zip(filter_fields, filter_values):
-            if field and value and hasattr(PrinterInventory, field):
-                query = query.filter(getattr(PrinterInventory, field) == value)
-                filters.append({"field": field, "value": value})
+    for field, value in zip(filter_fields, filter_values):
+        if field and value and hasattr(PrinterInventory, field):
+            query = query.filter(getattr(PrinterInventory, field) == value)
+            filters.append({"field": field, "value": value})
 
-        if q:
-            search_conditions = []
-            for column in PrinterInventory.__table__.columns:
-                if isinstance(column.type, String):
-                    search_conditions.append(column.ilike(f"%{q}%"))
-            if search_conditions:
-                query = query.filter(or_(*search_conditions))
+    if q:
+        search_conditions = []
+        for column in PrinterInventory.__table__.columns:
+            if isinstance(column.type, String):
+                search_conditions.append(column.ilike(f"%{q}%"))
+        if search_conditions:
+            query = query.filter(or_(*search_conditions))
 
-        total_count = query.count()
-        total_pages = max(1, math.ceil(total_count / per_page))
-        offset = (page - 1) * per_page
-        printers = query.offset(offset).limit(per_page).all()
-        users = db.query(User).all()
-        user_list = [
-            {
-                "id": u.id,
-                "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
-            }
-            for u in users
-        ]
-        lookups = {
-            "yazici_markasi": [
-                i.name
-                for i in db.query(LookupItem).filter_by(type="yazici_marka").all()
-            ],
-            "yazici_modeli": [
-                i.name
-                for i in db.query(LookupItem).filter_by(type="yazici_model").all()
-            ],
-            "kullanim_alani": [
-                i.name
-                for i in db.query(LookupItem).filter_by(type="lokasyon").all()
-            ],
+    total_count = query.count()
+    total_pages = max(1, math.ceil(total_count / per_page))
+    offset = (page - 1) * per_page
+    printers = query.offset(offset).limit(per_page).all()
+    users = db.query(User).all()
+    user_list = [
+        {
+            "id": u.id,
+            "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
         }
+        for u in users
+    ]
+    lookups = {
+        "yazici_markasi": [
+            i.name
+            for i in db.query(LookupItem).filter_by(type="yazici_marka").all()
+        ],
+        "yazici_modeli": [
+            i.name
+            for i in db.query(LookupItem).filter_by(type="yazici_model").all()
+        ],
+        "kullanim_alani": [
+            i.name
+            for i in db.query(LookupItem).filter_by(type="lokasyon").all()
+        ],
+    }
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
@@ -224,42 +224,42 @@ def license_page(
     filters = []
     query = db.query(LicenseInventory)
 
-        for field, value in zip(filter_fields, filter_values):
-            if field and value and hasattr(LicenseInventory, field):
-                query = query.filter(getattr(LicenseInventory, field) == value)
-                filters.append({"field": field, "value": value})
+    for field, value in zip(filter_fields, filter_values):
+        if field and value and hasattr(LicenseInventory, field):
+            query = query.filter(getattr(LicenseInventory, field) == value)
+            filters.append({"field": field, "value": value})
 
-        if q:
-            search_conditions = []
-            for column in LicenseInventory.__table__.columns:
-                if isinstance(column.type, String):
-                    search_conditions.append(column.ilike(f"%{q}%"))
-            if search_conditions:
-                query = query.filter(or_(*search_conditions))
+    if q:
+        search_conditions = []
+        for column in LicenseInventory.__table__.columns:
+            if isinstance(column.type, String):
+                search_conditions.append(column.ilike(f"%{q}%"))
+        if search_conditions:
+            query = query.filter(or_(*search_conditions))
 
-        total_count = query.count()
-        total_pages = max(1, math.ceil(total_count / per_page))
-        offset = (page - 1) * per_page
-        licenses = query.offset(offset).limit(per_page).all()
-        users = db.query(User).all()
-        user_list = [
-            {
-                "id": u.id,
-                "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
-            }
-            for u in users
-        ]
-        user_names = [u["name"] for u in user_list]
-        lookups = {
-            "kullanici": user_names,
-            "departman": [
-                i.name
-                for i in db.query(LookupItem).filter_by(type="departman").all()
-            ],
-            "yazilim_adi": [
-                i.name for i in db.query(LookupItem).filter_by(type="yazilim").all()
-            ],
+    total_count = query.count()
+    total_pages = max(1, math.ceil(total_count / per_page))
+    offset = (page - 1) * per_page
+    licenses = query.offset(offset).limit(per_page).all()
+    users = db.query(User).all()
+    user_list = [
+        {
+            "id": u.id,
+            "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
         }
+        for u in users
+    ]
+    user_names = [u["name"] for u in user_list]
+    lookups = {
+        "kullanici": user_names,
+        "departman": [
+            i.name
+            for i in db.query(LookupItem).filter_by(type="departman").all()
+        ],
+        "yazilim_adi": [
+            i.name for i in db.query(LookupItem).filter_by(type="yazilim").all()
+        ],
+    }
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
@@ -307,32 +307,32 @@ def accessories_page(
     filters = []
     query = db.query(AccessoryInventory)
 
-        for field, value in zip(filter_fields, filter_values):
-            if field and value and hasattr(AccessoryInventory, field):
-                query = query.filter(getattr(AccessoryInventory, field) == value)
-                filters.append({"field": field, "value": value})
+    for field, value in zip(filter_fields, filter_values):
+        if field and value and hasattr(AccessoryInventory, field):
+            query = query.filter(getattr(AccessoryInventory, field) == value)
+            filters.append({"field": field, "value": value})
 
-        if q:
-            search_conditions = []
-            for column in AccessoryInventory.__table__.columns:
-                if isinstance(column.type, String):
-                    search_conditions.append(column.ilike(f"%{q}%"))
-            if search_conditions:
-                query = query.filter(or_(*search_conditions))
+    if q:
+        search_conditions = []
+        for column in AccessoryInventory.__table__.columns:
+            if isinstance(column.type, String):
+                search_conditions.append(column.ilike(f"%{q}%"))
+        if search_conditions:
+            query = query.filter(or_(*search_conditions))
 
-        total_count = query.count()
-        total_pages = max(1, math.ceil(total_count / per_page))
-        offset = (page - 1) * per_page
-        accessories = query.offset(offset).limit(per_page).all()
-        users = db.query(User).all()
-        user_list = [
-            {
-                "id": u.id,
-                "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
-            }
-            for u in users
-        ]
-        user_names = [u["name"] for u in user_list]
+    total_count = query.count()
+    total_pages = max(1, math.ceil(total_count / per_page))
+    offset = (page - 1) * per_page
+    accessories = query.offset(offset).limit(per_page).all()
+    users = db.query(User).all()
+    user_list = [
+        {
+            "id": u.id,
+            "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
+        }
+        for u in users
+    ]
+    user_names = [u["name"] for u in user_list]
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
@@ -401,43 +401,43 @@ async def requests_add(
     """Add a request item."""
     form = await request.form()
     await csrf_protect.validate_csrf(request)
-        kategoriler = form.getlist("kategori")
-        donanim_tipleri = form.getlist("donanim_tipi")
-        markalar = form.getlist("marka")
-        modeller = form.getlist("model")
-        yazilim_adlari = form.getlist("yazilim_adi")
-        urun_adlari = form.getlist("urun_adi")
-        adetler = form.getlist("adet")
-        tarihler = form.getlist("tarih")
-        ifs_nolar = form.getlist("ifs_no")
-        aciklamalar = form.getlist("aciklama")
+    kategoriler = form.getlist("kategori")
+    donanim_tipleri = form.getlist("donanim_tipi")
+    markalar = form.getlist("marka")
+    modeller = form.getlist("model")
+    yazilim_adlari = form.getlist("yazilim_adi")
+    urun_adlari = form.getlist("urun_adi")
+    adetler = form.getlist("adet")
+    tarihler = form.getlist("tarih")
+    ifs_nolar = form.getlist("ifs_no")
+    aciklamalar = form.getlist("aciklama")
 
-        for kategori, donanim_tipi, marka, model, yazilim_adi, urun_adi, adet, tarih_val, ifs_no, aciklama in zip(
-            kategoriler,
-            donanim_tipleri,
-            markalar,
-            modeller,
-            yazilim_adlari,
-            urun_adlari,
-            adetler,
-            tarihler,
-            ifs_nolar,
-            aciklamalar,
-        ):
-            item = RequestItem(
-                kategori=kategori,
-                donanim_tipi=donanim_tipi,
-                marka=marka,
-                model=model,
-                yazilim_adi=yazilim_adi,
-                urun_adi=urun_adi or model or "",
-                adet=int(adet or 0),
-                tarih=date.fromisoformat(tarih_val) if tarih_val else None,
-                ifs_no=ifs_no,
-                aciklama=aciklama,
-                talep_acan=str(request.session.get("user_id", "")),
-            )
-            db.add(item)
+    for kategori, donanim_tipi, marka, model, yazilim_adi, urun_adi, adet, tarih_val, ifs_no, aciklama in zip(
+        kategoriler,
+        donanim_tipleri,
+        markalar,
+        modeller,
+        yazilim_adlari,
+        urun_adlari,
+        adetler,
+        tarihler,
+        ifs_nolar,
+        aciklamalar,
+    ):
+        item = RequestItem(
+            kategori=kategori,
+            donanim_tipi=donanim_tipi,
+            marka=marka,
+            model=model,
+            yazilim_adi=yazilim_adi,
+            urun_adi=urun_adi or model or "",
+            adet=int(adet or 0),
+            tarih=date.fromisoformat(tarih_val) if tarih_val else None,
+            ifs_no=ifs_no,
+            aciklama=aciklama,
+            talep_acan=str(request.session.get("user_id", "")),
+        )
+        db.add(item)
     db.commit()
     return RedirectResponse("/requests", status_code=303)
 

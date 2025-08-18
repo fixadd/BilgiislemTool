@@ -242,11 +242,12 @@ def init_db():
     """Create database tables if they don't exist."""
     Base.metadata.create_all(bind=engine)
     migrations_dir = os.path.join(os.path.dirname(__file__), "db", "migrations")
-    if os.path.isdir(migrations_dir) and DB_FILE:
+    db_file = engine.url.database if engine.url.drivername == "sqlite" else None
+    if os.path.isdir(migrations_dir) and db_file:
         import glob
         import sqlite3
 
-        with sqlite3.connect(DB_FILE) as con:
+        with sqlite3.connect(db_file) as con:
             con.execute(
                 "CREATE TABLE IF NOT EXISTS schema_migrations (filename TEXT PRIMARY KEY)"
             )

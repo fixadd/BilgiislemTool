@@ -24,12 +24,14 @@ def setup_db():
         poolclass=StaticPool,
     )
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    original_engine = models.engine
+    original_sessionlocal = models.SessionLocal
     models.engine = engine
     models.SessionLocal = TestingSessionLocal
     original_inventory_session = inventory_module.SessionLocal
     inventory_module.SessionLocal = TestingSessionLocal
     models.Base.metadata.create_all(bind=engine)
-    return original_inventory_session
+    return original_engine, original_sessionlocal, original_inventory_session
 
 
 def create_app():
@@ -51,7 +53,7 @@ def setup_log_db(path):
 
 
 def test_inventory_log_contains_inventory_no(tmp_path):
-    original_session = setup_db()
+    original_engine, original_sessionlocal, original_inventory_session = setup_db()
     log_db = tmp_path / "log.db"
     setup_log_db(log_db)
     log_service.DB_PATH = str(log_db)
@@ -80,4 +82,6 @@ def test_inventory_log_contains_inventory_no(tmp_path):
     with sqlite3.connect(log_db) as con:
         row = con.execute("SELECT new_inventory_no FROM inventory_logs").fetchone()
     assert row[0] == "001"
-    inventory_module.SessionLocal = original_session
+    inventory_module.SessionLocal = original_inventory_session
+    models.engine = original_engine
+    models.SessionLocal = original_sessionlocal

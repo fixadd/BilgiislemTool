@@ -13,13 +13,14 @@ os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB}"
 from fastapi.testclient import TestClient
 
 import main
-from models import SessionLocal, User, init_db, pwd_context, StockItem
+import models
+from models import User, init_db, pwd_context, StockItem
 import re
 
 
 def create_user(username: str = "tester", password: str = "secret", is_admin: bool = False):
     init_db()
-    db = SessionLocal()
+    db = models.SessionLocal()
     user = db.query(User).filter_by(username=username).first()
     if user:
         user.password = pwd_context.hash(password)
@@ -137,7 +138,7 @@ def test_admin_can_create_user():
         )
         assert resp.status_code == 303
 
-    db = SessionLocal()
+    db = models.SessionLocal()
     try:
         assert db.query(User).filter_by(username="new_user").first() is not None
     finally:
@@ -170,7 +171,7 @@ def test_connections_route_requires_admin():
 
 def test_stock_multiple_filters():
     create_user()
-    db = SessionLocal()
+    db = models.SessionLocal()
     try:
         db.add(StockItem(urun_adi="Item1", kategori="cat1", marka="brand1", adet=1))
         db.add(StockItem(urun_adi="Item2", kategori="cat1", marka="brand2", adet=1))
