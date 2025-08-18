@@ -254,6 +254,14 @@ def init_db():
                     "INSERT INTO schema_migrations (filename) VALUES (?)", (filename,)
                 )
 
+            # Ensure older databases have the printer inventory number column
+            for table in ("printer_inventory", "deleted_printer_inventory"):
+                cols = {row[1] for row in con.execute(f"PRAGMA table_info({table})")}
+                if "envanter_no" not in cols:
+                    con.execute(
+                        f"ALTER TABLE {table} ADD COLUMN envanter_no TEXT"
+                    )
+
 
 def init_admin():
     """Create default admin user using environment variables."""
