@@ -8,9 +8,10 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from passlib.context import CryptContext
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.join(BASE_DIR, "data", "envanter.db")
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_FILE}")
+DEFAULT_DB_FILE = os.path.join(BASE_DIR, "data", "envanter.db")
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_FILE}")
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+DB_FILE = engine.url.database if engine.url.drivername == "sqlite" else None
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -221,11 +222,26 @@ class ActivityLog(Base):
 def init_db():
     """Create database tables if they don't exist."""
     Base.metadata.create_all(bind=engine)
-    mig_path = os.path.join(os.path.dirname(__file__), "db", "migrations", "001_inventory_logs.sql")
-    if os.path.exists(mig_path):
+    migrations_dir = os.path.join(os.path.dirname(__file__), "db", "migrations")
+    if os.path.isdir(migrations_dir) and DB_FILE:
+        import glob
         import sqlite3
-        with sqlite3.connect(DB_FILE) as con, open(mig_path, "r") as fh:
-            con.executescript(fh.read())
+        with sqlite3.connect(DB_FILE) as con:
+            con.execute(
+                "CREATE TABLE IF NOT EXISTS schema_migrations (filename TEXT PRIMARY KEY)"
+            )
+            applied = {
+                row[0] for row in con.execute("SELECT filename FROM schema_migrations")
+            }
+            for path in sorted(glob.glob(os.path.join(migrations_dir, "*.sql"))):
+                filename = os.path.basename(path)
+                if filename in applied:
+                    continue
+                with open(path, "r") as fh:
+                    con.executescript(fh.read())
+                con.execute(
+                    "INSERT INTO schema_migrations (filename) VALUES (?)", (filename,)
+                )
 
 
 def init_admin():
