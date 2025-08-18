@@ -50,16 +50,20 @@ def get_inventory_logs(
     base_with_inv = (
         "SELECT il.*, "
         "COALESCE(il.new_inventory_no, il.old_inventory_no) AS inventory_no, "
-        "uo.username AS old_user_name, un.username AS new_user_name "
+        "uo.username AS old_user_name, un.username AS new_user_name, "
+        "uc.username AS changed_by_name "
         "FROM inventory_logs il "
         "LEFT JOIN users uo ON il.old_user_id = uo.id "
-        "LEFT JOIN users un ON il.new_user_id = un.id"
+        "LEFT JOIN users un ON il.new_user_id = un.id "
+        "LEFT JOIN users uc ON il.changed_by = uc.id"
     )
     base_legacy = (
-        "SELECT il.*, uo.username AS old_user_name, un.username AS new_user_name "
+        "SELECT il.*, uo.username AS old_user_name, un.username AS new_user_name, "
+        "uc.username AS changed_by_name "
         "FROM inventory_logs il "
         "LEFT JOIN users uo ON il.old_user_id = uo.id "
-        "LEFT JOIN users un ON il.new_user_id = un.id"
+        "LEFT JOIN users un ON il.new_user_id = un.id "
+        "LEFT JOIN users uc ON il.changed_by = uc.id"
     )
     conds: List[str] = []
     params: List[Any] = []
