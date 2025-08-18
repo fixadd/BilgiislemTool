@@ -45,7 +45,17 @@ def get_inventory_logs(
     limit: int = 200,
     offset: int = 0,
 ) -> List[Dict[str, Any]]:
-    base = (
+    # Base queries: one using inventory number columns (for newer schemas)
+    # and a fallback without them for backwards compatibility.
+    base_with_inv = (
+        "SELECT il.*, "
+        "COALESCE(il.new_inventory_no, il.old_inventory_no) AS inventory_no, "
+        "uo.username AS old_user_name, un.username AS new_user_name "
+        "FROM inventory_logs il "
+        "LEFT JOIN users uo ON il.old_user_id = uo.id "
+        "LEFT JOIN users un ON il.new_user_id = un.id"
+    )
+    base_legacy = (
         "SELECT il.*, uo.username AS old_user_name, un.username AS new_user_name "
         "FROM inventory_logs il "
         "LEFT JOIN users uo ON il.old_user_id = uo.id "
@@ -62,15 +72,22 @@ def get_inventory_logs(
     if user_id is not None:
         conds.append("(il.old_user_id = ? OR il.new_user_id = ?)")
         params.extend([user_id, user_id])
-    if conds:
-        base += " WHERE " + " AND ".join(conds)
-    base += " ORDER BY il.change_date DESC, il.id DESC LIMIT ? OFFSET ?"
+    def build_query(base: str) -> str:
+        q = base
+        if conds:
+            q += " WHERE " + " AND ".join(conds)
+        q += " ORDER BY il.change_date DESC, il.id DESC LIMIT ? OFFSET ?"
+        return q
+
     params.extend([limit, offset])
 
     with sqlite3.connect(DB_PATH) as con:
         con.row_factory = _row_to_dict
         cur = con.cursor()
-        cur.execute(base, params)
+        try:
+            cur.execute(build_query(base_with_inv), params)
+        except sqlite3.OperationalError:
+            cur.execute(build_query(base_legacy), params)
         return cur.fetchall()
 
 
