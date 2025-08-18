@@ -485,8 +485,8 @@ async def accessories_add(request: Request, db: Session = Depends(get_db)):
                 aciklama=form.get("aciklama"),
                 islem_yapan=request.session.get("full_name", ""),
             )
-            db.add(item)
-            action = f"Added accessory item {item.id}"
+        db.add(item)
+        action = f"Added accessory item {item.id}"
     else:
         item = AccessoryInventory(
             urun_adi=form.get("urun_adi"),
@@ -499,6 +499,7 @@ async def accessories_add(request: Request, db: Session = Depends(get_db)):
         )
         db.add(item)
         action = f"Added accessory item {item.id}"
+    db.commit()
     if accessory_id and old_user != new_user:
         add_inventory_log(
             InventoryLogCreate(
