@@ -25,7 +25,7 @@ async function loadHistory(invType, invId){
   // that history is displayed correctly.
   const typeMap = { inventory: "pc" };
   const mappedType = typeMap[invType] || invType;
-  const res = await fetch(`/logs?type=${encodeURIComponent(mappedType)}&id=${invId}`);
+  const res = await fetch(`/logs?type=${encodeURIComponent(mappedType)}&id=${invId}&limit=1000`);
   const rows = await res.json();
   const tbody = document.getElementById('history-rows');
   tbody.innerHTML = rows.map(r => `

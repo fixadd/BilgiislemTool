@@ -90,7 +90,9 @@
             {% for col in columns %}
             {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="col-md-4 mb-3">
+              {% if col != 'tarih' %}
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
+              {% endif %}
               {% if col == 'aciklama' %}
               <textarea class="form-control" name="{{ col }}" required></textarea>
               {% elif col == 'tarih' %}
