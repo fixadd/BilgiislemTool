@@ -4,6 +4,7 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, Request, Form, Body
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi_csrf_protect import CsrfProtect
 from sqlalchemy import or_, String
 import math
 
@@ -35,7 +36,9 @@ MODEL_MAP = {
 
 
 @router.get("/inventory", response_class=HTMLResponse)
-def inventory_page(request: Request) -> HTMLResponse:
+def inventory_page(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+) -> HTMLResponse:
     """Render the hardware inventory page."""
     params = request.query_params
     q = params.get("q", "")
@@ -90,6 +93,7 @@ def inventory_page(request: Request) -> HTMLResponse:
     finally:
         db.close()
 
+    token, signed = csrf_protect.generate_csrf_tokens()
     context = {
         "request": request,
         "items": items,
@@ -109,12 +113,17 @@ def inventory_page(request: Request) -> HTMLResponse:
         "today": date.today().isoformat(),
         "users": user_list,
         "current_user_id": request.session.get("user_id"),
+        "csrf_token": token,
     }
-    return templates.TemplateResponse("envanter.html", context)
+    response = templates.TemplateResponse(request, "envanter.html", context)
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.get("/printer", response_class=HTMLResponse)
-def printer_page(request: Request) -> HTMLResponse:
+def printer_page(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+) -> HTMLResponse:
     """Render the printer inventory page."""
     params = request.query_params
     q = params.get("q", "")
@@ -172,6 +181,7 @@ def printer_page(request: Request) -> HTMLResponse:
     finally:
         db.close()
 
+    token, signed = csrf_protect.generate_csrf_tokens()
     context = {
         "request": request,
         "printers": printers,
@@ -191,12 +201,17 @@ def printer_page(request: Request) -> HTMLResponse:
         "today": date.today().isoformat(),
         "users": user_list,
         "current_user_id": request.session.get("user_id"),
+        "csrf_token": token,
     }
-    return templates.TemplateResponse("yazici.html", context)
+    response = templates.TemplateResponse(request, "yazici.html", context)
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.get("/license", response_class=HTMLResponse)
-def license_page(request: Request) -> HTMLResponse:
+def license_page(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+) -> HTMLResponse:
     """Render the software license inventory page."""
     params = request.query_params
     q = params.get("q", "")
@@ -251,6 +266,7 @@ def license_page(request: Request) -> HTMLResponse:
     finally:
         db.close()
 
+    token, signed = csrf_protect.generate_csrf_tokens()
     context = {
         "request": request,
         "licenses": licenses,
@@ -270,12 +286,17 @@ def license_page(request: Request) -> HTMLResponse:
         "today": date.today().isoformat(),
         "users": user_list,
         "current_user_id": request.session.get("user_id"),
+        "csrf_token": token,
     }
-    return templates.TemplateResponse("lisans.html", context)
+    response = templates.TemplateResponse(request, "lisans.html", context)
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.get("/accessories", response_class=HTMLResponse)
-def accessories_page(request: Request) -> HTMLResponse:
+def accessories_page(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+) -> HTMLResponse:
     """Render the accessories inventory page."""
     params = request.query_params
     q = params.get("q", "")
@@ -320,6 +341,7 @@ def accessories_page(request: Request) -> HTMLResponse:
     finally:
         db.close()
 
+    token, signed = csrf_protect.generate_csrf_tokens()
     context = {
         "request": request,
         "accessories": accessories,
@@ -339,12 +361,17 @@ def accessories_page(request: Request) -> HTMLResponse:
         "today": date.today().isoformat(),
         "users": user_list,
         "current_user_id": request.session.get("user_id"),
+        "csrf_token": token,
     }
-    return templates.TemplateResponse("aksesuar.html", context)
+    response = templates.TemplateResponse(request, "aksesuar.html", context)
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.get("/requests", response_class=HTMLResponse)
-def requests_page(request: Request) -> HTMLResponse:
+def requests_page(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+) -> HTMLResponse:
     """Render the requests tracking page."""
     lookups = {
         "donanim_tipi": [],
@@ -362,18 +389,25 @@ def requests_page(request: Request) -> HTMLResponse:
     finally:
         db.close()
 
+    token, signed = csrf_protect.generate_csrf_tokens()
     context = {
         "groups": groups,
         "lookups": lookups,
         "today": date.today().isoformat(),
+        "csrf_token": token,
     }
-    return templates.TemplateResponse(request, "talep.html", context)
+    response = templates.TemplateResponse(request, "talep.html", context)
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.post("/requests/add")
-async def requests_add(request: Request):
+async def requests_add(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+):
     """Add a request item."""
     form = await request.form()
+    await csrf_protect.validate_csrf(request)
     db = SessionLocal()
     try:
         kategoriler = form.getlist("kategori")
@@ -421,7 +455,9 @@ async def requests_add(request: Request):
 
 
 @router.get("/lists", response_class=HTMLResponse)
-def lists_page(request: Request) -> HTMLResponse:
+def lists_page(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+) -> HTMLResponse:
     """Render the lists management page."""
     db = SessionLocal()
     try:
@@ -440,12 +476,22 @@ def lists_page(request: Request) -> HTMLResponse:
         }
     finally:
         db.close()
-    return templates.TemplateResponse(request, "listeler.html", context)
+    token, signed = csrf_protect.generate_csrf_tokens()
+    context["csrf_token"] = token
+    response = templates.TemplateResponse(request, "listeler.html", context)
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.post("/lists/add")
-async def lists_add(request: Request, item_type: str = Form(...), name: str = Form(...)):
+async def lists_add(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    item_type: str = Form(...),
+    name: str = Form(...),
+):
     """Add a lookup list item."""
+    await csrf_protect.validate_csrf(request)
     db = SessionLocal()
     try:
         db.add(LookupItem(type=item_type, name=name))
@@ -458,10 +504,12 @@ async def lists_add(request: Request, item_type: str = Form(...), name: str = Fo
 @router.post("/lists/delete")
 async def lists_delete(
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     item_id: int = Form(...),
     force: int = Form(0),
 ):
     """Delete a lookup list item, optionally forcing if it's in use."""
+    await csrf_protect.validate_csrf(request)
     db = SessionLocal()
     try:
         item = db.get(LookupItem, item_id)
@@ -514,19 +562,28 @@ def profile_page(request: Request) -> HTMLResponse:
 
 
 @router.get("/change-password", response_class=HTMLResponse)
-def change_password_form(request: Request) -> HTMLResponse:
+def change_password_form(
+    request: Request, csrf_protect: CsrfProtect = Depends()
+) -> HTMLResponse:
     """Display the password change form."""
-    return templates.TemplateResponse(request, "change_password.html")
+    token, signed = csrf_protect.generate_csrf_tokens()
+    response = templates.TemplateResponse(
+        request, "change_password.html", {"csrf_token": token}
+    )
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.post("/change-password")
-def change_password(
+async def change_password(
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     old_password: str = Form(...),
     new_password: str = Form(...),
     confirm_password: str = Form(...),
 ):
     """Allow the current user to update their password."""
+    await csrf_protect.validate_csrf(request)
     if new_password != confirm_password:
         return templates.TemplateResponse(
             request,
@@ -574,11 +631,16 @@ def column_settings(request: Request, table_name: str):
 
 
 @router.post("/column-settings")
-def save_column_settings(
-    request: Request, table_name: str, data: dict = Body(...)
+async def save_column_settings(
+    request: Request,
+    table_name: str,
+    data: dict = Body(...),
+    csrf_protect: CsrfProtect = Depends(),
 ):
     """Persist column settings for a table."""
+    await csrf_protect.validate_csrf(request)
     settings = load_settings()
+    data.pop("csrf_token", None)
     settings[table_name] = data
     save_settings(settings)
     return {"status": "ok"}

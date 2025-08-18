@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 
 import main
 from models import SessionLocal, User, init_db, pwd_context, StockItem
+import re
 
 
 def create_user(username: str = "tester", password: str = "secret", is_admin: bool = False):
@@ -35,6 +36,13 @@ def create_user(username: str = "tester", password: str = "secret", is_admin: bo
     db.close()
 
 
+def get_csrf(client: TestClient) -> str:
+    resp = client.get("/login")
+    m = re.search('name="csrf_token" value="([^"]+)"', resp.text)
+    assert m
+    return m.group(1)
+
+
 def test_protected_routes_require_login():
     create_user()
     with TestClient(main.app) as client:
@@ -48,15 +56,18 @@ def test_protected_routes_require_login():
 def test_login_creates_session_and_logout_clears_it():
     create_user()
     with TestClient(main.app) as client:
+        token = get_csrf(client)
         resp = client.post(
-            "/login", data={"username": "tester", "password": "secret"}, follow_redirects=False
+            "/login",
+            data={"username": "tester", "password": "secret", "csrf_token": token},
+            follow_redirects=False,
         )
         assert resp.status_code == 303
 
         resp = client.get("/ping")
         assert resp.status_code == 200
 
-        resp = client.post("/logout", follow_redirects=False)
+        resp = client.post("/logout", data={"csrf_token": token}, follow_redirects=False)
         assert resp.status_code == 303
 
         resp = client.get("/ping")
@@ -67,8 +78,11 @@ def test_logout_via_get_request():
     """Users should also be able to log out via GET requests."""
     create_user()
     with TestClient(main.app) as client:
+        token = get_csrf(client)
         client.post(
-            "/login", data={"username": "tester", "password": "secret"}, follow_redirects=False
+            "/login",
+            data={"username": "tester", "password": "secret", "csrf_token": token},
+            follow_redirects=False,
         )
         resp = client.get("/ping")
         assert resp.status_code == 200
@@ -85,16 +99,22 @@ def test_admin_routes_require_admin():
     create_user("normal_user", password="secret2", is_admin=False)
     with TestClient(main.app) as client:
         # non-admin should get forbidden
+        token = get_csrf(client)
         client.post(
-            "/login", data={"username": "normal_user", "password": "secret2"}, follow_redirects=False
+            "/login",
+            data={"username": "normal_user", "password": "secret2", "csrf_token": token},
+            follow_redirects=False,
         )
         resp = client.get("/admin", follow_redirects=False)
         assert resp.status_code == 403
 
         # switch to admin
-        client.post("/logout", follow_redirects=False)
+        client.post("/logout", data={"csrf_token": token}, follow_redirects=False)
+        token = get_csrf(client)
         client.post(
-            "/login", data={"username": "admin_user", "password": "secret"}, follow_redirects=False
+            "/login",
+            data={"username": "admin_user", "password": "secret", "csrf_token": token},
+            follow_redirects=False,
         )
         resp = client.get("/admin")
         assert resp.status_code == 200
@@ -103,12 +123,17 @@ def test_admin_routes_require_admin():
 def test_admin_can_create_user():
     create_user("site_admin", is_admin=True)
     with TestClient(main.app) as client:
+        token = get_csrf(client)
         client.post(
-            "/login", data={"username": "site_admin", "password": "secret"}, follow_redirects=False
+            "/login",
+            data={"username": "site_admin", "password": "secret", "csrf_token": token},
+            follow_redirects=False,
         )
 
         resp = client.post(
-            "/admin/create", data={"username": "new_user", "password": "pass"}, follow_redirects=False
+            "/admin/create",
+            data={"username": "new_user", "password": "pass"},
+            follow_redirects=False,
         )
         assert resp.status_code == 303
 
@@ -123,18 +148,20 @@ def test_connections_route_requires_admin():
     create_user("conn_admin", is_admin=True)
     create_user("conn_user", password="pass2", is_admin=False)
     with TestClient(main.app) as client:
+        token = get_csrf(client)
         client.post(
             "/login",
-            data={"username": "conn_user", "password": "pass2"},
+            data={"username": "conn_user", "password": "pass2", "csrf_token": token},
             follow_redirects=False,
         )
         resp = client.get("/connections", follow_redirects=False)
         assert resp.status_code == 403
 
-        client.post("/logout", follow_redirects=False)
+        client.post("/logout", data={"csrf_token": token}, follow_redirects=False)
+        token = get_csrf(client)
         client.post(
             "/login",
-            data={"username": "conn_admin", "password": "secret"},
+            data={"username": "conn_admin", "password": "secret", "csrf_token": token},
             follow_redirects=False,
         )
         resp = client.get("/connections")
@@ -151,9 +178,10 @@ def test_stock_multiple_filters():
     finally:
         db.close()
     with TestClient(main.app) as client:
+        token = get_csrf(client)
         client.post(
             "/login",
-            data={"username": "tester", "password": "secret"},
+            data={"username": "tester", "password": "secret", "csrf_token": token},
             follow_redirects=False,
         )
         resp = client.get(
@@ -173,13 +201,15 @@ def test_stock_multiple_filters():
 def test_change_password_flow():
     create_user()
     with TestClient(main.app) as client:
+        token = get_csrf(client)
         client.post(
             "/login",
-            data={"username": "tester", "password": "secret"},
+            data={"username": "tester", "password": "secret", "csrf_token": token},
             follow_redirects=False,
         )
         resp = client.get("/change-password")
         assert resp.status_code == 200
+        token = re.search('name="csrf_token" value="([^"]+)"', resp.text).group(1)
 
         resp = client.post(
             "/change-password",
@@ -187,22 +217,25 @@ def test_change_password_flow():
                 "old_password": "secret",
                 "new_password": "newpass",
                 "confirm_password": "newpass",
+                "csrf_token": token,
             },
             follow_redirects=False,
         )
         assert resp.status_code == 303
 
-        client.post("/logout", follow_redirects=False)
+        client.post("/logout", data={"csrf_token": token}, follow_redirects=False)
+        token = get_csrf(client)
         resp = client.post(
             "/login",
-            data={"username": "tester", "password": "secret"},
+            data={"username": "tester", "password": "secret", "csrf_token": token},
             follow_redirects=False,
         )
         assert resp.status_code == 401
 
+        token = get_csrf(client)
         resp = client.post(
             "/login",
-            data={"username": "tester", "password": "newpass"},
+            data={"username": "tester", "password": "newpass", "csrf_token": token},
             follow_redirects=False,
         )
         assert resp.status_code == 303
