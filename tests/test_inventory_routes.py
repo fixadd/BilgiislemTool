@@ -77,3 +77,23 @@ def test_accessories_router_lists_added_items():
         resp = client.get("/accessories")
         assert resp.status_code == 200
         assert "Kablo" in resp.text
+
+
+def test_printer_router_lists_added_items_with_inventory_no():
+    setup_in_memory_db()
+    app = create_app()
+    with TestClient(app) as client:
+        resp = client.post(
+            "/printer/add",
+            data={
+                "envanter_no": "P001",
+                "yazici_markasi": "HP",
+                "yazici_modeli": "LaserJet",
+                "kullanim_alani": "Depo",
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        resp = client.get("/printer")
+        assert resp.status_code == 200
+        assert "P001" in resp.text

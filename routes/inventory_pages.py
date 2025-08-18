@@ -141,6 +141,20 @@ def printer_page(request: Request) -> HTMLResponse:
         total_pages = max(1, math.ceil(total_count / per_page))
         offset = (page - 1) * per_page
         printers = query.offset(offset).limit(per_page).all()
+        lookups = {
+            "yazici_markasi": [
+                i.name
+                for i in db.query(LookupItem).filter_by(type="yazici_marka").all()
+            ],
+            "yazici_modeli": [
+                i.name
+                for i in db.query(LookupItem).filter_by(type="yazici_model").all()
+            ],
+            "kullanim_alani": [
+                i.name
+                for i in db.query(LookupItem).filter_by(type="lokasyon").all()
+            ],
+        }
     finally:
         db.close()
 
@@ -149,7 +163,7 @@ def printer_page(request: Request) -> HTMLResponse:
         "printers": printers,
         "columns": get_table_columns(PrinterInventory.__tablename__),
         "column_widths": {},
-        "lookups": {},
+        "lookups": lookups,
         "offset": offset,
         "page": page,
         "total_pages": total_pages,

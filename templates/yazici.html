@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% set column_labels = {
+  'envanter_no': 'Envanter No',
   'yazici_markasi': 'Yazıcı Markası',
   'yazici_modeli': 'Yazıcı Modeli',
   'kullanim_alani': 'Kullanım Alanı',
@@ -98,7 +99,7 @@
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% endif %}
               {% if lookups.get(col) %}
-              <select class="form-select" name="{{ col }}" required>
+              <select class="form-select" name="{{ col }}" {% if col != 'notlar' %}required{% endif %}>
                 <option value="" disabled selected>Seçiniz</option>
                 {% for val in lookups.get(col) %}
                 <option value="{{ val }}">{{ val }}</option>
@@ -106,6 +107,10 @@
               </select>
               {% elif col == 'tarih' %}
               <input type="hidden" name="{{ col }}" value="{{ today }}">
+              {% elif col == 'notlar' %}
+              <input type="text" class="form-control" name="{{ col }}">
+              {% elif col == 'envanter_no' %}
+              <input type="text" class="form-control" name="{{ col }}" id="envanter_no_lookup_edit">
               {% else %}
               <input type="text" class="form-control" name="{{ col }}" required>
               {% endif %}
@@ -133,16 +138,14 @@
       <form id="addForm" action="/printer/add" method="post">
           <div class="modal-body">
             <div class="row g-3">
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Envanter No</label>
-                <input type="text" class="form-control" id="envanter_no_lookup">
-              </div>
               {% for col in columns %}
               {% if col != 'islem_yapan' %}
               <div class="col-md-4 mb-3">
+                {% if col != 'tarih' %}
                 <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
+                {% endif %}
                 {% if lookups.get(col) %}
-                <select class="form-select" name="{{ col }}" required>
+                <select class="form-select" name="{{ col }}" {% if col != 'notlar' %}required{% endif %}>
                   <option value="" disabled selected>Seçiniz</option>
                   {% for val in lookups.get(col) %}
                   <option value="{{ val }}">{{ val }}</option>
@@ -150,6 +153,10 @@
                 </select>
                 {% elif col == 'tarih' %}
                 <input type="hidden" name="{{ col }}" value="{{ today }}">
+                {% elif col == 'notlar' %}
+                <input type="text" class="form-control" name="{{ col }}">
+                {% elif col == 'envanter_no' %}
+                <input type="text" class="form-control" name="{{ col }}" id="envanter_no_lookup">
                 {% else %}
                 <input type="text" class="form-control" name="{{ col }}" required>
                 {% endif %}
@@ -377,10 +384,14 @@ printerEnvInput?.addEventListener('change', async () => {
     const res = await fetch(`/inventory/fetch/${val}`);
     if (res.ok) {
         const data = await res.json();
-        const area = document.querySelector('#addForm input[name="kullanim_alani"]');
+        const area = document.querySelector('#addForm select[name="kullanim_alani"]');
         const host = document.querySelector('#addForm input[name="hostname"]');
+        const brand = document.querySelector('#addForm select[name="yazici_markasi"]');
+        const model = document.querySelector('#addForm select[name="yazici_modeli"]');
         if (data.kullanim_alani && area) area.value = data.kullanim_alani;
         if (data.bilgisayar_adi && host) host.value = data.bilgisayar_adi;
+        if (data.marka && brand) brand.value = data.marka;
+        if (data.model && model) model.value = data.model;
     }
 });
 </script>

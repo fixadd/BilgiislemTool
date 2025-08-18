@@ -70,6 +70,7 @@ class DeletedHardwareInventory(Base):
 class DeletedPrinterInventory(Base):
     __tablename__ = "deleted_printer_inventory"
     id = Column(Integer, primary_key=True, index=True)
+    envanter_no = Column(String)
     yazici_markasi = Column(String)
     yazici_modeli = Column(String)
     kullanim_alani = Column(String)
@@ -115,6 +116,7 @@ class DeletedStockItem(Base):
 class PrinterInventory(Base):
     __tablename__ = "printer_inventory"
     id = Column(Integer, primary_key=True, index=True)
+    envanter_no = Column(String)
     yazici_markasi = Column(String)
     yazici_modeli = Column(String)
     kullanim_alani = Column(String)
