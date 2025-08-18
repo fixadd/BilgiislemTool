@@ -1,5 +1,7 @@
 """Authentication routes."""
 
+import secrets
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
@@ -37,10 +39,18 @@ def login(
             if remember:
                 max_age = 60 * 60 * 24 * 30  # 30 days
                 response.set_cookie("username", username, max_age=max_age)
-                response.set_cookie("password", password, max_age=max_age)
+                token = secrets.token_urlsafe(16)
+                request.session["session_token"] = token
+                response.set_cookie(
+                    "session_token",
+                    token,
+                    max_age=max_age,
+                    httponly=True,
+                    samesite="lax",
+                )
             else:
                 response.delete_cookie("username")
-                response.delete_cookie("password")
+                response.delete_cookie("session_token")
             return response
     finally:
         db.close()

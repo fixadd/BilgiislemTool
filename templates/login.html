@@ -72,14 +72,8 @@
                 if (parts.length === 2) return parts.pop().split(";").shift();
             };
             const username = getCookie("username");
-            const password = getCookie("password");
             if (username) {
                 document.querySelector('input[name="username"]').value = username;
-            }
-            if (password) {
-                document.querySelector('input[name="password"]').value = password;
-            }
-            if (username || password) {
                 document.querySelector('input[name="remember"]').checked = true;
             }
         });
