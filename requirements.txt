@@ -10,7 +10,7 @@ xlrd==2.0.1
 openpyxl==3.1.5
 passlib[bcrypt]==1.7.4
 bcrypt==3.2.2
-sentry-sdk==2.34.1
+sentry-sdk==2.35.0
 ldap3==2.9.1
 httpx==0.27.2
 fastapi-csrf-protect==1.0.3
