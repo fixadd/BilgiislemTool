@@ -56,6 +56,8 @@ def inventory_fetch(no: str):
             "sorumlu_personel": item.sorumlu_personel,
             "kullanim_alani": item.kullanim_alani,
             "bilgisayar_adi": item.bilgisayar_adi,
+            # Provide a generic product name for accessory lookups
+            "urun_adi": item.bilgisayar_adi,
         }
     finally:
         db.close()

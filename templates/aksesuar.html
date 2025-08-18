@@ -94,7 +94,7 @@
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
               {% endif %}
               {% if col == 'aciklama' %}
-              <textarea class="form-control" name="{{ col }}" required></textarea>
+              <textarea class="form-control" name="{{ col }}"></textarea>
               {% elif col == 'tarih' %}
               <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% elif lookups.get(col) %}
@@ -138,9 +138,11 @@
               {% for col in columns %}
               {% if col not in ['islem_yapan', 'ifs_no'] %}
               <div class="col-md-4 mb-3">
+                {% if col != 'tarih' %}
                 <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
+                {% endif %}
                 {% if col == 'aciklama' %}
-                <textarea class="form-control" name="{{ col }}" required></textarea>
+                <textarea class="form-control" name="{{ col }}"></textarea>
                 {% elif col == 'tarih' %}
                 <input type="hidden" name="{{ col }}" value="{{ today }}">
                 {% elif lookups.get(col) %}
@@ -341,10 +343,12 @@ accEnvInput?.addEventListener('change', async () => {
     const res = await fetch(`/inventory/fetch/${val}`);
     if (res.ok) {
         const data = await res.json();
-    const dept = document.querySelector('#addForm input[name="departman"]');
-    const user = document.querySelector('#addForm [name="kullanici"]');
+        const dept = document.querySelector('#addForm input[name="departman"]');
+        const user = document.querySelector('#addForm [name="kullanici"]');
+        const prod = document.querySelector('#addForm input[name="urun_adi"]');
         if (data.departman && dept) dept.value = data.departman;
         if (data.sorumlu_personel && user) user.value = data.sorumlu_personel;
+        if (data.urun_adi && prod) prod.value = data.urun_adi;
     }
 });
 </script>
