@@ -22,6 +22,7 @@ from models import (
     DeletedAccessoryInventory,
     DeletedStockItem,
     get_db,
+    SessionLocal,
 )
 from utils import get_table_columns, load_settings, save_settings, log_action
 from logs import InventoryLogCreate
@@ -107,52 +108,52 @@ async def stock_add(request: Request, db: Session = Depends(get_db)):
     """Create or update a stock item from form data."""
     form = await request.form()
     stock_id = form.get("stock_id")
-        if stock_id:
-            item = db.get(StockItem, int(stock_id))
-            if item:
-                for field in [
-                    "urun_adi",
-                    "kategori",
-                    "marka",
-                    "adet",
-                    "departman",
-                    "guncelleme_tarihi",
-                    "islem",
-                    "tarih",
-                    "ifs_no",
-                    "aciklama",
-                ]:
-                    if field in form:
-                        value = form.get(field)
-                        if field in {"adet"}:
-                            value = int(value) if value else None
-                        elif field in {"guncelleme_tarihi", "tarih"}:
-                            value = date.fromisoformat(value) if value else None
-                        setattr(item, field, value)
-                item.islem_yapan = request.session.get("full_name", "")
-            action = f"Updated stock item {stock_id}"
-        else:
-            item = StockItem(
-                urun_adi=form.get("urun_adi"),
-                kategori=form.get("kategori"),
-                marka=form.get("marka"),
-                adet=int(form.get("adet") or 0),
-                departman=form.get("departman"),
-                guncelleme_tarihi=
-                    date.fromisoformat(form.get("guncelleme_tarihi"))
-                    if form.get("guncelleme_tarihi")
-                    else None,
-                islem=form.get("islem"),
-                tarih=
-                    date.fromisoformat(form.get("tarih"))
-                    if form.get("tarih")
-                    else None,
-                ifs_no=form.get("ifs_no"),
-                aciklama=form.get("aciklama"),
-                islem_yapan=request.session.get("full_name", ""),
-            )
-            db.add(item)
-            action = f"Added stock item {item.id}"
+    if stock_id:
+        item = db.get(StockItem, int(stock_id))
+        if item:
+            for field in [
+                "urun_adi",
+                "kategori",
+                "marka",
+                "adet",
+                "departman",
+                "guncelleme_tarihi",
+                "islem",
+                "tarih",
+                "ifs_no",
+                "aciklama",
+            ]:
+                if field in form:
+                    value = form.get(field)
+                    if field in {"adet"}:
+                        value = int(value) if value else None
+                    elif field in {"guncelleme_tarihi", "tarih"}:
+                        value = date.fromisoformat(value) if value else None
+                    setattr(item, field, value)
+            item.islem_yapan = request.session.get("full_name", "")
+        action = f"Updated stock item {stock_id}"
+    else:
+        item = StockItem(
+            urun_adi=form.get("urun_adi"),
+            kategori=form.get("kategori"),
+            marka=form.get("marka"),
+            adet=int(form.get("adet") or 0),
+            departman=form.get("departman"),
+            guncelleme_tarihi=
+                date.fromisoformat(form.get("guncelleme_tarihi"))
+                if form.get("guncelleme_tarihi")
+                else None,
+            islem=form.get("islem"),
+            tarih=
+                date.fromisoformat(form.get("tarih"))
+                if form.get("tarih")
+                else None,
+            ifs_no=form.get("ifs_no"),
+            aciklama=form.get("aciklama"),
+            islem_yapan=request.session.get("full_name", ""),
+        )
+        db.add(item)
+        action = f"Added stock item {item.id}"
     log_action(db, request.session.get("username", ""), action)
     return RedirectResponse("/stock", status_code=303)
 
@@ -173,44 +174,29 @@ async def printer_add(request: Request, db: Session = Depends(get_db)):
         if existing:
             data = {
                 col.name: getattr(existing, col.name)
-                    for col in PrinterInventory.__table__.columns
-                    if col.name != "id"
-                }
-                deleted = DeletedPrinterInventory(**data, deleted_at=date.today())
-                db.add(deleted)
-                for field in [
-                    "envanter_no",
-                    "yazici_markasi",
-                    "yazici_modeli",
-                    "kullanim_alani",
-                    "ip_adresi",
-                    "mac",
-                    "hostname",
-                    "notlar",
-                ]:
-                    if field in form:
-                        data[field] = form.get(field)
-                data["tarih"] = date.today()
-                data["islem_yapan"] = request.session.get("full_name", "")
-                item = PrinterInventory(**data)
-                db.add(item)
-                db.delete(existing)
-            action = f"Updated printer item {printer_id}"
-        else:
-            item = PrinterInventory(
-                envanter_no=form.get("envanter_no"),
-                yazici_markasi=form.get("yazici_markasi"),
-                    yazici_modeli=form.get("yazici_modeli"),
-                    kullanim_alani=form.get("kullanim_alani"),
-                    ip_adresi=form.get("ip_adresi"),
-                    mac=form.get("mac"),
-                    hostname=form.get("hostname"),
-                    tarih=date.today(),
-                    islem_yapan=request.session.get("full_name", ""),
-                    notlar=form.get("notlar"),
-                )
-                db.add(item)
-            action = f"Added printer item {item.id}"
+                for col in PrinterInventory.__table__.columns
+                if col.name != "id"
+            }
+            deleted = DeletedPrinterInventory(**data, deleted_at=date.today())
+            db.add(deleted)
+            for field in [
+                "envanter_no",
+                "yazici_markasi",
+                "yazici_modeli",
+                "kullanim_alani",
+                "ip_adresi",
+                "mac",
+                "hostname",
+                "notlar",
+            ]:
+                if field in form:
+                    data[field] = form.get(field)
+            data["tarih"] = date.today()
+            data["islem_yapan"] = request.session.get("full_name", "")
+            item = PrinterInventory(**data)
+            db.add(item)
+            db.delete(existing)
+        action = f"Updated printer item {printer_id}"
     else:
         item = PrinterInventory(
             envanter_no=form.get("envanter_no"),
