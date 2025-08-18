@@ -204,6 +204,16 @@ def license_page(request: Request) -> HTMLResponse:
             f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
             for u in users
         ]
+        lookups = {
+            "kullanici": user_names,
+            "departman": [
+                i.name
+                for i in db.query(LookupItem).filter_by(type="departman").all()
+            ],
+            "yazilim_adi": [
+                i.name for i in db.query(LookupItem).filter_by(type="yazilim").all()
+            ],
+        }
     finally:
         db.close()
 
@@ -212,7 +222,7 @@ def license_page(request: Request) -> HTMLResponse:
         "licenses": licenses,
         "columns": get_table_columns(LicenseInventory.__tablename__),
         "column_widths": {},
-        "lookups": {"kullanici": user_names},
+        "lookups": lookups,
         "offset": offset,
         "page": page,
         "total_pages": total_pages,
