@@ -32,12 +32,12 @@ async function loadHistory(invType, invId){
     <tr>
       <td>${new Date(r.change_date).toLocaleString()}</td>
       <td>${r.action}</td>
-      <td>${r.old_user_id ?? ''}</td>
-      <td>${r.new_user_id ?? ''}</td>
+      <td>${r.old_user_name ?? ''}</td>
+      <td>${r.new_user_name ?? ''}</td>
       <td>${r.old_location ?? ''}</td>
       <td>${r.new_location ?? ''}</td>
       <td>${r.note ?? ''}</td>
-      <td>${r.changed_by}</td>
+      <td>${r.changed_by_name ?? ''}</td>
     </tr>
   `).join('');
 }
