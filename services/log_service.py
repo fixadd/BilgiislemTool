@@ -95,24 +95,28 @@ def get_activity_logs(
 
 
 def get_inventory_items() -> List[Dict[str, Any]]:
+    """Return basic info for inventory items including their numbers."""
     rows = []
     parts = [
-        ("pc", "hardware_inventory", "bilgisayar_adi"),
-        ("license", "license_inventory", "yazilim_adi"),
-        ("accessory", "accessory_inventory", "urun_adi"),
+        ("pc", "hardware_inventory", "bilgisayar_adi", "no"),
+        ("license", "license_inventory", "yazilim_adi", "envanter_no"),
     ]
     with sqlite3.connect(DB_PATH) as con:
         cur = con.cursor()
-        for inv_type, table, col in parts:
+        for inv_type, table, name_col, no_col in parts:
             try:
                 cur.execute(
-                    f"SELECT ?, id, {col} FROM {table}", (inv_type,)
+                    f"SELECT ?, id, {name_col}, {no_col} FROM {table}",
+                    (inv_type,),
                 )
                 rows.extend(cur.fetchall())
             except sqlite3.OperationalError:
                 continue
-    rows.sort(key=lambda r: (r[2] or ""))
-    return [{"type": r[0], "id": r[1], "name": r[2]} for r in rows]
+    rows.sort(key=lambda r: (r[3] or ""))
+    return [
+        {"type": r[0], "id": r[1], "name": r[2], "inv_no": r[3]}
+        for r in rows
+    ]
 
 
 def get_latest_assignments(limit: int = 200, offset: int = 0) -> List[Dict[str, Any]]:

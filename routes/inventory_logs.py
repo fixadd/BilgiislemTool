@@ -9,7 +9,6 @@ from services.log_service import (
     get_inventory_logs,
     get_activity_logs,
     get_inventory_items,
-    get_latest_assignments,
 )
 from utils import templates
 from utils.auth import require_admin
@@ -40,7 +39,7 @@ def logs_page(
     request: Request,
     log_type: str = "user",
     username: Optional[str] = None,
-    inventory_key: Optional[str] = None,
+    inventory_no: Optional[str] = None,
     limit: int = 200,
     offset: int = 0,
 ):
@@ -49,6 +48,7 @@ def logs_page(
     inventory_items = []
     selected_inv_type = None
     selected_inv_id = None
+    selected_inv_no = inventory_no
 
     if log_type == "user":
         logs = get_activity_logs(username=username, limit=limit, offset=offset)
@@ -57,21 +57,20 @@ def logs_page(
             users = [u[0] for u in db.query(User.username).order_by(User.username).all()]
         finally:
             db.close()
-    elif log_type == "inventory":
-        if inventory_key:
-            parts = inventory_key.split(":", 1)
-            if len(parts) == 2 and parts[1].isdigit():
-                selected_inv_type = parts[0]
-                selected_inv_id = int(parts[1])
+    else:  # log_type == 'inventory'
+        inventory_items = get_inventory_items()
+        if inventory_no:
+            for item in inventory_items:
+                if item.get("inv_no") == inventory_no:
+                    selected_inv_type = item["type"]
+                    selected_inv_id = item["id"]
+                    break
         logs = get_inventory_logs(
             inventory_type=selected_inv_type,
             inventory_id=selected_inv_id,
             limit=limit,
             offset=offset,
         )
-        inventory_items = get_inventory_items()
-    else:  # log_type == 'all'
-        logs = get_latest_assignments(limit=limit, offset=offset)
 
     return templates.TemplateResponse(
         "kayitlar.html",
@@ -84,6 +83,7 @@ def logs_page(
             "selected_username": username,
             "selected_inv_type": selected_inv_type,
             "selected_inv_id": selected_inv_id,
+            "selected_inv_no": selected_inv_no,
         },
     )
 
