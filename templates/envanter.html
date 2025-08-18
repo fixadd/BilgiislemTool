@@ -31,15 +31,9 @@
   <button class="btn btn-success d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#addModal">
     <i class="bi bi-plus"></i> Yeni Kayıt
   </button>
-  <div class="dropdown">
-    <button class="btn btn-success dropdown-toggle" type="button" id="uploadDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-      <i class="bi bi-upload"></i>
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="uploadDropdown">
-      <li><a class="dropdown-item" href="#" id="import-excel">İçe Aktar</a></li>
-      <li><a class="dropdown-item" href="#" id="export-excel">Dışa Aktar</a></li>
-    </ul>
-  </div>
+  <button id="export-excel" class="btn btn-success" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+    <i class="bi bi-download"></i>
+  </button>
   <button id="edit-selected" type="button" class="btn btn-warning d-flex align-items-center gap-1">
     <i class="bi bi-pencil"></i> Düzenle
   </button>
@@ -67,9 +61,6 @@
   </form>
 </div>
 
-<form id="uploadForm" action="/inventory/upload" method="post" enctype="multipart/form-data" style="display:none;">
-    <input id="excelInput" type="file" class="form-control form-control-sm" name="excel_file" accept=".xls,.xlsx" required>
-</form>
 
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
     <div class="modal-dialog w-200">
@@ -310,24 +301,8 @@ document.querySelectorAll('.row-check').forEach(cb => {
 
 updateEditButtonState();
 
-document.getElementById('import-excel').addEventListener('click', () => {
-    document.getElementById('excelInput').click();
-});
 document.getElementById('export-excel').addEventListener('click', () => {
     window.location.href = '/inventory/export';
-});
-document.getElementById('excelInput').addEventListener('change', async () => {
-    const input = document.getElementById('excelInput');
-    if (!input.files.length) return;
-    const formData = new FormData();
-    formData.append('excel_file', input.files[0]);
-    const res = await fetch('/inventory/upload', { method: 'POST', body: formData });
-    if (res.ok) {
-        location.reload();
-    } else {
-        const data = await res.json();
-        showAlert('Dosya yüklenemedi: ' + data.detail);
-    }
 });
 
 editButton.addEventListener('click', () => {

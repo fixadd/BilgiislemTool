@@ -251,13 +251,6 @@ async def printer_add(request: Request):
     return RedirectResponse("/printer", status_code=303)
 
 
-@router.post("/printer/upload")
-async def printer_upload(request: Request, excel_file: UploadFile = File(...)):
-    """Accept a printer inventory Excel upload (currently discarded)."""
-    await excel_file.read()
-    return RedirectResponse("/printer", status_code=303)
-
-
 @router.post("/inventory/add")
 async def inventory_add(request: Request):
     """Create or update a hardware inventory record."""
@@ -370,13 +363,6 @@ async def inventory_add(request: Request):
         log_action(db, request.session.get("username", ""), action)
     finally:
         db.close()
-    return RedirectResponse("/inventory", status_code=303)
-
-
-@router.post("/inventory/upload")
-async def inventory_upload(request: Request, excel_file: UploadFile = File(...)):
-    """Accept a hardware inventory Excel upload (currently discarded)."""
-    await excel_file.read()
     return RedirectResponse("/inventory", status_code=303)
 
 

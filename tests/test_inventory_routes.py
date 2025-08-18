@@ -97,3 +97,19 @@ def test_printer_router_lists_added_items_with_inventory_no():
         resp = client.get("/printer")
         assert resp.status_code == 200
         assert "P001" in resp.text
+
+
+def test_printer_upload_route_removed():
+    setup_in_memory_db()
+    app = create_app()
+    with TestClient(app) as client:
+        resp = client.post("/printer/upload")
+        assert resp.status_code == 404
+
+
+def test_inventory_upload_route_removed():
+    setup_in_memory_db()
+    app = create_app()
+    with TestClient(app) as client:
+        resp = client.post("/inventory/upload")
+        assert resp.status_code == 404
