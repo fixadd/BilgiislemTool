@@ -1,9 +1,17 @@
 import os
-from datetime import date
 from typing import Optional
 
-from sqlalchemy import (Column, Date, DateTime, Integer, String, Text, Boolean,
-                        create_engine, func)
+from sqlalchemy import (
+    Column,
+    Date,
+    DateTime,
+    Integer,
+    String,
+    Text,
+    Boolean,
+    create_engine,
+    func,
+)
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from passlib.context import CryptContext
 
@@ -226,6 +234,7 @@ def init_db():
     if os.path.isdir(migrations_dir) and DB_FILE:
         import glob
         import sqlite3
+
         with sqlite3.connect(DB_FILE) as con:
             con.execute(
                 "CREATE TABLE IF NOT EXISTS schema_migrations (filename TEXT PRIMARY KEY)"
