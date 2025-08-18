@@ -50,20 +50,31 @@ def get_inventory_logs(
     base_with_inv = (
         "SELECT il.*, "
         "COALESCE(il.new_inventory_no, il.old_inventory_no) AS inventory_no, "
-        "uo.username AS old_user_name, un.username AS new_user_name, "
-        "uc.username AS changed_by_name "
+        "COALESCE(TRIM(uo.first_name || ' ' || uo.last_name), uo.username) AS old_user_name, "
+        "COALESCE(TRIM(un.first_name || ' ' || un.last_name), un.username) AS new_user_name, "
+        "COALESCE(TRIM(uc.first_name || ' ' || uc.last_name), uc.username) AS changed_by_name, "
+        "COALESCE(olo.name, il.old_location) AS old_location, "
+        "COALESCE(nlo.name, il.new_location) AS new_location "
         "FROM inventory_logs il "
         "LEFT JOIN users uo ON il.old_user_id = uo.id "
         "LEFT JOIN users un ON il.new_user_id = un.id "
-        "LEFT JOIN users uc ON il.changed_by = uc.id"
+        "LEFT JOIN users uc ON il.changed_by = uc.id "
+        "LEFT JOIN lookup_items olo ON CAST(il.old_location AS INTEGER) = olo.id "
+        "LEFT JOIN lookup_items nlo ON CAST(il.new_location AS INTEGER) = nlo.id"
     )
     base_legacy = (
-        "SELECT il.*, uo.username AS old_user_name, un.username AS new_user_name, "
-        "uc.username AS changed_by_name "
+        "SELECT il.*, "
+        "COALESCE(TRIM(uo.first_name || ' ' || uo.last_name), uo.username) AS old_user_name, "
+        "COALESCE(TRIM(un.first_name || ' ' || un.last_name), un.username) AS new_user_name, "
+        "COALESCE(TRIM(uc.first_name || ' ' || uc.last_name), uc.username) AS changed_by_name, "
+        "COALESCE(olo.name, il.old_location) AS old_location, "
+        "COALESCE(nlo.name, il.new_location) AS new_location "
         "FROM inventory_logs il "
         "LEFT JOIN users uo ON il.old_user_id = uo.id "
         "LEFT JOIN users un ON il.new_user_id = un.id "
-        "LEFT JOIN users uc ON il.changed_by = uc.id"
+        "LEFT JOIN users uc ON il.changed_by = uc.id "
+        "LEFT JOIN lookup_items olo ON CAST(il.old_location AS INTEGER) = olo.id "
+        "LEFT JOIN lookup_items nlo ON CAST(il.new_location AS INTEGER) = nlo.id"
     )
     conds: List[str] = []
     params: List[Any] = []
