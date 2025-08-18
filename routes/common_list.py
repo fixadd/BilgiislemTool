@@ -7,7 +7,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import or_, String
 
-from models import SessionLocal
+from models import SessionLocal, User
 from utils import templates, get_table_columns
 
 
@@ -59,8 +59,17 @@ def list_items(
         total_pages = max(1, math.ceil(total_count / per_page))
         offset = (page - 1) * per_page
         items = query.offset(offset).limit(per_page).all()
+        users = db.query(User).all()
     finally:
         db.close()
+
+    user_list = [
+        {
+            "id": u.id,
+            "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
+        }
+        for u in users
+    ]
 
     context = {
         "request": request,
@@ -77,6 +86,8 @@ def list_items(
         "count": total_count,
         "filter_field": filter_field,
         "filter_value": filter_value,
+        "users": user_list,
+        "current_user_id": request.session.get("user_id"),
     }
     context[items_key] = items
     return templates.TemplateResponse(template_name, context)
