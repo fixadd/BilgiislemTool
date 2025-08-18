@@ -120,8 +120,12 @@
       const headerRow = table.querySelector('thead tr');
       if(!headerRow) return;
       const bodyRows = table.querySelectorAll('tbody tr');
-      const order = settings.order || Array.from(headerRow.querySelectorAll('th[data-col]')).map(th => th.dataset.col);
-      const visible = new Set(settings.visible || order);
+      const order = (settings.order && settings.order.length)
+        ? settings.order
+        : Array.from(headerRow.querySelectorAll('th[data-col]')).map(th => th.dataset.col);
+      const visible = new Set(
+        (settings.visible && settings.visible.length) ? settings.visible : order
+      );
       const widths = settings.widths || {};
       const headerMap = {};
       headerRow.querySelectorAll('th[data-col]').forEach(th => { headerMap[th.dataset.col] = th; });
