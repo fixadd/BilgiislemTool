@@ -25,131 +25,139 @@
   <input type="hidden" name="item_type" value="hardware">
   <button type="submit" class="btn btn-danger btn-sm">Seçilenleri Kalıcı Sil</button>
 </form>
-<table class="table table-striped table-fixed table-resizable">
-  <tr>
-    <th><input type="checkbox" class="form-check-input select-all"></th>
-    {% for col, label in column_labels.items() %}
-    <th>{{ label }}</th>
+<div class="table-scroll">
+  <table class="table table-striped table-fixed table-resizable">
+    <tr>
+      <th><input type="checkbox" class="form-check-input select-all"></th>
+      {% for col, label in column_labels.items() %}
+      <th>{{ label }}</th>
+      {% endfor %}
+      <th>Kalan Gün</th>
+      <th>İşlem</th>
+    </tr>
+    {% for i in hardware %}
+    <tr>
+      <td><input class="form-check-input row-check" type="checkbox" name="ids" value="{{ i.id }}" form="delete-hardware-form"></td>
+      {% for col in column_labels.keys() %}
+      <td style="white-space: normal; word-break: break-word;" title="{{ i|attr(col) }}">{{ i|attr(col) }}</td>
+      {% endfor %}
+      <td>{{ 15 - (today - i.deleted_at).days }}</td>
+      <td>
+        <form action="/hardware/restore/{{ i.id }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
+        </form>
+      </td>
+    </tr>
     {% endfor %}
-    <th>Kalan Gün</th>
-    <th>İşlem</th>
-  </tr>
-  {% for i in hardware %}
-  <tr>
-    <td><input class="form-check-input row-check" type="checkbox" name="ids" value="{{ i.id }}" form="delete-hardware-form"></td>
-    {% for col in column_labels.keys() %}
-    <td style="white-space: normal; word-break: break-word;" title="{{ i|attr(col) }}">{{ i|attr(col) }}</td>
-    {% endfor %}
-    <td>{{ 15 - (today - i.deleted_at).days }}</td>
-    <td>
-      <form action="/hardware/restore/{{ i.id }}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+  </table>
+</div>
 
 <h4>Lisans Envanteri</h4>
 <form id="delete-license-form" action="/trash/delete" method="post" class="mb-2">
   <input type="hidden" name="item_type" value="license">
   <button type="submit" class="btn btn-danger btn-sm">Seçilenleri Kalıcı Sil</button>
 </form>
-<table class="table table-striped table-fixed table-resizable">
-  <tr>
-    <th><input type="checkbox" class="form-check-input select-all"></th>
-    {% for col in ["yazilim_adi","lisans_anahtari","adet","satin_alma_tarihi","bitis_tarihi","zimmetli_kisi","notlar"] %}
-    <th>{{ col.replace('_',' ').title() }}</th>
+<div class="table-scroll">
+  <table class="table table-striped table-fixed table-resizable">
+    <tr>
+      <th><input type="checkbox" class="form-check-input select-all"></th>
+      {% for col in ["yazilim_adi","lisans_anahtari","adet","satin_alma_tarihi","bitis_tarihi","zimmetli_kisi","notlar"] %}
+      <th>{{ col.replace('_',' ').title() }}</th>
+      {% endfor %}
+      <th>Kalan Gün</th>
+      <th>İşlem</th>
+    </tr>
+    {% for l in licenses %}
+    <tr>
+      <td><input class="form-check-input row-check" type="checkbox" name="ids" value="{{ l.id }}" form="delete-license-form"></td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ l.yazilim_adi }}">{{ l.yazilim_adi }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ l.lisans_anahtari }}">{{ l.lisans_anahtari }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ l.adet }}">{{ l.adet }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ l.satin_alma_tarihi }}">{{ l.satin_alma_tarihi }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ l.bitis_tarihi }}">{{ l.bitis_tarihi }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ l.zimmetli_kisi }}">{{ l.zimmetli_kisi }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ l.notlar }}">{{ l.notlar }}</td>
+      <td>{{ 15 - (today - l.deleted_at).days }}</td>
+      <td>
+        <form action="/license/restore/{{ l.id }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
+        </form>
+      </td>
+    </tr>
     {% endfor %}
-    <th>Kalan Gün</th>
-    <th>İşlem</th>
-  </tr>
-  {% for l in licenses %}
-  <tr>
-    <td><input class="form-check-input row-check" type="checkbox" name="ids" value="{{ l.id }}" form="delete-license-form"></td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ l.yazilim_adi }}">{{ l.yazilim_adi }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ l.lisans_anahtari }}">{{ l.lisans_anahtari }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ l.adet }}">{{ l.adet }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ l.satin_alma_tarihi }}">{{ l.satin_alma_tarihi }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ l.bitis_tarihi }}">{{ l.bitis_tarihi }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ l.zimmetli_kisi }}">{{ l.zimmetli_kisi }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ l.notlar }}">{{ l.notlar }}</td>
-    <td>{{ 15 - (today - l.deleted_at).days }}</td>
-    <td>
-      <form action="/license/restore/{{ l.id }}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+  </table>
+</div>
 
 <h4>Yazıcı Envanteri</h4>
 <form id="delete-printer-form" action="/trash/delete" method="post" class="mb-2">
   <input type="hidden" name="item_type" value="printer">
   <button type="submit" class="btn btn-danger btn-sm">Seçilenleri Kalıcı Sil</button>
 </form>
-<table class="table table-striped table-fixed table-resizable">
-  <tr>
-    <th><input type="checkbox" class="form-check-input select-all"></th>
-    {% for col in ["yazici_markasi","yazici_modeli","kullanim_alani","ip_adresi","mac","hostname","notlar"] %}
-    <th>{{ col.replace('_',' ').title() }}</th>
+<div class="table-scroll">
+  <table class="table table-striped table-fixed table-resizable">
+    <tr>
+      <th><input type="checkbox" class="form-check-input select-all"></th>
+      {% for col in ["yazici_markasi","yazici_modeli","kullanim_alani","ip_adresi","mac","hostname","notlar"] %}
+      <th>{{ col.replace('_',' ').title() }}</th>
+      {% endfor %}
+      <th>Kalan Gün</th>
+      <th>İşlem</th>
+    </tr>
+    {% for p in printers %}
+    <tr>
+      <td><input class="form-check-input row-check" type="checkbox" name="ids" value="{{ p.id }}" form="delete-printer-form"></td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ p.yazici_markasi }}">{{ p.yazici_markasi }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ p.yazici_modeli }}">{{ p.yazici_modeli }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ p.kullanim_alani }}">{{ p.kullanim_alani }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ p.ip_adresi }}">{{ p.ip_adresi }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ p.mac }}">{{ p.mac }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ p.hostname }}">{{ p.hostname }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ p.notlar }}">{{ p.notlar }}</td>
+      <td>{{ 15 - (today - p.deleted_at).days }}</td>
+      <td>
+        <form action="/printer/restore/{{ p.id }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
+        </form>
+      </td>
+    </tr>
     {% endfor %}
-    <th>Kalan Gün</th>
-    <th>İşlem</th>
-  </tr>
-  {% for p in printers %}
-  <tr>
-    <td><input class="form-check-input row-check" type="checkbox" name="ids" value="{{ p.id }}" form="delete-printer-form"></td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ p.yazici_markasi }}">{{ p.yazici_markasi }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ p.yazici_modeli }}">{{ p.yazici_modeli }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ p.kullanim_alani }}">{{ p.kullanim_alani }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ p.ip_adresi }}">{{ p.ip_adresi }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ p.mac }}">{{ p.mac }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ p.hostname }}">{{ p.hostname }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ p.notlar }}">{{ p.notlar }}</td>
-    <td>{{ 15 - (today - p.deleted_at).days }}</td>
-    <td>
-      <form action="/printer/restore/{{ p.id }}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+  </table>
+</div>
 
 <h4>Stok Takibi</h4>
 <form id="delete-stock-form" action="/trash/delete" method="post" class="mb-2">
   <input type="hidden" name="item_type" value="stock">
   <button type="submit" class="btn btn-danger btn-sm">Seçilenleri Kalıcı Sil</button>
 </form>
-<table class="table table-striped table-fixed table-resizable">
-  <tr>
-    <th><input type="checkbox" class="form-check-input select-all"></th>
-    {% for col in ["urun_adi","kategori","marka","adet","departman","guncelleme_tarihi"] %}
-    <th>{{ col.replace('_',' ').title() }}</th>
+<div class="table-scroll">
+  <table class="table table-striped table-fixed table-resizable">
+    <tr>
+      <th><input type="checkbox" class="form-check-input select-all"></th>
+      {% for col in ["urun_adi","kategori","marka","adet","departman","guncelleme_tarihi"] %}
+      <th>{{ col.replace('_',' ').title() }}</th>
+      {% endfor %}
+      <th>Kalan Gün</th>
+      <th>İşlem</th>
+    </tr>
+    {% for s in stocks %}
+    <tr>
+      <td><input class="form-check-input row-check" type="checkbox" name="ids" value="{{ s.id }}" form="delete-stock-form"></td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ s.urun_adi }}">{{ s.urun_adi }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ s.kategori }}">{{ s.kategori }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ s.marka }}">{{ s.marka }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ s.adet }}">{{ s.adet }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ s.departman }}">{{ s.departman }}</td>
+      <td style="white-space: normal; word-break: break-word;" title="{{ s.guncelleme_tarihi }}">{{ s.guncelleme_tarihi }}</td>
+      <td>{{ 15 - (today - s.deleted_at).days }}</td>
+      <td>
+        <form action="/stock/restore/{{ s.id }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
+        </form>
+      </td>
+    </tr>
     {% endfor %}
-    <th>Kalan Gün</th>
-    <th>İşlem</th>
-  </tr>
-  {% for s in stocks %}
-  <tr>
-    <td><input class="form-check-input row-check" type="checkbox" name="ids" value="{{ s.id }}" form="delete-stock-form"></td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ s.urun_adi }}">{{ s.urun_adi }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ s.kategori }}">{{ s.kategori }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ s.marka }}">{{ s.marka }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ s.adet }}">{{ s.adet }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ s.departman }}">{{ s.departman }}</td>
-    <td style="white-space: normal; word-break: break-word;" title="{{ s.guncelleme_tarihi }}">{{ s.guncelleme_tarihi }}</td>
-    <td>{{ 15 - (today - s.deleted_at).days }}</td>
-    <td>
-      <form action="/stock/restore/{{ s.id }}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-success btn-sm">Geri Yükle</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+  </table>
+</div>
 
 {% endblock %}
 
