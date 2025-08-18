@@ -94,9 +94,11 @@
             {% for col in columns %}
             {% if col not in ['islem_yapan', 'ifs_no'] %}
             <div class="mb-3">
+              {% if col != 'tarih' %}
               <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
+              {% endif %}
               {% if col == 'notlar' %}
-              <textarea class="form-control" name="{{ col }}" required></textarea>
+              <textarea class="form-control" name="{{ col }}"></textarea>
               {% elif col == 'tarih' %}
               <input type="hidden" name="{{ col }}" value="{{ today }}">
               {% elif lookups.get(col) %}
@@ -107,7 +109,7 @@
                 {% endfor %}
               </select>
               {% else %}
-              <input type="text" class="form-control" name="{{ col }}" required>
+              <input type="text" class="form-control" name="{{ col }}"{% if col != 'mail_adresi' %} required{% endif %}>
               {% endif %}
             </div>
             {% endif %}
@@ -135,9 +137,11 @@
               {% for col in columns %}
               {% if col not in ['islem_yapan', 'ifs_no'] %}
               <div class="col-md-4 mb-3">
+                {% if col != 'tarih' %}
                 <label class="form-label">{{ col.replace('_', ' ').title() }}</label>
+                {% endif %}
                 {% if col == 'notlar' %}
-                <textarea class="form-control" name="{{ col }}" required></textarea>
+                <textarea class="form-control" name="{{ col }}"></textarea>
                 {% elif col == 'tarih' %}
                 <input type="hidden" name="{{ col }}" value="{{ today }}">
                 {% elif lookups.get(col) %}
@@ -148,7 +152,7 @@
                   {% endfor %}
                 </select>
                 {% else %}
-                <input type="text" class="form-control" name="{{ col }}" required>
+                <input type="text" class="form-control" name="{{ col }}"{% if col != 'mail_adresi' %} required{% endif %}>
                 {% endif %}
               </div>
               {% endif %}
@@ -249,7 +253,7 @@ settingsModal.addEventListener('show.bs.modal', async () => {
         li.className = 'list-group-item d-flex align-items-center';
         li.draggable = true;
         li.dataset.col = col;
-        li.innerHTML = `<input class="form-check-input me-2" type="checkbox" ${visible.has(col) ? 'checked' : ''}> <span class="flex-grow-1">${col}</span><input type="number" class="form-control form-control-sm ms-2 width-input" style="width:80px" value="${widths[col] || ''}" placeholder="px">`;
+        li.innerHTML = `<input class="form-check-input me-2" type="checkbox" ${visible.has(col) ? 'checked' : ''}> <span class="flex-grow-1">${columnLabels[col] || col}</span><input type="number" class="form-control form-control-sm ms-2 width-input" style="width:80px" value="${widths[col] || ''}" placeholder="px">`;
         list.appendChild(li);
     });
     let drag;
