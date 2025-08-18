@@ -5,8 +5,9 @@ from datetime import date, datetime
 import csv
 from io import StringIO
 
-from fastapi import APIRouter, Depends, File, Request, UploadFile, Body
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, File, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from sqlalchemy.orm import Session
 
 from utils.auth import require_login
 from models import (
@@ -14,13 +15,13 @@ from models import (
     HardwareInventory,
     LicenseInventory,
     PrinterInventory,
-    SessionLocal,
     StockItem,
     DeletedHardwareInventory,
     DeletedLicenseInventory,
     DeletedPrinterInventory,
     DeletedAccessoryInventory,
     DeletedStockItem,
+    get_db,
 )
 from utils import get_table_columns, load_settings, save_settings, log_action
 from logs import InventoryLogCreate
@@ -44,82 +45,68 @@ MODEL_MAP = {
 
 
 @router.get("/inventory/fetch/{no}")
-def inventory_fetch(no: str):
+def inventory_fetch(no: str, db: Session = Depends(get_db)):
     """Fetch hardware inventory details by inventory number."""
-    db = SessionLocal()
-    try:
-        item = db.query(HardwareInventory).filter(HardwareInventory.no == no).first()
-        if not item:
-            return JSONResponse({"status": "not_found"}, status_code=404)
-        return {
-            "departman": item.departman,
-            "sorumlu_personel": item.sorumlu_personel,
-            "kullanim_alani": item.kullanim_alani,
-            "bilgisayar_adi": item.bilgisayar_adi,
-            "marka": item.marka,
-            "model": item.model,
-            # Provide a generic product name for accessory lookups
-            "urun_adi": item.bilgisayar_adi,
-        }
-    finally:
-        db.close()
+    item = db.query(HardwareInventory).filter(HardwareInventory.no == no).first()
+    if not item:
+        return JSONResponse({"status": "not_found"}, status_code=404)
+    return {
+        "departman": item.departman,
+        "sorumlu_personel": item.sorumlu_personel,
+        "kullanim_alani": item.kullanim_alani,
+        "bilgisayar_adi": item.bilgisayar_adi,
+        "marka": item.marka,
+        "model": item.model,
+        # Provide a generic product name for accessory lookups
+        "urun_adi": item.bilgisayar_adi,
+    }
 
 
-def _export_model(model, filename: str) -> StreamingResponse:
+def _export_model(model, filename: str, db: Session) -> StreamingResponse:
     """Export all records of a model as CSV."""
-    db = SessionLocal()
-    try:
-        items = db.query(model).all()
-        output = StringIO()
-        writer = csv.writer(output)
-        columns = [col.name for col in model.__table__.columns]
-        writer.writerow(columns)
-        for item in items:
-            row = []
-            for col in columns:
-                value = getattr(item, col)
-                if isinstance(value, (date, datetime)):
-                    value = value.isoformat()
-                row.append(value)
-            writer.writerow(row)
-        output.seek(0)
-        return StreamingResponse(
-            output,
-            media_type="text/csv",
-            headers={"Content-Disposition": f"attachment; filename={filename}"},
-        )
-    finally:
-        db.close()
+    items = db.query(model).all()
+    output = StringIO()
+    writer = csv.writer(output)
+    columns = [col.name for col in model.__table__.columns]
+    writer.writerow(columns)
+    for item in items:
+        row = []
+        for col in columns:
+            value = getattr(item, col)
+            if isinstance(value, (date, datetime)):
+                value = value.isoformat()
+            row.append(value)
+        writer.writerow(row)
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
-def _soft_delete(ids: list[int], model, deleted_model) -> None:
+def _soft_delete(ids: list[int], model, deleted_model, db: Session) -> None:
     """Move selected records to their deleted counterparts."""
     if not ids:
         return
-    db = SessionLocal()
-    try:
-        records = db.query(model).filter(model.id.in_(ids)).all()
-        for record in records:
-            data = {
-                col.name: getattr(record, col.name)
-                for col in model.__table__.columns
-                if col.name != "id"
-            }
-            deleted = deleted_model(**data, deleted_at=date.today())
-            db.add(deleted)
-            db.delete(record)
-        db.commit()
-    finally:
-        db.close()
+    records = db.query(model).filter(model.id.in_(ids)).all()
+    for record in records:
+        data = {
+            col.name: getattr(record, col.name)
+            for col in model.__table__.columns
+            if col.name != "id"
+        }
+        deleted = deleted_model(**data, deleted_at=date.today())
+        db.add(deleted)
+        db.delete(record)
+    db.commit()
 
 
 @router.post("/stock/add")
-async def stock_add(request: Request):
+async def stock_add(request: Request, db: Session = Depends(get_db)):
     """Create or update a stock item from form data."""
     form = await request.form()
-    db = SessionLocal()
-    try:
-        stock_id = form.get("stock_id")
+    stock_id = form.get("stock_id")
         if stock_id:
             item = db.get(StockItem, int(stock_id))
             if item:
@@ -166,31 +153,26 @@ async def stock_add(request: Request):
             )
             db.add(item)
             action = f"Added stock item {item.id}"
-        db.commit()
-        log_action(db, request.session.get("username", ""), action)
-    finally:
-        db.close()
+    log_action(db, request.session.get("username", ""), action)
     return RedirectResponse("/stock", status_code=303)
 
 
 @router.get("/stock", response_class=HTMLResponse)
-def stock_list_page(request: Request) -> HTMLResponse:
+def stock_list_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     """Render the stock list page."""
-    return stock_list(request)
+    return stock_list(request, db)
 
 
 @router.post("/printer/add")
-async def printer_add(request: Request):
+async def printer_add(request: Request, db: Session = Depends(get_db)):
     """Create or update a printer inventory item."""
     form = await request.form()
-    db = SessionLocal()
-    try:
-        printer_id = form.get("printer_id")
-        if printer_id:
-            existing = db.get(PrinterInventory, int(printer_id))
-            if existing:
-                data = {
-                    col.name: getattr(existing, col.name)
+    printer_id = form.get("printer_id")
+    if printer_id:
+        existing = db.get(PrinterInventory, int(printer_id))
+        if existing:
+            data = {
+                col.name: getattr(existing, col.name)
                     for col in PrinterInventory.__table__.columns
                     if col.name != "id"
                 }
@@ -213,11 +195,11 @@ async def printer_add(request: Request):
                 item = PrinterInventory(**data)
                 db.add(item)
                 db.delete(existing)
-                action = f"Updated printer item {printer_id}"
-            else:
-                item = PrinterInventory(
-                    envanter_no=form.get("envanter_no"),
-                    yazici_markasi=form.get("yazici_markasi"),
+            action = f"Updated printer item {printer_id}"
+        else:
+            item = PrinterInventory(
+                envanter_no=form.get("envanter_no"),
+                yazici_markasi=form.get("yazici_markasi"),
                     yazici_modeli=form.get("yazici_modeli"),
                     kullanim_alani=form.get("kullanim_alani"),
                     ip_adresi=form.get("ip_adresi"),
@@ -228,26 +210,23 @@ async def printer_add(request: Request):
                     notlar=form.get("notlar"),
                 )
                 db.add(item)
-                action = f"Added printer item {item.id}"
-        else:
-            item = PrinterInventory(
-                envanter_no=form.get("envanter_no"),
-                yazici_markasi=form.get("yazici_markasi"),
-                yazici_modeli=form.get("yazici_modeli"),
-                kullanim_alani=form.get("kullanim_alani"),
-                ip_adresi=form.get("ip_adresi"),
-                mac=form.get("mac"),
-                hostname=form.get("hostname"),
-                tarih=date.today(),
-                islem_yapan=request.session.get("full_name", ""),
-                notlar=form.get("notlar"),
-            )
-            db.add(item)
             action = f"Added printer item {item.id}"
-        db.commit()
-        log_action(db, request.session.get("username", ""), action)
-    finally:
-        db.close()
+    else:
+        item = PrinterInventory(
+            envanter_no=form.get("envanter_no"),
+            yazici_markasi=form.get("yazici_markasi"),
+            yazici_modeli=form.get("yazici_modeli"),
+            kullanim_alani=form.get("kullanim_alani"),
+            ip_adresi=form.get("ip_adresi"),
+            mac=form.get("mac"),
+            hostname=form.get("hostname"),
+            tarih=date.today(),
+            islem_yapan=request.session.get("full_name", ""),
+            notlar=form.get("notlar"),
+        )
+        db.add(item)
+        action = f"Added printer item {item.id}"
+    log_action(db, request.session.get("username", ""), action)
     return RedirectResponse("/printer", status_code=303)
 
 
@@ -474,56 +453,42 @@ async def license_upload(request: Request, excel_file: UploadFile = File(...)):
 
 
 @router.post("/accessories/add")
-async def accessories_add(request: Request):
+async def accessories_add(request: Request, db: Session = Depends(get_db)):
     """Create or update an accessory inventory item."""
     form = await request.form()
-    db = SessionLocal()
-    try:
-        accessory_id = form.get("accessory_id")
-        old_user = None
-        new_user = None
-        if accessory_id:
-            existing = db.get(AccessoryInventory, int(accessory_id))
-            if existing:
-                old_user = existing.kullanici
-                data = {
-                    col.name: getattr(existing, col.name)
-                    for col in AccessoryInventory.__table__.columns
-                    if col.name != "id"
-                }
-                deleted = DeletedAccessoryInventory(**data, deleted_at=date.today())
-                db.add(deleted)
-                for field in [
-                    "urun_adi",
-                    "adet",
-                    "departman",
-                    "kullanici",
-                    "aciklama",
-                ]:
-                    if field in form:
-                        value = form.get(field)
-                        if field == "adet":
-                            value = int(value) if value else None
-                        data[field] = value
-                new_user = data.get("kullanici")
-                data["tarih"] = date.today()
-                data["islem_yapan"] = request.session.get("full_name", "")
-                item = AccessoryInventory(**data)
-                db.add(item)
-                db.delete(existing)
-                action = f"Updated accessory item {accessory_id}"
-            else:
-                item = AccessoryInventory(
-                    urun_adi=form.get("urun_adi"),
-                    adet=int(form.get("adet") or 0),
-                    tarih=date.today(),
-                    departman=form.get("departman"),
-                    kullanici=form.get("kullanici"),
-                    aciklama=form.get("aciklama"),
-                    islem_yapan=request.session.get("full_name", ""),
-                )
-                db.add(item)
-                action = f"Added accessory item {item.id}"
+    accessory_id = form.get("accessory_id")
+    old_user = None
+    new_user = None
+    if accessory_id:
+        existing = db.get(AccessoryInventory, int(accessory_id))
+        if existing:
+            old_user = existing.kullanici
+            data = {
+                col.name: getattr(existing, col.name)
+                for col in AccessoryInventory.__table__.columns
+                if col.name != "id"
+            }
+            deleted = DeletedAccessoryInventory(**data, deleted_at=date.today())
+            db.add(deleted)
+            for field in [
+                "urun_adi",
+                "adet",
+                "departman",
+                "kullanici",
+                "aciklama",
+            ]:
+                if field in form:
+                    value = form.get(field)
+                    if field == "adet":
+                        value = int(value) if value else None
+                    data[field] = value
+            new_user = data.get("kullanici")
+            data["tarih"] = date.today()
+            data["islem_yapan"] = request.session.get("full_name", "")
+            item = AccessoryInventory(**data)
+            db.add(item)
+            db.delete(existing)
+            action = f"Updated accessory item {accessory_id}"
         else:
             item = AccessoryInventory(
                 urun_adi=form.get("urun_adi"),
@@ -536,21 +501,30 @@ async def accessories_add(request: Request):
             )
             db.add(item)
             action = f"Added accessory item {item.id}"
-        db.commit()
-        if accessory_id and old_user != new_user:
-            add_inventory_log(
-                InventoryLogCreate(
-                    inventory_type="accessory",
-                    inventory_id=item.id,
-                    action="assign" if new_user else "return",
-                    changed_by=request.session.get("user_id", 0),
-                    old_user_id=int(old_user) if old_user and str(old_user).isdigit() else None,
-                    new_user_id=int(new_user) if new_user and str(new_user).isdigit() else None,
-                )
+    else:
+        item = AccessoryInventory(
+            urun_adi=form.get("urun_adi"),
+            adet=int(form.get("adet") or 0),
+            tarih=date.today(),
+            departman=form.get("departman"),
+            kullanici=form.get("kullanici"),
+            aciklama=form.get("aciklama"),
+            islem_yapan=request.session.get("full_name", ""),
+        )
+        db.add(item)
+        action = f"Added accessory item {item.id}"
+    if accessory_id and old_user != new_user:
+        add_inventory_log(
+            InventoryLogCreate(
+                inventory_type="accessory",
+                inventory_id=item.id,
+                action="assign" if new_user else "return",
+                changed_by=request.session.get("user_id", 0),
+                old_user_id=int(old_user) if old_user and str(old_user).isdigit() else None,
+                new_user_id=int(new_user) if new_user and str(new_user).isdigit() else None,
             )
-        log_action(db, request.session.get("username", ""), action)
-    finally:
-        db.close()
+        )
+    log_action(db, request.session.get("username", ""), action)
     return RedirectResponse("/accessories", status_code=303)
 
 
@@ -562,33 +536,33 @@ async def accessories_upload(request: Request, excel_file: UploadFile = File(...
 
 
 @router.get("/accessories/export")
-def accessories_export():
+def accessories_export(db: Session = Depends(get_db)):
     """Export accessories inventory as CSV."""
-    return _export_model(AccessoryInventory, "accessories.csv")
+    return _export_model(AccessoryInventory, "accessories.csv", db)
 
 
 @router.get("/inventory/export")
-def inventory_export():
+def inventory_export(db: Session = Depends(get_db)):
     """Export hardware inventory as CSV."""
-    return _export_model(HardwareInventory, "inventory.csv")
+    return _export_model(HardwareInventory, "inventory.csv", db)
 
 
 @router.get("/stock/export")
-def stock_export():
+def stock_export(db: Session = Depends(get_db)):
     """Export stock items as CSV."""
-    return _export_model(StockItem, "stock.csv")
+    return _export_model(StockItem, "stock.csv", db)
 
 
 @router.get("/license/export")
-def license_export():
+def license_export(db: Session = Depends(get_db)):
     """Export license inventory as CSV."""
-    return _export_model(LicenseInventory, "license.csv")
+    return _export_model(LicenseInventory, "license.csv", db)
 
 
 @router.get("/printer/export")
-def printer_export():
+def printer_export(db: Session = Depends(get_db)):
     """Export printer inventory as CSV."""
-    return _export_model(PrinterInventory, "printer.csv")
+    return _export_model(PrinterInventory, "printer.csv", db)
 
 
 @router.post("/inventory/delete")
