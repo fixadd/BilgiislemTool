@@ -1,5 +1,8 @@
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from sqlalchemy.orm import Session
+
+from models import User, get_db
 
 
 def require_login(request: Request):
@@ -18,22 +21,17 @@ def require_login(request: Request):
     return None
 
 
-def require_admin(request: Request):
+def require_admin(
+    request: Request, db: Session = Depends(get_db)
+):
     """Ensure the current session belongs to an admin user."""
     # First confirm the user is logged in.
     require_login(request)
 
-    # Import locally to avoid circular imports during application start-up.
-    from models import SessionLocal, User
-
-    db = SessionLocal()
-    try:
-        user_id = request.session.get("user_id")
-        user = db.get(User, user_id)
-        if not user or not user.is_admin:
-            raise HTTPException(status_code=403)
-    finally:
-        db.close()
+    user_id = request.session.get("user_id")
+    user = db.get(User, user_id)
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403)
     return None
 
 

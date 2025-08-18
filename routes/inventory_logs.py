@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from typing import Optional
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from logs import InventoryLogCreate
 from services.log_service import (
@@ -13,7 +14,7 @@ from services.log_service import (
 )
 from utils import templates
 from utils.auth import require_admin
-from models import SessionLocal, User
+from models import User, get_db
 
 router = APIRouter(prefix="/logs", tags=["Inventory Logs"])
 
@@ -43,6 +44,7 @@ def logs_page(
     inventory_no: Optional[str] = None,
     limit: int = 200,
     offset: int = 0,
+    db: Session = Depends(get_db),
 ):
     logs = []
     users = []
@@ -53,11 +55,7 @@ def logs_page(
 
     if log_type == "user":
         logs = get_activity_logs(username=username, limit=limit, offset=offset)
-        db = SessionLocal()
-        try:
-            users = [u[0] for u in db.query(User.username).order_by(User.username).all()]
-        finally:
-            db.close()
+        users = [u[0] for u in db.query(User.username).order_by(User.username).all()]
     else:  # log_type == 'inventory'
         inventory_items = get_inventory_items()
         if inventory_no:

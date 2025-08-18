@@ -6,14 +6,16 @@ import math
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi_csrf_protect import CsrfProtect
-from sqlalchemy import or_, String
+from sqlalchemy import String, or_
+from sqlalchemy.orm import Session
 
-from models import SessionLocal, User
+from models import User
 from utils import templates, get_table_columns
 
 
 def list_items(
     request: Request,
+    db: Session,
     Model,
     table_name: str,
     filter_fields: Iterable[str],
@@ -40,29 +42,25 @@ def list_items(
     per_page = int(params.get("per_page", 25))
 
     filters = []
-    db = SessionLocal()
-    try:
-        query = db.query(Model)
-        for field, value in zip(request_filter_fields, request_filter_values):
-            if field in filter_fields and value and hasattr(Model, field):
-                query = query.filter(getattr(Model, field) == value)
-                filters.append({"field": field, "value": value})
+    query = db.query(Model)
+    for field, value in zip(request_filter_fields, request_filter_values):
+        if field in filter_fields and value and hasattr(Model, field):
+            query = query.filter(getattr(Model, field) == value)
+            filters.append({"field": field, "value": value})
 
-        if q:
-            search_conditions = []
-            for column in Model.__table__.columns:
-                if isinstance(column.type, String):
-                    search_conditions.append(column.ilike(f"%{q}%"))
-            if search_conditions:
-                query = query.filter(or_(*search_conditions))
+    if q:
+        search_conditions = []
+        for column in Model.__table__.columns:
+            if isinstance(column.type, String):
+                search_conditions.append(column.ilike(f"%{q}%"))
+        if search_conditions:
+            query = query.filter(or_(*search_conditions))
 
-        total_count = query.count()
-        total_pages = max(1, math.ceil(total_count / per_page))
-        offset = (page - 1) * per_page
-        items = query.offset(offset).limit(per_page).all()
-        users = db.query(User).all()
-    finally:
-        db.close()
+    total_count = query.count()
+    total_pages = max(1, math.ceil(total_count / per_page))
+    offset = (page - 1) * per_page
+    items = query.offset(offset).limit(per_page).all()
+    users = db.query(User).all()
 
     user_list = [
         {

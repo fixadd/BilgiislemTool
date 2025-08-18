@@ -2,10 +2,11 @@
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, Request, Form, Body
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi import APIRouter, Body, Depends, Form, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi_csrf_protect import CsrfProtect
-from sqlalchemy import or_, String
+from sqlalchemy import String, or_
+from sqlalchemy.orm import Session
 import math
 
 from models import (
@@ -15,9 +16,9 @@ from models import (
     LookupItem,
     PrinterInventory,
     RequestItem,
-    SessionLocal,
     StockItem,
     User,
+    get_db,
     pwd_context,
 )
 from utils import get_table_columns, load_settings, save_settings, templates
@@ -37,7 +38,9 @@ MODEL_MAP = {
 
 @router.get("/inventory", response_class=HTMLResponse)
 def inventory_page(
-    request: Request, csrf_protect: CsrfProtect = Depends()
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
 ) -> HTMLResponse:
     """Render the hardware inventory page."""
     params = request.query_params
@@ -50,48 +53,44 @@ def inventory_page(
     per_page = int(params.get("per_page", 25))
 
     filters = []
-    db = SessionLocal()
-    try:
-        query = db.query(HardwareInventory)
+    query = db.query(HardwareInventory)
 
-        for field, value in zip(filter_fields, filter_values):
-            if field and value and hasattr(HardwareInventory, field):
-                query = query.filter(getattr(HardwareInventory, field) == value)
-                filters.append({"field": field, "value": value})
+    for field, value in zip(filter_fields, filter_values):
+        if field and value and hasattr(HardwareInventory, field):
+            query = query.filter(getattr(HardwareInventory, field) == value)
+            filters.append({"field": field, "value": value})
 
-        if q:
-            search_conditions = []
-            for column in HardwareInventory.__table__.columns:
-                if isinstance(column.type, String):
-                    search_conditions.append(column.ilike(f"%{q}%"))
-            if search_conditions:
-                query = query.filter(or_(*search_conditions))
+    if q:
+        search_conditions = []
+        for column in HardwareInventory.__table__.columns:
+            if isinstance(column.type, String):
+                search_conditions.append(column.ilike(f"%{q}%"))
+        if search_conditions:
+            query = query.filter(or_(*search_conditions))
 
-        total_count = query.count()
-        total_pages = max(1, math.ceil(total_count / per_page))
-        offset = (page - 1) * per_page
-        items = query.offset(offset).limit(per_page).all()
-        users = db.query(User).all()
-        user_list = [
-            {
-                "id": u.id,
-                "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
-            }
-            for u in users
-        ]
-        user_names = [u["name"] for u in user_list]
-        lookups = {
-            "sorumlu_personel": user_names,
-            "fabrika": [i.name for i in db.query(LookupItem).filter_by(type="fabrika").all()],
-            "blok": [i.name for i in db.query(LookupItem).filter_by(type="blok").all()],
-            "departman": [i.name for i in db.query(LookupItem).filter_by(type="departman").all()],
-            "donanim_tipi": [i.name for i in db.query(LookupItem).filter_by(type="donanim_tipi").all()],
-            "marka": [i.name for i in db.query(LookupItem).filter_by(type="marka").all()],
-            "model": [i.name for i in db.query(LookupItem).filter_by(type="model").all()],
-            "kullanim_alani": ["kullanıcı", "üretim", "dışarı"],
+    total_count = query.count()
+    total_pages = max(1, math.ceil(total_count / per_page))
+    offset = (page - 1) * per_page
+    items = query.offset(offset).limit(per_page).all()
+    users = db.query(User).all()
+    user_list = [
+        {
+            "id": u.id,
+            "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
         }
-    finally:
-        db.close()
+        for u in users
+    ]
+    user_names = [u["name"] for u in user_list]
+    lookups = {
+        "sorumlu_personel": user_names,
+        "fabrika": [i.name for i in db.query(LookupItem).filter_by(type="fabrika").all()],
+        "blok": [i.name for i in db.query(LookupItem).filter_by(type="blok").all()],
+        "departman": [i.name for i in db.query(LookupItem).filter_by(type="departman").all()],
+        "donanim_tipi": [i.name for i in db.query(LookupItem).filter_by(type="donanim_tipi").all()],
+        "marka": [i.name for i in db.query(LookupItem).filter_by(type="marka").all()],
+        "model": [i.name for i in db.query(LookupItem).filter_by(type="model").all()],
+        "kullanim_alani": ["kullanıcı", "üretim", "dışarı"],
+    }
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
@@ -122,7 +121,9 @@ def inventory_page(
 
 @router.get("/printer", response_class=HTMLResponse)
 def printer_page(
-    request: Request, csrf_protect: CsrfProtect = Depends()
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
 ) -> HTMLResponse:
     """Render the printer inventory page."""
     params = request.query_params
@@ -135,9 +136,7 @@ def printer_page(
     per_page = int(params.get("per_page", 25))
 
     filters = []
-    db = SessionLocal()
-    try:
-        query = db.query(PrinterInventory)
+    query = db.query(PrinterInventory)
 
         for field, value in zip(filter_fields, filter_values):
             if field and value and hasattr(PrinterInventory, field):
@@ -178,8 +177,6 @@ def printer_page(
                 for i in db.query(LookupItem).filter_by(type="lokasyon").all()
             ],
         }
-    finally:
-        db.close()
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
@@ -210,7 +207,9 @@ def printer_page(
 
 @router.get("/license", response_class=HTMLResponse)
 def license_page(
-    request: Request, csrf_protect: CsrfProtect = Depends()
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
 ) -> HTMLResponse:
     """Render the software license inventory page."""
     params = request.query_params
@@ -223,9 +222,7 @@ def license_page(
     per_page = int(params.get("per_page", 25))
 
     filters = []
-    db = SessionLocal()
-    try:
-        query = db.query(LicenseInventory)
+    query = db.query(LicenseInventory)
 
         for field, value in zip(filter_fields, filter_values):
             if field and value and hasattr(LicenseInventory, field):
@@ -263,8 +260,6 @@ def license_page(
                 i.name for i in db.query(LookupItem).filter_by(type="yazilim").all()
             ],
         }
-    finally:
-        db.close()
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
@@ -295,7 +290,9 @@ def license_page(
 
 @router.get("/accessories", response_class=HTMLResponse)
 def accessories_page(
-    request: Request, csrf_protect: CsrfProtect = Depends()
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
 ) -> HTMLResponse:
     """Render the accessories inventory page."""
     params = request.query_params
@@ -308,9 +305,7 @@ def accessories_page(
     per_page = int(params.get("per_page", 25))
 
     filters = []
-    db = SessionLocal()
-    try:
-        query = db.query(AccessoryInventory)
+    query = db.query(AccessoryInventory)
 
         for field, value in zip(filter_fields, filter_values):
             if field and value and hasattr(AccessoryInventory, field):
@@ -338,8 +333,6 @@ def accessories_page(
             for u in users
         ]
         user_names = [u["name"] for u in user_list]
-    finally:
-        db.close()
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
@@ -370,7 +363,9 @@ def accessories_page(
 
 @router.get("/requests", response_class=HTMLResponse)
 def requests_page(
-    request: Request, csrf_protect: CsrfProtect = Depends()
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
 ) -> HTMLResponse:
     """Render the requests tracking page."""
     lookups = {
@@ -381,13 +376,9 @@ def requests_page(
         "urun_adi": [],
     }
 
-    db = SessionLocal()
-    try:
-        groups = {}
-        for item in db.query(RequestItem).all():
-            groups.setdefault(item.ifs_no, []).append(item)
-    finally:
-        db.close()
+    groups = {}
+    for item in db.query(RequestItem).all():
+        groups.setdefault(item.ifs_no, []).append(item)
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
@@ -403,13 +394,13 @@ def requests_page(
 
 @router.post("/requests/add")
 async def requests_add(
-    request: Request, csrf_protect: CsrfProtect = Depends()
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
 ):
     """Add a request item."""
     form = await request.form()
     await csrf_protect.validate_csrf(request)
-    db = SessionLocal()
-    try:
         kategoriler = form.getlist("kategori")
         donanim_tipleri = form.getlist("donanim_tipi")
         markalar = form.getlist("marka")
@@ -447,35 +438,30 @@ async def requests_add(
                 talep_acan=str(request.session.get("user_id", "")),
             )
             db.add(item)
-
-        db.commit()
-    finally:
-        db.close()
+    db.commit()
     return RedirectResponse("/requests", status_code=303)
 
 
 @router.get("/lists", response_class=HTMLResponse)
 def lists_page(
-    request: Request, csrf_protect: CsrfProtect = Depends()
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
 ) -> HTMLResponse:
     """Render the lists management page."""
-    db = SessionLocal()
-    try:
-        context = {
-            "brands": db.query(LookupItem).filter_by(type="marka").all(),
-            "locations": db.query(LookupItem).filter_by(type="lokasyon").all(),
-            "types": db.query(LookupItem).filter_by(type="donanim_tipi").all(),
-            "softwares": db.query(LookupItem).filter_by(type="yazilim").all(),
-            "factories": db.query(LookupItem).filter_by(type="fabrika").all(),
-            "departments": db.query(LookupItem).filter_by(type="departman").all(),
-            "blocks": db.query(LookupItem).filter_by(type="blok").all(),
-            "models": db.query(LookupItem).filter_by(type="model").all(),
-            "printer_brands": db.query(LookupItem).filter_by(type="yazici_marka").all(),
-            "printer_models": db.query(LookupItem).filter_by(type="yazici_model").all(),
-            "products": db.query(LookupItem).filter_by(type="urun").all(),
-        }
-    finally:
-        db.close()
+    context = {
+        "brands": db.query(LookupItem).filter_by(type="marka").all(),
+        "locations": db.query(LookupItem).filter_by(type="lokasyon").all(),
+        "types": db.query(LookupItem).filter_by(type="donanim_tipi").all(),
+        "softwares": db.query(LookupItem).filter_by(type="yazilim").all(),
+        "factories": db.query(LookupItem).filter_by(type="fabrika").all(),
+        "departments": db.query(LookupItem).filter_by(type="departman").all(),
+        "blocks": db.query(LookupItem).filter_by(type="blok").all(),
+        "models": db.query(LookupItem).filter_by(type="model").all(),
+        "printer_brands": db.query(LookupItem).filter_by(type="yazici_marka").all(),
+        "printer_models": db.query(LookupItem).filter_by(type="yazici_model").all(),
+        "products": db.query(LookupItem).filter_by(type="urun").all(),
+    }
     token, signed = csrf_protect.generate_csrf_tokens()
     context["csrf_token"] = token
     response = templates.TemplateResponse(request, "listeler.html", context)
@@ -489,15 +475,12 @@ async def lists_add(
     csrf_protect: CsrfProtect = Depends(),
     item_type: str = Form(...),
     name: str = Form(...),
+    db: Session = Depends(get_db),
 ):
     """Add a lookup list item."""
     await csrf_protect.validate_csrf(request)
-    db = SessionLocal()
-    try:
-        db.add(LookupItem(type=item_type, name=name))
-        db.commit()
-    finally:
-        db.close()
+    db.add(LookupItem(type=item_type, name=name))
+    db.commit()
     return RedirectResponse("/lists", status_code=303)
 
 
@@ -507,57 +490,52 @@ async def lists_delete(
     csrf_protect: CsrfProtect = Depends(),
     item_id: int = Form(...),
     force: int = Form(0),
+    db: Session = Depends(get_db),
 ):
     """Delete a lookup list item, optionally forcing if it's in use."""
     await csrf_protect.validate_csrf(request)
-    db = SessionLocal()
-    try:
-        item = db.get(LookupItem, item_id)
-        if not item:
-            return JSONResponse({"status": "not_found"}, status_code=404)
+    item = db.get(LookupItem, item_id)
+    if not item:
+        return JSONResponse({"status": "not_found"}, status_code=404)
 
-        def item_in_use() -> bool:
-            checks = {
-                "marka": [HardwareInventory.marka, StockItem.marka],
-                "model": [HardwareInventory.model],
-                "donanim_tipi": [HardwareInventory.donanim_tipi],
-                "fabrika": [HardwareInventory.fabrika],
-                "departman": [HardwareInventory.departman, LicenseInventory.departman],
-                "blok": [HardwareInventory.blok],
-                "lokasyon": [StockItem.departman],
-                "yazilim": [LicenseInventory.yazilim_adi],
-                "yazici_marka": [PrinterInventory.yazici_markasi],
-                "yazici_model": [PrinterInventory.yazici_modeli],
-                "urun": [StockItem.urun_adi],
-            }
-            columns = checks.get(item.type, [])
-            for col in columns:
-                model = col.class_
-                if db.query(model).filter(col == item.name).first():
-                    return True
-            return False
+    def item_in_use() -> bool:
+        checks = {
+            "marka": [HardwareInventory.marka, StockItem.marka],
+            "model": [HardwareInventory.model],
+            "donanim_tipi": [HardwareInventory.donanim_tipi],
+            "fabrika": [HardwareInventory.fabrika],
+            "departman": [HardwareInventory.departman, LicenseInventory.departman],
+            "blok": [HardwareInventory.blok],
+            "lokasyon": [StockItem.departman],
+            "yazilim": [LicenseInventory.yazilim_adi],
+            "yazici_marka": [PrinterInventory.yazici_markasi],
+            "yazici_model": [PrinterInventory.yazici_modeli],
+            "urun": [StockItem.urun_adi],
+        }
+        columns = checks.get(item.type, [])
+        for col in columns:
+            model = col.class_
+            if db.query(model).filter(col == item.name).first():
+                return True
+        return False
 
-        if not force and item_in_use():
-            return JSONResponse({"status": "used"})
+    if not force and item_in_use():
+        return JSONResponse({"status": "used"})
 
-        db.delete(item)
-        db.commit()
-        return JSONResponse({"status": "deleted"})
-    finally:
-        db.close()
+    db.delete(item)
+    db.commit()
+    return JSONResponse({"status": "deleted"})
 
 
 @router.get("/profile", response_class=HTMLResponse)
-def profile_page(request: Request) -> HTMLResponse:
+def profile_page(
+    request: Request, db: Session = Depends(get_db)
+) -> HTMLResponse:
     """Render a simple profile page for the current user."""
-    db = SessionLocal()
-    try:
-        user = None
-        user_id = request.session.get("user_id")
-        if user_id:
-            user = db.get(User, user_id)
-    finally:
-        db.close()
+    user = None
+    user_id = request.session.get("user_id")
+    if user_id:
+        user = db.get(User, user_id)
     return templates.TemplateResponse(request, "profile.html", {"user": user})
 
 
@@ -581,6 +559,7 @@ async def change_password(
     old_password: str = Form(...),
     new_password: str = Form(...),
     confirm_password: str = Form(...),
+    db: Session = Depends(get_db),
 ):
     """Allow the current user to update their password."""
     await csrf_protect.validate_csrf(request)
@@ -592,23 +571,19 @@ async def change_password(
             status_code=400,
         )
 
-    db = SessionLocal()
-    try:
-        user_id = request.session.get("user_id")
-        user = db.get(User, user_id) if user_id else None
-        if not user or not pwd_context.verify(old_password, user.password):
-            return templates.TemplateResponse(
-                request,
-                "change_password.html",
-                {"error": "Mevcut şifre yanlış"},
-                status_code=400,
-            )
+    user_id = request.session.get("user_id")
+    user = db.get(User, user_id) if user_id else None
+    if not user or not pwd_context.verify(old_password, user.password):
+        return templates.TemplateResponse(
+            request,
+            "change_password.html",
+            {"error": "Mevcut şifre yanlış"},
+            status_code=400,
+        )
 
-        user.password = pwd_context.hash(new_password)
-        user.must_change_password = False
-        db.commit()
-    finally:
-        db.close()
+    user.password = pwd_context.hash(new_password)
+    user.must_change_password = False
+    db.commit()
 
     return RedirectResponse("/profile", status_code=303)
 
@@ -647,18 +622,16 @@ async def save_column_settings(
 
 
 @router.get("/column-values")
-def column_values(request: Request, table_name: str, column: str | None = None):
+def column_values(
+    request: Request, table_name: str, column: str | None = None, db: Session = Depends(get_db)
+):
     """Return distinct values for a column to power client-side filters."""
     if not column:
         return {"values": []}
     model = MODEL_MAP.get(table_name)
     if not model or not hasattr(model, column):
         return {"values": []}
-    db = SessionLocal()
-    try:
-        values = [row[0] for row in db.query(getattr(model, column)).distinct()]
-    finally:
-        db.close()
+    values = [row[0] for row in db.query(getattr(model, column)).distinct()]
     return {"values": values}
 
 
