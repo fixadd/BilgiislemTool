@@ -218,8 +218,8 @@ settingsModal.addEventListener('show.bs.modal', async () => {
     const allCols = (await res.json()).columns;
     const settingsRes = await fetch(`/column-settings?table_name=${tableName}`);
     const settings = await settingsRes.json();
-    const order = settings.order || allCols;
-    const visible = new Set(settings.visible || allCols);
+    const order = (settings.order && settings.order.length) ? settings.order : allCols;
+    const visible = new Set((settings.visible && settings.visible.length) ? settings.visible : allCols);
     const widths = settings.widths || {};
     currentSettings = settings;
     const list = document.getElementById('columns-list');
