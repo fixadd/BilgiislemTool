@@ -69,10 +69,14 @@ def inventory_page(request: Request) -> HTMLResponse:
         offset = (page - 1) * per_page
         items = query.offset(offset).limit(per_page).all()
         users = db.query(User).all()
-        user_names = [
-            f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+        user_list = [
+            {
+                "id": u.id,
+                "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
+            }
             for u in users
         ]
+        user_names = [u["name"] for u in user_list]
         lookups = {
             "sorumlu_personel": user_names,
             "fabrika": [i.name for i in db.query(LookupItem).filter_by(type="fabrika").all()],
@@ -103,6 +107,8 @@ def inventory_page(request: Request) -> HTMLResponse:
         "filter_field": filter_field,
         "filter_value": filter_value,
         "today": date.today().isoformat(),
+        "users": user_list,
+        "current_user_id": request.session.get("user_id"),
     }
     return templates.TemplateResponse("envanter.html", context)
 
@@ -141,6 +147,14 @@ def printer_page(request: Request) -> HTMLResponse:
         total_pages = max(1, math.ceil(total_count / per_page))
         offset = (page - 1) * per_page
         printers = query.offset(offset).limit(per_page).all()
+        users = db.query(User).all()
+        user_list = [
+            {
+                "id": u.id,
+                "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
+            }
+            for u in users
+        ]
         lookups = {
             "yazici_markasi": [
                 i.name
@@ -175,6 +189,8 @@ def printer_page(request: Request) -> HTMLResponse:
         "filter_field": filter_field,
         "filter_value": filter_value,
         "today": date.today().isoformat(),
+        "users": user_list,
+        "current_user_id": request.session.get("user_id"),
     }
     return templates.TemplateResponse("yazici.html", context)
 
@@ -214,10 +230,14 @@ def license_page(request: Request) -> HTMLResponse:
         offset = (page - 1) * per_page
         licenses = query.offset(offset).limit(per_page).all()
         users = db.query(User).all()
-        user_names = [
-            f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+        user_list = [
+            {
+                "id": u.id,
+                "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
+            }
             for u in users
         ]
+        user_names = [u["name"] for u in user_list]
         lookups = {
             "kullanici": user_names,
             "departman": [
@@ -248,6 +268,8 @@ def license_page(request: Request) -> HTMLResponse:
         "filter_field": filter_field,
         "filter_value": filter_value,
         "today": date.today().isoformat(),
+        "users": user_list,
+        "current_user_id": request.session.get("user_id"),
     }
     return templates.TemplateResponse("lisans.html", context)
 
@@ -287,10 +309,14 @@ def accessories_page(request: Request) -> HTMLResponse:
         offset = (page - 1) * per_page
         accessories = query.offset(offset).limit(per_page).all()
         users = db.query(User).all()
-        user_names = [
-            f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
+        user_list = [
+            {
+                "id": u.id,
+                "name": (f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username),
+            }
             for u in users
         ]
+        user_names = [u["name"] for u in user_list]
     finally:
         db.close()
 
@@ -311,6 +337,8 @@ def accessories_page(request: Request) -> HTMLResponse:
         "filter_field": filter_field,
         "filter_value": filter_value,
         "today": date.today().isoformat(),
+        "users": user_list,
+        "current_user_id": request.session.get("user_id"),
     }
     return templates.TemplateResponse("aksesuar.html", context)
 
