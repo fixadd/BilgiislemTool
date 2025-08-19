@@ -129,9 +129,11 @@ def get_activity_logs(
 def get_inventory_items() -> List[Dict[str, Any]]:
     """Return basic info for inventory items including their numbers."""
     rows = []
+    # Each tuple: (inventory type, table name, item name column, inventory number column)
     parts = [
         ("pc", "hardware_inventory", "bilgisayar_adi", "no"),
         ("license", "license_inventory", "yazilim_adi", "envanter_no"),
+        # Additional inventories
         ("accessory", "accessory_inventory", "urun_adi", "ifs_no"),
         ("stock", "stock_tracking", "urun_adi", "id"),
     ]
@@ -166,6 +168,9 @@ def get_inventory_no(inventory_type: str, inventory_id: int) -> Optional[str]:
     mapping = {
         "pc": ("hardware_inventory", "no"),
         "license": ("license_inventory", "envanter_no"),
+        # Support accessory and stock inventories as well.
+        "accessory": ("accessory_inventory", "ifs_no"),
+        "stock": ("stock_tracking", "id"),
     }
     table_col = mapping.get(inventory_type)
     if not table_col:
