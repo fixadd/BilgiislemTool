@@ -32,6 +32,7 @@ from models import (
     PrinterInventory,
     LicenseInventory,
     AccessoryInventory,
+    User,
     get_db,
 )
 from routes.common_list import list_items
@@ -118,6 +119,74 @@ async def add_stock(request: Request, db: Session = Depends(get_db)):
         f"Added stock item {item.id}",
     )
     return RedirectResponse(f"/stock?kategori={kategori}", status_code=303)
+
+
+@router.post("/assign")
+async def assign_stock(request: Request, db: Session = Depends(get_db)):
+    """Assign stock items to a user and move them into another inventory."""
+    try:
+        data = await request.json()
+    except Exception:
+        form = await request.form()
+        data = dict(form)
+
+    stock_id = int(data.get("stock_id") or 0)
+    user_id = int(data.get("user_id") or 0)
+    target = (data.get("inventory_type") or data.get("target") or "").lower()
+    qty = int(data.get("quantity") or data.get("adet") or 0)
+
+    model = INVENTORY_MODEL_MAP.get(target)
+    user = db.get(User, user_id) if user_id else None
+    if not model or not stock_id or qty <= 0 or not user:
+        return JSONResponse({"status": "error"}, status_code=400)
+
+    stock = db.get(StockItem, stock_id)
+    if not stock or (stock.adet or 0) < qty:
+        return JSONResponse({"status": "error"}, status_code=400)
+
+    columns = set(model.__table__.columns.keys()) - {"id"}
+    item_data = {k: v for k, v in data.items() if k in columns}
+    if "tarih" in columns and "tarih" not in item_data:
+        item_data["tarih"] = date.today()
+    if "ifs_no" in columns and "ifs_no" not in item_data:
+        item_data["ifs_no"] = stock.ifs_no
+    if "aciklama" in columns and "aciklama" not in item_data:
+        item_data["aciklama"] = stock.aciklama
+    if "urun_adi" in columns and "urun_adi" not in item_data:
+        item_data["urun_adi"] = stock.urun_adi
+    if "islem_yapan" in columns:
+        item_data["islem_yapan"] = request.session.get("full_name", "")
+    user_name = (f"{user.first_name or ''} {user.last_name or ''}".strip() or user.username)
+    if "kullanici" in columns:
+        item_data["kullanici"] = user_name
+    if "sorumlu_personel" in columns:
+        item_data["sorumlu_personel"] = user_name
+    if "adet" in columns:
+        item_data["adet"] = int(item_data.get("adet") or 1)
+
+    for _ in range(qty):
+        db.add(model(**item_data))
+
+    stock.adet = (stock.adet or 0) - qty
+    db.commit()
+
+    add_inventory_log(
+        InventoryLogCreate(
+            inventory_type="stock",
+            inventory_id=stock.id,
+            action="assign",
+            changed_by=request.session.get("user_id", 0),
+            old_location=stock.departman,
+            note=f"Assigned {qty} to {target} for user {user.username}",
+        )
+    )
+
+    log_action(
+        db,
+        request.session.get("username", ""),
+        f"Assigned {qty} of stock item {stock.id} to {target} for user {user.username}",
+    )
+    return JSONResponse({"status": "ok"})
 
 
 @router.post("/transfer")

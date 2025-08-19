@@ -39,8 +39,8 @@
       <li><a class="dropdown-item" href="#" id="export-excel">Dışa Aktar</a></li>
     </ul>
   </div>
-  <button id="edit-selected" type="button" class="btn btn-warning d-flex align-items-center gap-1">
-    <i class="bi bi-pencil"></i> Düzenle
+  <button id="assign-selected" type="button" class="btn btn-warning d-flex align-items-center gap-1">
+    <i class="bi bi-person-plus"></i> Atama
   </button>
   <button id="delete-selected" type="button" class="btn btn-danger d-flex align-items-center gap-1">
     <i class="bi bi-trash"></i> Sil
@@ -93,44 +93,40 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="editModalLabel">Kayıt Düzenle</h5>
+        <h5 class="modal-title" id="editModalLabel">Atama Yap</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
-        <form id="editForm" action="/stock/add" method="post">
-          <input type="hidden" name="stock_id">
-          <input type="hidden" name="kategori" value="{{ active_tab }}">
-            <div class="modal-body">
-              {% for col in columns %}
-              {% if col != 'islem_yapan' %}
-              <div class="mb-3">
-                <label class="form-label">{{ column_labels.get(col, col.replace('_', ' ').title()) }}</label>
-                {% if col == 'aciklama' %}
-                <textarea class="form-control" name="{{ col }}" required></textarea>
-                {% elif col == 'tarih' %}
-                <input type="date" class="form-control" name="{{ col }}" required>
-                {% elif col == 'adet' %}
-                  <input type="number" class="form-control" name="{{ col }}" min="0" required>
-                {% else %}
-                {% if lookups.get(col) %}
-                <select class="form-select" name="{{ col }}" required>
-                  <option value="" disabled selected>Seçiniz</option>
-                  {% for val in lookups.get(col) %}
-                  <option value="{{ val }}">{{ val }}</option>
-                  {% endfor %}
-                </select>
-                {% else %}
-                <input type="text" class="form-control" name="{{ col }}" required>
-                {% endif %}
-                {% endif %}
-              </div>
-              {% endif %}
+      <form id="assignForm" action="/stock/assign" method="post">
+        <input type="hidden" name="stock_id">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Kullanıcı</label>
+            <select class="form-select" name="user_id" required>
+              <option value="" disabled selected>Seçiniz</option>
+              {% for u in users %}
+              <option value="{{ u.id }}">{{ u.name }}</option>
               {% endfor %}
-              {% include 'partials/inventory_history.html' %}
-            </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-warning">Kaydet</button>
+            </select>
           </div>
-        </form>
+          <div class="mb-3">
+            <label class="form-label">Adet</label>
+            <input type="number" class="form-control" name="adet" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Hedef Envanter</label>
+            <select class="form-select" name="target" required>
+              <option value="" disabled selected>Seçiniz</option>
+              <option value="inventory">Donanım</option>
+              <option value="printer">Yazıcı</option>
+              <option value="license">Lisans</option>
+              <option value="accessory">Aksesuar</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-warning">Atama</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -302,23 +298,23 @@ document.getElementById('save-settings').addEventListener('click', async () => {
     location.reload();
 });
 
-const editButton = document.getElementById('edit-selected');
+const assignButton = document.getElementById('assign-selected');
 
-function updateEditButtonState(){
+function updateAssignButtonState(){
     const checkedCount = document.querySelectorAll('.row-check:checked').length;
-    editButton.disabled = checkedCount > 1;
+    assignButton.disabled = checkedCount !== 1;
 }
 
 document.getElementById('select-all').addEventListener('change', function() {
     document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
-    updateEditButtonState();
+    updateAssignButtonState();
 });
 
 document.querySelectorAll('.row-check').forEach(cb => {
-    cb.addEventListener('change', updateEditButtonState);
+    cb.addEventListener('change', updateAssignButtonState);
 });
 
-updateEditButtonState();
+updateAssignButtonState();
 
 document.getElementById('import-excel').addEventListener('click', () => {
     document.getElementById('excelInput').click();
@@ -341,22 +337,34 @@ document.getElementById('excelInput').addEventListener('change', async () => {
 });
 
 
-editButton.addEventListener('click', () => {
+assignButton.addEventListener('click', () => {
     const checked = document.querySelectorAll('.row-check:checked');
     if (checked.length !== 1) {
         showAlert('Lütfen yalnızca bir satır seçiniz.');
         return;
     }
-    const row = checked[0].closest('tr');
-    const form = document.getElementById('editForm');
+    const form = document.getElementById('assignForm');
     form.stock_id.value = checked[0].value;
-    row.querySelectorAll('td[data-col]').forEach(cell => {
-        const input = form.querySelector(`[name="${cell.dataset.col}"]`);
-        if (input) input.value = cell.innerText.trim();
-    });
     const modal = new bootstrap.Modal(document.getElementById('editModal'));
     modal.show();
-    loadHistory('stock', form.stock_id.value);
+});
+
+document.getElementById('assignForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const res = await fetch('/stock/assign', {
+        method: 'POST',
+        body: formData
+    });
+    if (res.ok) {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+        modal.hide();
+        location.reload();
+    } else {
+        const data = await res.json();
+        showAlert('Atama yapılamadı: ' + (data.detail || data.status));
+    }
 });
 
 const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
