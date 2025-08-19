@@ -65,12 +65,18 @@ async def login(
             response.delete_cookie("session_token")
         db.commit()
         return response
-    return templates.TemplateResponse(
+    # Regenerate a new CSRF token when credentials are invalid so that
+    # the login form can be submitted again without a "400 Bad Request"
+    # error from missing/invalid CSRF data on the next attempt.
+    token, signed = csrf_protect.generate_csrf_tokens()
+    response = templates.TemplateResponse(
         request,
         "login.html",
-        {"error": "Invalid credentials"},
+        {"error": "Invalid credentials", "csrf_token": token},
         status_code=401,
     )
+    csrf_protect.set_csrf_cookie(signed, response)
+    return response
 
 
 @router.get("/logout")
