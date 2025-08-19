@@ -61,6 +61,17 @@ def list_stock(
     """Render stock list using the common helper with optional category filter."""
     utils.engine = db.get_bind()
     params = list(request.query_params.multi_items())
+
+    existing_kategori_filter = any(
+        f == "filter_field" and v == "kategori" for f, v in params
+    )
+
+    if kategori == "license":
+        return RedirectResponse("/license")
+
+    if kategori is None and not existing_kategori_filter:
+        kategori = "inventory"
+
     if kategori:
         params.append(("filter_field", "kategori"))
         params.append(("filter_value", kategori))

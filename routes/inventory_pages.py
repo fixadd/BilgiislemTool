@@ -262,10 +262,22 @@ def license_page(
     }
 
     token, signed = csrf_protect.generate_csrf_tokens()
+    columns = [
+        "departman",
+        "kullanici",
+        "yazilim_adi",
+        "lisans_anahtari",
+        "mail_adresi",
+        "envanter_no",
+        "notlar",
+        "ifs_no",
+        "tarih",
+        "islem_yapan",
+    ]
     context = {
         "request": request,
         "licenses": licenses,
-        "columns": get_table_columns(LicenseInventory.__tablename__),
+        "columns": columns,
         "column_widths": {},
         "lookups": lookups,
         "offset": offset,
@@ -282,6 +294,7 @@ def license_page(
         "users": user_list,
         "current_user_id": request.session.get("user_id"),
         "csrf_token": token,
+        "active_tab": "license",
     }
     response = templates.TemplateResponse(request, "lisans.html", context)
     csrf_protect.set_csrf_cookie(signed, response)
