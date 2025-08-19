@@ -4,6 +4,7 @@ html, body {
   margin: 0;
   overflow-y: auto;   /* sayfa yukarı-aşağı scroll */
   overflow-x: hidden; /* yatay scroll'u sayfada kapat */
+  font-family: Arial, sans-serif;
 }
 
 /* Sol menü yine kendi içinde dikey scroll alsın (varsa) */
@@ -79,4 +80,98 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 0 1rem;
+}
+
+/* ------------------------ */
+/*  Giriş / Şifre Sayfaları */
+/* ------------------------ */
+
+/* Arka plan katmanı */
+#bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, #6ec9ff 0%, #00d4ff 100%);
+}
+
+/* Dalga katmanı (SVG) */
+#bg::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 55vh;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'><path fill='%23ffffff22' d='M0,64L48,80C96,96,192,128,288,149.3C384,171,480,181,576,160C672,139,768,85,864,74.7C960,64,1056,96,1152,122.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L0,320Z'></path></svg>") no-repeat bottom;
+  background-size: cover;
+  opacity: .45;
+  animation: waveMove 30s linear infinite;
+}
+
+@keyframes waveMove {
+  from { background-position-x: 0; }
+  to { background-position-x: 1000px; }
+}
+
+/* İçerik katmanı */
+.page {
+  position: relative;
+  z-index: 2; /* login kartını üste al */
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.login-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 300px;
+}
+
+.login-card h2 { margin-top: 0; }
+
+.login-card input {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  box-sizing: border-box;
+}
+
+.login-card button {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.login-card button:hover {
+  background-color: #0056b3;
+}
+
+.error {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+.login-logo {
+  width: 200px;
+  margin-bottom: 1rem;
+}
+
+.remember-me-label {
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.remember-me-checkbox {
+  margin-right: 0.5rem;
+  width: 30px;
 }

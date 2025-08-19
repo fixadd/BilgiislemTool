@@ -3,90 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Giriş</title>
-    <style>
-html,body{
-  height:100%;
-  margin:0;
-  font-family: Arial, sans-serif;
-}
-
-/* Arka plan katmanı */
-#bg{
-  position:fixed; inset:0;
-  z-index:0; pointer-events:none;
-  background: linear-gradient(180deg, #6ec9ff 0%, #00d4ff 100%);
-}
-
-/* Dalga katmanı (SVG) */
-#bg::after{
-  content:"";
-  position:absolute; left:0; right:0; bottom:0;
-  height:55vh;
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'><path fill='%23ffffff22' d='M0,64L48,80C96,96,192,128,288,149.3C384,171,480,181,576,160C672,139,768,85,864,74.7C960,64,1056,96,1152,122.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L0,320Z'></path></svg>") no-repeat bottom;
-  background-size: cover;
-  opacity:.45;
-  animation: waveMove 30s linear infinite;
-}
-
-@keyframes waveMove{
-  from{ background-position-x:0; }
-  to{ background-position-x:1000px; }
-}
-
-/* İçerik katmanı */
-.page{
-  position:relative;
-  z-index:2; /* login kartını üste al */
-  min-height:100vh;
-  display:grid;
-  place-items:center;
-}
-
-.login-card {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  text-align: center;
-  width: 300px;
-}
-
-.login-card h2 {
-  margin-top: 0;
-}
-
-.login-card input {
-  width: 100%;
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-  box-sizing: border-box;
-}
-
-.login-card button {
-  width: 100%;
-  padding: 0.5rem;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.login-card button:hover {
-  background-color: #0056b3;
-}
-
-.error {
-  color: red;
-  margin-bottom: 1rem;
-}
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
 </head>
 <body>
     <div id="bg"></div>
     <main class="page">
         <div class="login-card">
-            <img src="/image/onurum.png" alt="Onurum" style="width: 200px; margin-bottom: 1rem;">
+            <img src="/image/onurum.png" alt="Onurum" class="login-logo">
             <h2>Hoş geldiniz</h2>
             {% if error %}
             <p class="error">{{ error }}</p>
@@ -95,8 +18,8 @@ html,body{
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="text" name="username" placeholder="Kullanıcı Adı" required>
                 <input type="password" name="password" placeholder="Şifre" required>
-                <label style="display:flex;align-items:center;margin:0.5rem 0;">
-                    <input type="checkbox" name="remember" style="margin-right:0.5rem;width: 30px;"> Beni Hatırla
+                <label class="remember-me-label">
+                    <input type="checkbox" name="remember" class="remember-me-checkbox"> Beni Hatırla
                 </label>
                 <button type="submit">Giriş Yap</button>
             </form>
