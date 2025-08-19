@@ -7,33 +7,51 @@ from sqlalchemy.orm import Session
 
 from utils.auth import require_login
 from utils import templates
-from models import StockItem, get_db
+from models import ActivityLog, HardwareInventory, StockItem, get_db
 
 router = APIRouter(dependencies=[Depends(require_login)])
 
 
-@router.get("/", response_class=HTMLResponse)
-def root(request: Request) -> HTMLResponse:
-    """Render the main dashboard page."""
-    context = {
-        "factories": {},
-        "actions": [],
-        "type_labels": [],
-        "type_counts": [],
+def _main_context(db: Session) -> dict:
+    """Gather summary info for the main dashboard."""
+    device_totals = (
+        db.query(HardwareInventory.donanim_tipi, func.count())
+        .group_by(HardwareInventory.donanim_tipi)
+        .all()
+    )
+    stock_totals = (
+        db.query(
+            StockItem.urun_adi,
+            func.sum(
+                case((StockItem.islem == "giris", StockItem.adet), else_=-StockItem.adet)
+            ).label("net_adet"),
+        )
+        .group_by(StockItem.urun_adi)
+        .all()
+    )
+    actions = (
+        db.query(ActivityLog)
+        .order_by(ActivityLog.timestamp.desc())
+        .limit(10)
+        .all()
+    )
+    return {
+        "device_summary": device_totals,
+        "stock_summary": [(n, q or 0) for n, q in stock_totals],
+        "actions": actions,
     }
-    return templates.TemplateResponse(request, "main.html", context)
+
+
+@router.get("/", response_class=HTMLResponse)
+def root(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    """Render the main dashboard page."""
+    return templates.TemplateResponse(request, "main.html", _main_context(db))
 
 
 @router.get("/home", response_class=HTMLResponse)
-def home_page(request: Request) -> HTMLResponse:
+def home_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     """Render the dashboard from the /home path."""
-    context = {
-        "factories": {},
-        "actions": [],
-        "type_labels": [],
-        "type_counts": [],
-    }
-    return templates.TemplateResponse(request, "main.html", context)
+    return templates.TemplateResponse(request, "main.html", _main_context(db))
 
 
 @router.get("/stock/status", response_class=HTMLResponse)
