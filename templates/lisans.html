@@ -13,6 +13,10 @@
 } %}
 {% block title %}Lisans Takip{% endblock %}
 {% block content %}
+<div class="mb-3">
+  <a href="/stock" class="btn btn-outline-primary {% if active_tab == 'inventory' %}active{% endif %}">Envanter</a>
+  <a href="/license" class="btn btn-outline-primary {% if active_tab == 'license' %}active{% endif %}">Lisans</a>
+</div>
 <div class="d-flex justify-content-between align-items-center">
   <h2>Lisans Envanteri</h2>
   <span class="badge bg-secondary">{{ count }} kayıt var</span>
