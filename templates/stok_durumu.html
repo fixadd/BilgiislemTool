@@ -2,11 +2,19 @@
 {% block title %}Stok Durumu{% endblock %}
 {% block content %}
 <h2>Stok Durumu</h2>
-<table class="table table-striped">
-  <tr><th>Ürün Adı</th><th>Stok</th></tr>
-  {% for name, qty in summary %}
-  <tr><td>{{ name }}</td><td>{{ qty }}</td></tr>
-  {% endfor %}
-</table>
-<a class="btn btn-secondary" href="/stock">Geri Dön</a>
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <table class="table table-striped">
+    <tr><th>Göster</th><th>Ürün Adı</th><th>Stok</th></tr>
+    {% for name, qty in summary %}
+    <tr>
+      <td><input type="checkbox" name="selected" value="{{ name }}" {% if name in selected %}checked{% endif %}></td>
+      <td>{{ name }}</td>
+      <td>{{ qty }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <button type="submit" class="btn btn-primary">Kaydet</button>
+  <a class="btn btn-secondary" href="/stock">Geri Dön</a>
+</form>
 {% endblock %}
