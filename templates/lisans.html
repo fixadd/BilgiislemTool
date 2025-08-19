@@ -91,6 +91,7 @@
       </div>
       <form id="editForm" action="/license/add" method="post">
         <input type="hidden" name="license_id">
+        <input type="hidden" name="kategori" value="license">
           <div class="modal-body">
             <div class="row g-3">
             {% for col in columns %}
@@ -135,6 +136,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
       <form id="addForm" action="/license/add" method="post">
+          <input type="hidden" name="kategori" value="license">
           <div class="modal-body">
             <div class="row g-3">
               {% for col in columns %}

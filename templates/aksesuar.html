@@ -86,6 +86,7 @@
       </div>
       <form id="editForm" action="/accessories/add" method="post">
         <input type="hidden" name="accessory_id">
+        <input type="hidden" name="kategori" value="inventory">
           <div class="modal-body">
             <div class="row g-3">
             {% for col in columns %}
@@ -130,6 +131,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
       </div>
       <form id="addForm" action="/accessories/add" method="post">
+          <input type="hidden" name="kategori" value="inventory">
           <div class="modal-body">
             <div class="row g-3">
               <div class="col-md-4 mb-3">
