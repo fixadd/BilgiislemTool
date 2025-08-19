@@ -58,10 +58,12 @@ def test_stock_router_lists_added_items():
     app = create_app()
     with TestClient(app) as client:
         resp = client.post(
-            "/stock/add", data={"urun_adi": "Mouse", "adet": "5"}, follow_redirects=False
+            "/stock/add",
+            data={"urun_adi": "Mouse", "adet": "5", "kategori": "inventory"},
+            follow_redirects=False,
         )
         assert resp.status_code == 303
-        resp = client.get("/stock")
+        resp = client.get("/stock", params={"kategori": "inventory"})
         assert resp.status_code == 200
         assert "Mouse" in resp.text
 

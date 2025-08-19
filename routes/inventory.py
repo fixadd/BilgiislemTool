@@ -107,6 +107,9 @@ def _soft_delete(ids: list[int], model, deleted_model, db: Session) -> None:
 async def stock_add(request: Request, db: Session = Depends(get_db)):
     """Create or update a stock item from form data."""
     form = await request.form()
+    kategori = form.get("kategori")
+    if not kategori:
+        return JSONResponse({"detail": "kategori gerekli"}, status_code=400)
     stock_id = form.get("stock_id")
     if stock_id:
         item = db.get(StockItem, int(stock_id))
@@ -135,7 +138,7 @@ async def stock_add(request: Request, db: Session = Depends(get_db)):
     else:
         item = StockItem(
             urun_adi=form.get("urun_adi"),
-            kategori=form.get("kategori"),
+            kategori=kategori,
             marka=form.get("marka"),
             adet=int(form.get("adet") or 0),
             departman=form.get("departman"),
@@ -155,7 +158,7 @@ async def stock_add(request: Request, db: Session = Depends(get_db)):
         db.add(item)
         action = f"Added stock item {item.id}"
     log_action(db, request.session.get("username", ""), action)
-    return RedirectResponse("/stock", status_code=303)
+    return RedirectResponse(f"/stock?kategori={kategori}", status_code=303)
 
 
 @router.get("/stock", response_class=HTMLResponse)

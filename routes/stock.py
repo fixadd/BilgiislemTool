@@ -83,10 +83,13 @@ def list_stock(
 async def add_stock(request: Request, db: Session = Depends(get_db)):
     """Add a stock item."""
     form = await request.form()
+    kategori = form.get("kategori")
+    if not kategori:
+        return JSONResponse({"detail": "kategori gerekli"}, status_code=400)
     item = StockItem(
             urun_adi=form.get("urun_adi"),
             adet=int(form.get("adet") or 0),
-            kategori=form.get("kategori"),
+            kategori=kategori,
             marka=form.get("marka"),
             departman=form.get("departman"),
             guncelleme_tarihi=date.fromisoformat(form.get("guncelleme_tarihi")) if form.get("guncelleme_tarihi") else None,
@@ -114,7 +117,7 @@ async def add_stock(request: Request, db: Session = Depends(get_db)):
         request.session.get("username", ""),
         f"Added stock item {item.id}",
     )
-    return RedirectResponse("/stock", status_code=303)
+    return RedirectResponse(f"/stock?kategori={kategori}", status_code=303)
 
 
 @router.post("/transfer")
