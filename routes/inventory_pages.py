@@ -442,6 +442,139 @@ async def requests_add(
     return RedirectResponse("/requests", status_code=303)
 
 
+@router.post("/requests/transfer")
+async def requests_transfer(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
+):
+    """Transfer request items into their respective inventories."""
+    await csrf_protect.validate_csrf(request)
+    body = await request.json()
+    items = body.get("items", [])
+    for data in items:
+        req = db.get(RequestItem, int(data.get("id", 0)))
+        if not req:
+            continue
+        qty = int(data.get("adet", 0) or 0)
+        if qty <= 0:
+            continue
+        kategori = req.kategori
+        if kategori == "lisans":
+            for _ in range(qty):
+                db.add(
+                    LicenseInventory(
+                        departman=data.get("departman"),
+                        kullanici=data.get("kullanici"),
+                        yazilim_adi=req.yazilim_adi or req.urun_adi,
+                        lisans_anahtari=data.get("lisans_anahtari"),
+                        mail_adresi=data.get("mail_adresi"),
+                        envanter_no=data.get("envanter_no"),
+                        ifs_no=req.ifs_no,
+                        tarih=date.today(),
+                        islem_yapan=request.session.get("full_name", ""),
+                        notlar=data.get("notlar"),
+                    )
+                )
+        elif kategori == "donanim":
+            for _ in range(qty):
+                db.add(
+                    HardwareInventory(
+                        fabrika=data.get("fabrika"),
+                        blok=data.get("blok"),
+                        departman=data.get("departman"),
+                        donanim_tipi=req.donanim_tipi,
+                        bilgisayar_adi=data.get("bilgisayar_adi"),
+                        marka=req.marka,
+                        model=req.model,
+                        seri_no=data.get("seri_no"),
+                        sorumlu_personel=data.get("sorumlu_personel"),
+                        kullanim_alani=data.get("kullanim_alani"),
+                        bagli_makina_no=data.get("bagli_makina_no"),
+                        ifs_no=req.ifs_no,
+                        tarih=date.today(),
+                        islem_yapan=request.session.get("full_name", ""),
+                    )
+                )
+        else:
+            db.add(
+                AccessoryInventory(
+                    urun_adi=req.urun_adi,
+                    adet=qty,
+                    tarih=date.today(),
+                    ifs_no=req.ifs_no,
+                    departman=data.get("departman"),
+                    kullanici="",
+                    aciklama=req.aciklama,
+                    islem_yapan=request.session.get("full_name", ""),
+                )
+            )
+        if qty >= (req.adet or 0):
+            db.delete(req)
+        else:
+            req.adet = (req.adet or 0) - qty
+    db.commit()
+    return JSONResponse({"status": "ok"})
+
+
+@router.post("/requests/stock_transfer")
+async def requests_stock_transfer(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
+):
+    """Move request items into stock tracking."""
+    await csrf_protect.validate_csrf(request)
+    body = await request.json()
+    items = body.get("items", [])
+    for data in items:
+        req = db.get(RequestItem, int(data.get("id", 0)))
+        if not req:
+            continue
+        qty = int(data.get("adet", 0) or 0)
+        if qty <= 0:
+            continue
+        db.add(
+            StockItem(
+                urun_adi=req.urun_adi,
+                kategori=req.kategori,
+                marka=req.marka,
+                adet=qty,
+                departman=None,
+                guncelleme_tarihi=date.today(),
+                islem="giris",
+                tarih=date.today(),
+                ifs_no=req.ifs_no,
+                aciklama=req.aciklama,
+                islem_yapan=request.session.get("full_name", ""),
+            )
+        )
+        if qty >= (req.adet or 0):
+            db.delete(req)
+        else:
+            req.adet = (req.adet or 0) - qty
+    db.commit()
+    return JSONResponse({"status": "ok"})
+
+
+@router.post("/requests/delete")
+async def requests_delete(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
+    db: Session = Depends(get_db),
+):
+    """Delete selected request records."""
+    await csrf_protect.validate_csrf(request)
+    body = await request.json()
+    ids = [int(i) for i in body.get("ids", [])]
+    if ids:
+        db.query(RequestItem).filter(RequestItem.id.in_(ids)).delete(
+            synchronize_session=False
+        )
+        db.commit()
+    return JSONResponse({"status": "ok"})
+
+
 @router.get("/lists", response_class=HTMLResponse)
 def lists_page(
     request: Request,
