@@ -497,18 +497,19 @@ async def requests_transfer(
                     )
                 )
         else:
-            db.add(
-                AccessoryInventory(
-                    urun_adi=req.urun_adi,
-                    adet=qty,
-                    tarih=date.today(),
-                    ifs_no=req.ifs_no,
-                    departman=data.get("departman"),
-                    kullanici="",
-                    aciklama=req.aciklama,
-                    islem_yapan=request.session.get("full_name", ""),
+            for _ in range(qty):
+                db.add(
+                    AccessoryInventory(
+                        urun_adi=req.urun_adi,
+                        adet=1,
+                        tarih=date.today(),
+                        ifs_no=req.ifs_no,
+                        departman=data.get("departman"),
+                        kullanici="",
+                        aciklama=req.aciklama,
+                        islem_yapan=request.session.get("full_name", ""),
+                    )
                 )
-            )
         if qty >= (req.adet or 0):
             db.delete(req)
         else:
