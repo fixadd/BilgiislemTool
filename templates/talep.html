@@ -316,7 +316,7 @@ document.getElementById('confirm-transfer').addEventListener('click', function()
   fetch('/requests/transfer', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({items: items})
+    body: JSON.stringify({items: items, csrf_token: csrfToken})
   }).then(r => r.json()).then(() => {
     if(transferCategory === 'lisans'){
       window.location.href = '/license';
@@ -384,7 +384,7 @@ document.getElementById('confirm-stock-transfer').addEventListener('click', func
   fetch('/requests/stock_transfer', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({items: items})
+    body: JSON.stringify({items: items, csrf_token: csrfToken})
   }).then(r => r.json()).then(() => location.reload());
 });
 document.getElementById('delete-selected').addEventListener('click', function(){
@@ -396,7 +396,7 @@ document.getElementById('delete-selected').addEventListener('click', function(){
   fetch('/requests/delete', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ids: ids})
+    body: JSON.stringify({ids: ids, csrf_token: csrfToken})
   }).then(r => r.json()).then(() => location.reload());
 });
 document.querySelectorAll('.toggle-group').forEach(btn => {
