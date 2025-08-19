@@ -192,7 +192,7 @@ document.getElementById('transfer-selected').addEventListener('click', function(
   checks.forEach(cb => {
     const tr = cb.closest('tr');
     const urun = tr.children[1].innerText.trim();
-    const ifsNo = tr.children[4].innerText.trim();
+    const ifsNo = tr.children[3].innerText.trim();
     const maxQty = parseInt(tr.children[2].innerText.trim());
     const div = document.createElement('div');
     div.className = 'transfer-row d-flex flex-column gap-2';
