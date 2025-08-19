@@ -241,6 +241,7 @@ async def transfer_stock(request: Request, db: Session = Depends(get_db)):
 
     stock.adet = (stock.adet or 0) - qty
     db.commit()
+    db.refresh(stock)
 
     add_inventory_log(
         InventoryLogCreate(
@@ -258,4 +259,4 @@ async def transfer_stock(request: Request, db: Session = Depends(get_db)):
         request.session.get("username", ""),
         f"Transferred {qty} of stock item {stock.id} to {target}",
     )
-    return JSONResponse({"status": "ok"})
+    return JSONResponse({"status": "ok", "remaining": stock.adet})
