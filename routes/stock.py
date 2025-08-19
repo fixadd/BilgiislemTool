@@ -4,10 +4,26 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from urllib.parse import urlencode
+import os
+from fastapi_csrf_protect import CsrfProtect
+from pydantic_settings import BaseSettings
 from sqlalchemy.orm import Session
 
 from utils.auth import require_login
 from utils import log_action
+import utils
+
+os.environ.setdefault("FASTAPI_CSRF_SECRET", "dev-secret")
+
+
+class CsrfSettings(BaseSettings):
+    secret_key: str = os.environ.get("FASTAPI_CSRF_SECRET", "dev-secret")
+
+
+@CsrfProtect.load_config
+def load_csrf_config() -> CsrfSettings:  # pragma: no cover - simple config
+    return CsrfSettings()
 from models import (
     StockItem,
     HardwareInventory,
@@ -34,10 +50,22 @@ INVENTORY_MODEL_MAP = {
 
 
 @router.get("", response_class=HTMLResponse)
-def list_stock(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
-    """Render stock list using the common helper."""
-    return list_items(
-        request,
+def list_stock(
+    request: Request,
+    db: Session = Depends(get_db),
+    kategori: str | None = None,
+) -> HTMLResponse:
+    """Render stock list using the common helper with optional category filter."""
+    utils.engine = db.get_bind()
+    params = list(request.query_params.multi_items())
+    if kategori:
+        params.append(("filter_field", "kategori"))
+        params.append(("filter_value", kategori))
+    scope = dict(request.scope)
+    scope["query_string"] = urlencode(params, doseq=True).encode()
+    new_request = Request(scope, request.receive)
+    response = list_items(
+        new_request,
         db,
         StockItem,
         table_name="stock",
@@ -45,6 +73,8 @@ def list_stock(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
         template_name="stok.html",
         items_key="stocks",
     )
+    response.context["active_tab"] = kategori
+    return response
 
 
 @router.post("/add")

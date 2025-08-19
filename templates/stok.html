@@ -14,6 +14,10 @@
 } %}
 {% block title %}Stok Takip{% endblock %}
 {% block content %}
+<div class="mb-3">
+  <a href="/stock?kategori=envanter" class="btn btn-outline-primary {% if active_tab == 'envanter' %}active{% endif %}">Envanter</a>
+  <a href="/stock?kategori=lisans" class="btn btn-outline-primary {% if active_tab == 'lisans' %}active{% endif %}">Lisans</a>
+</div>
 <div class="d-flex justify-content-between align-items-center">
   <h2>Stok Takibi</h2>
   <span class="badge bg-secondary">{{ count }} kayıt var</span>
@@ -43,6 +47,7 @@
   </button>
   <a class="btn btn-info" href="/stock/status" style="height:40px;display:flex;align-items:center;">Stok Durumu</a>
   <form id="search-form" method="get" class="d-flex gap-2 align-items-center flex-nowrap">
+    <input type="hidden" name="kategori" value="{{ active_tab }}">
     <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Ara..." style="max-width:200px;">
     <div class="position-relative d-flex gap-2">
       <div id="filters-container" class="filters-popup d-none flex-column gap-2">
