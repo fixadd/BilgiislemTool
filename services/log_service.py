@@ -146,9 +146,17 @@ def get_inventory_items() -> List[Dict[str, Any]]:
                 rows.extend(cur.fetchall())
             except sqlite3.OperationalError:
                 continue
-    rows.sort(key=lambda r: (r[3] or ""))
+    # Ensure the inventory number is treated as a string when sorting so that
+    # numeric IDs (e.g., from stock items) don't cause comparisons between
+    # ``int`` and ``str`` types.
+    rows.sort(key=lambda r: str(r[3]) if r[3] is not None else "")
     return [
-        {"type": r[0], "id": r[1], "name": r[2], "inv_no": r[3]}
+        {
+            "type": r[0],
+            "id": r[1],
+            "name": r[2],
+            "inv_no": str(r[3]) if r[3] is not None else None,
+        }
         for r in rows
     ]
 
