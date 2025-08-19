@@ -132,6 +132,8 @@ def get_inventory_items() -> List[Dict[str, Any]]:
     parts = [
         ("pc", "hardware_inventory", "bilgisayar_adi", "no"),
         ("license", "license_inventory", "yazilim_adi", "envanter_no"),
+        ("accessory", "accessory_inventory", "urun_adi", "ifs_no"),
+        ("stock", "stock_tracking", "urun_adi", "id"),
     ]
     with sqlite3.connect(DB_PATH) as con:
         cur = con.cursor()
