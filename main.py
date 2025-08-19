@@ -1,6 +1,7 @@
 import os
 import secrets
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
@@ -15,8 +16,6 @@ from routes import router as api_router
 from utils import cleanup_deleted
 from utils.auth import RememberMeMiddleware
 
-app = FastAPI()
-
 secret_key = os.getenv("SESSION_SECRET")
 if not secret_key:
     secret_key = secrets.token_hex(32)
@@ -24,6 +23,22 @@ if not secret_key:
         "SESSION_SECRET environment variable is not set. Generated a random secret key; "
         "sessions will reset on application restart."
     )
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize database tables and default admin user on startup."""
+    init_db()
+    init_admin()
+    db = SessionLocal()
+    try:
+        cleanup_deleted(db)
+    finally:
+        db.close()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(RememberMeMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=secret_key)
@@ -46,19 +61,6 @@ def load_csrf_config() -> CsrfSettings:
 @app.exception_handler(CsrfProtectError)
 def csrf_exception_handler(request: Request, exc: CsrfProtectError):
     return JSONResponse({"detail": exc.message}, status_code=exc.status_code)
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    """Initialize database tables and default admin user on startup."""
-    init_db()
-    init_admin()
-    db = SessionLocal()
-    try:
-        cleanup_deleted(db)
-    finally:
-        db.close()
-
 
 # Register API routes
 app.include_router(api_router)
