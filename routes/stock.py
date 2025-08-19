@@ -13,6 +13,8 @@ from sqlalchemy.orm import Session
 from utils.auth import require_login
 from utils import log_action
 import utils
+from logs import InventoryLogCreate
+from services.log_service import add_inventory_log
 
 os.environ.setdefault("FASTAPI_CSRF_SECRET", "dev-secret")
 
@@ -95,6 +97,18 @@ async def add_stock(request: Request, db: Session = Depends(get_db)):
             islem_yapan=request.session.get("full_name", ""),
         )
     db.add(item)
+    db.commit()
+    db.refresh(item)
+
+    add_inventory_log(
+        InventoryLogCreate(
+            inventory_type="stock",
+            inventory_id=item.id,
+            action="assign",
+            changed_by=request.session.get("user_id", 0),
+            new_location=form.get("departman"),
+        )
+    )
     log_action(
         db,
         request.session.get("username", ""),
@@ -144,6 +158,17 @@ async def transfer_stock(request: Request, db: Session = Depends(get_db)):
 
     stock.adet = (stock.adet or 0) - qty
     db.commit()
+
+    add_inventory_log(
+        InventoryLogCreate(
+            inventory_type="stock",
+            inventory_id=stock.id,
+            action="move",
+            changed_by=request.session.get("user_id", 0),
+            old_location=stock.departman,
+            note=f"Transferred {qty} to {target}",
+        )
+    )
 
     log_action(
         db,
