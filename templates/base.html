@@ -10,7 +10,16 @@
   {% endif %}
   <style>
     *{ box-sizing: border-box; }
-    body{ margin:0; font-family: Arial, sans-serif; color:#111; overflow-x:hidden; }
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      color:#111;
+      overflow-x:hidden;
+      background:#fff;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(0,123,255,.2) 0, rgba(0,123,255,.2) 2px, transparent 2px, transparent 20px),
+        repeating-linear-gradient(-45deg, rgba(0,123,255,.1) 0, rgba(0,123,255,.1) 1px, transparent 1px, transparent 25px);
+    }
     .table-container{ width:100%; overflow:auto; }
     .table-fixed{ table-layout:auto; width:max-content; min-width:100%; }
     .table-fixed td{ white-space:normal; word-break:break-word; }
