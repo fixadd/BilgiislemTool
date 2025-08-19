@@ -18,19 +18,26 @@ from models import User, init_db, pwd_context, StockItem
 import re
 
 
-def create_user(username: str = "tester", password: str = "secret", is_admin: bool = False):
+def create_user(
+    username: str = "tester",
+    password: str = "secret",
+    is_admin: bool = False,
+    must_change_password: bool = False,
+):
     init_db()
     db = models.SessionLocal()
     user = db.query(User).filter_by(username=username).first()
     if user:
         user.password = pwd_context.hash(password)
         user.is_admin = is_admin
+        user.must_change_password = must_change_password
     else:
         db.add(
             User(
                 username=username,
                 password=pwd_context.hash(password),
                 is_admin=is_admin,
+                must_change_password=must_change_password,
             )
         )
     db.commit()
@@ -240,3 +247,51 @@ def test_change_password_flow():
             follow_redirects=False,
         )
         assert resp.status_code == 303
+
+
+def test_login_redirects_when_must_change_password():
+    create_user(must_change_password=True)
+    with TestClient(main.app) as client:
+        token = get_csrf(client)
+        resp = client.post(
+            "/login",
+            data={"username": "tester", "password": "secret", "csrf_token": token},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/change-password"
+
+        resp = client.get("/change-password")
+        assert resp.status_code == 200
+        token2 = re.search('name="csrf_token" value="([^"]+)"', resp.text).group(1)
+
+        resp = client.post(
+            "/change-password",
+            data={
+                "old_password": "secret",
+                "new_password": "newpass",
+                "confirm_password": "newpass",
+                "csrf_token": token2,
+            },
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+
+        db = models.SessionLocal()
+        try:
+            assert (
+                db.query(User).filter_by(username="tester").first().must_change_password
+                is False
+            )
+        finally:
+            db.close()
+
+        client.post("/logout", data={"csrf_token": token2}, follow_redirects=False)
+        token = get_csrf(client)
+        resp = client.post(
+            "/login",
+            data={"username": "tester", "password": "newpass", "csrf_token": token},
+            follow_redirects=False,
+        )
+        assert resp.status_code == 303
+        assert resp.headers["location"] == "/"

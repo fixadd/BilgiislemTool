@@ -43,7 +43,8 @@ async def login(
         request.session["full_name"] = (
             f"{user.first_name or ''} {user.last_name or ''}".strip()
         )
-        response = RedirectResponse("/", status_code=303)
+        redirect_url = "/change-password" if user.must_change_password else "/"
+        response = RedirectResponse(redirect_url, status_code=303)
         db.query(RememberToken).filter(
             RememberToken.user_id == user.id
         ).delete()
