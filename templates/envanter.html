@@ -40,6 +40,9 @@
   <button id="delete-selected" type="button" class="btn btn-danger d-flex align-items-center gap-1">
     <i class="bi bi-trash"></i> Sil
   </button>
+  <button class="btn btn-primary d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#stockModal">
+    <i class="bi bi-box-arrow-in-down"></i> Stock Giriş
+  </button>
   <form id="search-form" method="get" class="d-flex gap-2 align-items-center flex-nowrap">
     <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Ara..." style="max-width:200px;">
     <div class="position-relative d-flex gap-2">
@@ -153,10 +156,13 @@
         <div class="modal-footer">
           <button type="submit" class="btn btn-success">Ekle</button>
         </div>
-      </form>
+  </form>
     </div>
   </div>
 </div>
+
+{% set stock_category = 'inventory' %}
+{% include 'partials/stock_add_modal.html' %}
 
   <div class="table-scroll">
     <table class="table table-sm table-striped table-hover table-fixed table-resizable mb-0">
