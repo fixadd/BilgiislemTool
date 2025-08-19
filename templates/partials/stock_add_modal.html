@@ -1,0 +1,56 @@
+<div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="stockModalLabel">Stok Girişi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <form action="/stock/add" method="post">
+        <input type="hidden" name="kategori" value="{{ stock_category }}">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Ürün Adı</label>
+              <input type="text" class="form-control" name="urun_adi" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Marka</label>
+              <input type="text" class="form-control" name="marka">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Adet</label>
+              <input type="number" class="form-control" name="adet" min="0" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Departman</label>
+              <input type="text" class="form-control" name="departman">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Güncelleme Tarihi</label>
+              <input type="date" class="form-control" name="guncelleme_tarihi">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">İşlem</label>
+              <input type="text" class="form-control" name="islem">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Tarih</label>
+              <input type="date" class="form-control" name="tarih">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">IFS No</label>
+              <input type="text" class="form-control" name="ifs_no">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Açıklama</label>
+              <textarea class="form-control" name="aciklama"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Ekle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
