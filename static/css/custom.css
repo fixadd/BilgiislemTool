@@ -87,10 +87,11 @@ html, body {
 /* ------------------------ */
 
 /* Arka plan katmanı */
+
 #bg {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   background: linear-gradient(180deg, #6ec9ff 0%, #00d4ff 100%);
 }
@@ -107,6 +108,8 @@ html, body {
   background-size: cover;
   opacity: .45;
   animation: waveMove 30s linear infinite;
+  pointer-events: none;
+  z-index: -1;
 }
 
 @keyframes waveMove {
