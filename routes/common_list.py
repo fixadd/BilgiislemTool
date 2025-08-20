@@ -92,6 +92,6 @@ def list_items(
     csrf_protect = CsrfProtect()
     token, signed = csrf_protect.generate_csrf_tokens()
     context["csrf_token"] = token
-    response = templates.TemplateResponse(request, template_name, context)
+    response = templates.TemplateResponse(template_name, context)
     csrf_protect.set_csrf_cookie(signed, response)
     return response

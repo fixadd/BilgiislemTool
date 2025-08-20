@@ -29,7 +29,9 @@ def admin_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
             )
         )
     users = query.all()
-    return templates.TemplateResponse(request, "admin.html", {"users": users, "q": q})
+    return templates.TemplateResponse(
+        "admin.html", {"request": request, "users": users, "q": q}
+    )
 
 
 @router.post("/admin/create")
@@ -47,9 +49,13 @@ def create_user(
     if db.query(User).filter(User.username == username).first():
         users = db.query(User).all()
         return templates.TemplateResponse(
-            request,
             "admin.html",
-            {"users": users, "error": "Kullanıcı mevcut", "q": ""},
+            {
+                "request": request,
+                "users": users,
+                "error": "Kullanıcı mevcut",
+                "q": "",
+            },
             status_code=400,
         )
     user = User(
@@ -84,7 +90,7 @@ def edit_user_form(
     if not target:
         return RedirectResponse("/admin", status_code=303)
     return templates.TemplateResponse(
-        request, "admin_edit.html", {"target": target}
+        "admin_edit.html", {"request": request, "target": target}
     )
 
 

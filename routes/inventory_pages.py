@@ -114,7 +114,7 @@ def inventory_page(
         "current_user_id": request.session.get("user_id"),
         "csrf_token": token,
     }
-    response = templates.TemplateResponse(request, "envanter.html", context)
+    response = templates.TemplateResponse("envanter.html", context)
     csrf_protect.set_csrf_cookie(signed, response)
     return response
 
@@ -200,7 +200,7 @@ def printer_page(
         "current_user_id": request.session.get("user_id"),
         "csrf_token": token,
     }
-    response = templates.TemplateResponse(request, "yazici.html", context)
+    response = templates.TemplateResponse("yazici.html", context)
     csrf_protect.set_csrf_cookie(signed, response)
     return response
 
@@ -296,7 +296,7 @@ def license_page(
         "csrf_token": token,
         "active_tab": "license",
     }
-    response = templates.TemplateResponse(request, "lisans.html", context)
+    response = templates.TemplateResponse("lisans.html", context)
     csrf_protect.set_csrf_cookie(signed, response)
     return response
 
@@ -369,7 +369,7 @@ def accessories_page(
         "current_user_id": request.session.get("user_id"),
         "csrf_token": token,
     }
-    response = templates.TemplateResponse(request, "aksesuar.html", context)
+    response = templates.TemplateResponse("aksesuar.html", context)
     csrf_protect.set_csrf_cookie(signed, response)
     return response
 
@@ -395,12 +395,13 @@ def requests_page(
 
     token, signed = csrf_protect.generate_csrf_tokens()
     context = {
+        "request": request,
         "groups": groups,
         "lookups": lookups,
         "today": date.today().isoformat(),
         "csrf_token": token,
     }
-    response = templates.TemplateResponse(request, "talep.html", context)
+    response = templates.TemplateResponse("talep.html", context)
     csrf_protect.set_csrf_cookie(signed, response)
     return response
 
@@ -597,6 +598,7 @@ def lists_page(
 ) -> HTMLResponse:
     """Render the lists management page."""
     context = {
+        "request": request,
         "brands": db.query(LookupItem).filter_by(type="marka").all(),
         "locations": db.query(LookupItem).filter_by(type="lokasyon").all(),
         "types": db.query(LookupItem).filter_by(type="donanim_tipi").all(),
@@ -611,7 +613,7 @@ def lists_page(
     }
     token, signed = csrf_protect.generate_csrf_tokens()
     context["csrf_token"] = token
-    response = templates.TemplateResponse(request, "listeler.html", context)
+    response = templates.TemplateResponse("listeler.html", context)
     csrf_protect.set_csrf_cookie(signed, response)
     return response
 
@@ -683,7 +685,9 @@ def profile_page(
     user_id = request.session.get("user_id")
     if user_id:
         user = db.get(User, user_id)
-    return templates.TemplateResponse(request, "profile.html", {"user": user})
+    return templates.TemplateResponse(
+        "profile.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/change-password", response_class=HTMLResponse)
@@ -693,7 +697,7 @@ def change_password_form(
     """Display the password change form."""
     token, signed = csrf_protect.generate_csrf_tokens()
     response = templates.TemplateResponse(
-        request, "change_password.html", {"csrf_token": token}
+        "change_password.html", {"request": request, "csrf_token": token}
     )
     csrf_protect.set_csrf_cookie(signed, response)
     return response
@@ -712,9 +716,11 @@ async def change_password(
     await csrf_protect.validate_csrf(request)
     if new_password != confirm_password:
         return templates.TemplateResponse(
-            request,
             "change_password.html",
-            {"error": "Yeni şifreler uyuşmuyor"},
+            {
+                "request": request,
+                "error": "Yeni şifreler uyuşmuyor",
+            },
             status_code=400,
         )
 
@@ -722,9 +728,11 @@ async def change_password(
     user = db.get(User, user_id) if user_id else None
     if not user or not pwd_context.verify(old_password, user.password):
         return templates.TemplateResponse(
-            request,
             "change_password.html",
-            {"error": "Mevcut şifre yanlış"},
+            {
+                "request": request,
+                "error": "Mevcut şifre yanlış",
+            },
             status_code=400,
         )
 
