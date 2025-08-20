@@ -24,7 +24,7 @@
     }
     body::after{
       content:"";
-      position:absolute;
+      position:fixed;
       top:0;
       left:0;
       right:0;
@@ -40,7 +40,11 @@
     }
     .content-wrapper{
       position:relative;
-      z-index:2;
+      z-index:1;
+    }
+    .main-content{
+      position:relative;
+      z-index:1;
     }
     .table-container{ width:100%; overflow:auto; }
     .table-fixed{ table-layout:auto; width:max-content; min-width:100%; }
