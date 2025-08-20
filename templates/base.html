@@ -144,6 +144,42 @@
         }
       });
     });
+
+    function createModal(id){
+      const el = document.getElementById(id);
+      if (!el) return null;
+      if (window.bootstrap && bootstrap.Modal){
+        return new bootstrap.Modal(el);
+      }
+      return {
+        show(){ el.style.display = 'block'; },
+        hide(){ el.style.display = 'none'; }
+      };
+    }
+
+    if (!window.bootstrap){
+      document.addEventListener('click', (e) => {
+        const openTrigger = e.target.closest('[data-bs-toggle="modal"]');
+        if (openTrigger){
+          e.preventDefault();
+          const targetId = openTrigger.getAttribute('data-bs-target');
+          if (targetId){
+            const modal = createModal(targetId.replace('#',''));
+            if (modal) modal.show();
+          }
+          return;
+        }
+        const closeTrigger = e.target.closest('[data-bs-dismiss="modal"]');
+        if (closeTrigger){
+          e.preventDefault();
+          const modalEl = closeTrigger.closest('.modal');
+          if (modalEl){
+            const modal = createModal(modalEl.id);
+            if (modal) modal.hide();
+          }
+        }
+      });
+    }
     function makeTableResizable(table){
       const ths = table.querySelectorAll('th');
       ths.forEach((th, i) => {
@@ -318,8 +354,8 @@
     });
     function showAlert(message){
       document.getElementById('alertModalBody').innerText = message;
-      const alertModal = new bootstrap.Modal(document.getElementById('alertModal'));
-      alertModal.show();
+      const alertModal = createModal('alertModal');
+      if (alertModal) alertModal.show();
     }
   </script>
   {% block scripts %}{% endblock %}

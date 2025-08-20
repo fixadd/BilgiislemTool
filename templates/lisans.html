@@ -359,16 +359,16 @@ editButton.addEventListener('click', () => {
         const input = form.querySelector(`[name="${cell.dataset.col}"]`);
         if (input) input.value = cell.innerText.trim();
     });
-    const modal = new bootstrap.Modal(document.getElementById('editModal'));
-    modal.show();
+    const modal = createModal('editModal');
+    if (modal) modal.show();
     loadHistory(tableName, form.license_id.value);
 });
 
-const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+const deleteModal = createModal('confirmDeleteModal');
 document.getElementById('delete-selected').addEventListener('click', () => {
     const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(cb => cb.value);
     if (!ids.length) return;
-    deleteModal.show();
+    if (deleteModal) deleteModal.show();
 });
 
 document.getElementById('confirm-delete').addEventListener('click', async () => {
@@ -378,7 +378,7 @@ document.getElementById('confirm-delete').addEventListener('click', async () => 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
     });
-    deleteModal.hide();
+    if (deleteModal) deleteModal.hide();
     location.reload();
 });
 const perPageSelect = document.getElementById('per-page');

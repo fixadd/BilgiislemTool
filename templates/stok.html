@@ -345,8 +345,8 @@ assignButton.addEventListener('click', () => {
     }
     const form = document.getElementById('assignForm');
     form.stock_id.value = checked[0].value;
-    const modal = new bootstrap.Modal(document.getElementById('editModal'));
-    modal.show();
+    const modal = createModal('editModal');
+    if (modal) modal.show();
 });
 
 document.getElementById('assignForm').addEventListener('submit', async (e) => {
@@ -358,8 +358,8 @@ document.getElementById('assignForm').addEventListener('submit', async (e) => {
         body: formData
     });
     if (res.ok) {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
-        modal.hide();
+        const modal = createModal('editModal');
+        if (modal) modal.hide();
         location.reload();
     } else {
         const data = await res.json();
@@ -367,11 +367,11 @@ document.getElementById('assignForm').addEventListener('submit', async (e) => {
     }
 });
 
-const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+const deleteModal = createModal('confirmDeleteModal');
 document.getElementById('delete-selected').addEventListener('click', () => {
     const ids = Array.from(document.querySelectorAll('.row-check:checked')).map(cb => cb.value);
     if (!ids.length) return;
-    deleteModal.show();
+    if (deleteModal) deleteModal.show();
 });
 
 document.getElementById('confirm-delete').addEventListener('click', async () => {
@@ -381,7 +381,7 @@ document.getElementById('confirm-delete').addEventListener('click', async () => 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
     });
-    deleteModal.hide();
+    if (deleteModal) deleteModal.hide();
     location.reload();
 });
 const perPageSelect = document.getElementById('per-page');
