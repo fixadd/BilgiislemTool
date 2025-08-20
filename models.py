@@ -272,6 +272,25 @@ def init_db():
                         f"ALTER TABLE {table} ADD COLUMN envanter_no TEXT"
                     )
 
+            # Ensure older databases have the IFS number column
+            ifs_tables = (
+                "hardware_inventory",
+                "deleted_hardware_inventory",
+                "license_inventory",
+                "deleted_license_inventory",
+                "stock_tracking",
+                "deleted_stock_items",
+                "accessory_inventory",
+                "deleted_accessory_inventory",
+                "request_tracking",
+            )
+            for table in ifs_tables:
+                cols = {row[1] for row in con.execute(f"PRAGMA table_info({table})")}
+                if "ifs_no" not in cols:
+                    con.execute(
+                        f"ALTER TABLE {table} ADD COLUMN ifs_no TEXT"
+                    )
+
 
 def init_admin():
     """Create default admin user using environment variables."""
