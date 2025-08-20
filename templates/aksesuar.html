@@ -335,8 +335,8 @@ editButton.addEventListener('click', () => {
         const input = form.querySelector(`[name="${cell.dataset.col}"]`);
         if (input) input.value = cell.innerText.trim();
     });
-    const modal = new bootstrap.Modal(document.getElementById('editModal'));
-    modal.show();
+    const modal = createModal('editModal');
+    if (modal) modal.show();
     loadHistory(tableName, form.accessory_id.value);
 });
 

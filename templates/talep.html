@@ -247,8 +247,8 @@ document.getElementById('transfer-selected').addEventListener('click', function(
     container.appendChild(div);
     initSearchableSelects(div);
   });
-  const modal = new bootstrap.Modal(document.getElementById('transferModal'));
-  modal.show();
+  const modal = createModal('transferModal');
+  if (modal) modal.show();
 });
 document.getElementById('confirm-transfer').addEventListener('click', function(){
   const rows = document.querySelectorAll('#transfer-rows .transfer-row');
@@ -351,8 +351,8 @@ document.getElementById('stock-transfer-selected').addEventListener('click', fun
     `;
     container.appendChild(div);
   });
-  const modal = new bootstrap.Modal(document.getElementById('stockTransferModal'));
-  modal.show();
+  const modal = createModal('stockTransferModal');
+  if (modal) modal.show();
 });
 document.getElementById('confirm-stock-transfer').addEventListener('click', function(){
   const rows = document.querySelectorAll('#stock-transfer-rows .stock-transfer-row');
