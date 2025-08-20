@@ -13,7 +13,7 @@ router = APIRouter(dependencies=[Depends(require_admin)])
 @router.get("/connections", response_class=HTMLResponse)
 def connections_form(request: Request) -> HTMLResponse:
     """Render the LDAP connection form."""
-    return templates.TemplateResponse(request, "connections.html")
+    return templates.TemplateResponse("connections.html", {"request": request})
 
 
 @router.post("/connections", response_class=HTMLResponse)
@@ -32,15 +32,13 @@ def test_connection(
         conn.search(base_dn, "(objectClass=*)", attributes=["cn"])
         conn.unbind()
         return templates.TemplateResponse(
-            request,
             "connections.html",
-            {"success": "Bağlantı başarılı"},
+            {"request": request, "success": "Bağlantı başarılı"},
         )
     except Exception as exc:  # pragma: no cover - network failures
         return templates.TemplateResponse(
-            request,
             "connections.html",
-            {"error": str(exc)},
+            {"request": request, "error": str(exc)},
             status_code=400,
         )
 

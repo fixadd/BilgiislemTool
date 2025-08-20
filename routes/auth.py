@@ -18,7 +18,7 @@ def login_form(request: Request, csrf_protect: CsrfProtect = Depends()) -> HTMLR
     """Render the login form."""
     token, signed = csrf_protect.generate_csrf_tokens()
     response = templates.TemplateResponse(
-        request, "login.html", {"csrf_token": token}
+        "login.html", {"request": request, "csrf_token": token}
     )
     csrf_protect.set_csrf_cookie(signed, response)
     return response
@@ -71,9 +71,12 @@ async def login(
     # error from missing/invalid CSRF data on the next attempt.
     token, signed = csrf_protect.generate_csrf_tokens()
     response = templates.TemplateResponse(
-        request,
         "login.html",
-        {"error": "Invalid credentials", "csrf_token": token},
+        {
+            "request": request,
+            "error": "Invalid credentials",
+            "csrf_token": token,
+        },
         status_code=401,
     )
     csrf_protect.set_csrf_cookie(signed, response)

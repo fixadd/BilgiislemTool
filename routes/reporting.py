@@ -52,13 +52,17 @@ def _main_context(db: Session) -> dict:
 @router.get("/", response_class=HTMLResponse)
 def root(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     """Render the main dashboard page."""
-    return templates.TemplateResponse(request, "main.html", _main_context(db))
+    context = _main_context(db)
+    context["request"] = request
+    return templates.TemplateResponse("main.html", context)
 
 
 @router.get("/home", response_class=HTMLResponse)
 def home_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     """Render the dashboard from the /home path."""
-    return templates.TemplateResponse(request, "main.html", _main_context(db))
+    context = _main_context(db)
+    context["request"] = request
+    return templates.TemplateResponse("main.html", context)
 
 
 @router.get("/stock/status", response_class=HTMLResponse)
@@ -86,8 +90,13 @@ def stock_status_page(
     summary = [(name, qty or 0) for name, qty in totals]
     selected = load_home_stock()
     token, signed = csrf_protect.generate_csrf_tokens()
-    context = {"summary": summary, "selected": selected, "csrf_token": token}
-    response = templates.TemplateResponse(request, "stok_durumu.html", context)
+    context = {
+        "request": request,
+        "summary": summary,
+        "selected": selected,
+        "csrf_token": token,
+    }
+    response = templates.TemplateResponse("stok_durumu.html", context)
     csrf_protect.set_csrf_cookie(signed, response)
     return response
 
