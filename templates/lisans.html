@@ -241,7 +241,7 @@
 {% block scripts %}
 <script>
 const tableName = "{{ table_name }}";
-const currentUserId = {{ current_user_id }};
+const currentUserId = {{ current_user_id | tojson }};
 const columnLabels = {{ column_labels | tojson }};
 window.tableName = tableName;
 window.filterEndpoint = "/column-values";
