@@ -7,6 +7,10 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
+body {
+  background: linear-gradient(180deg, #6ec9ff 0%, #00d4ff 100%);
+}
+
 /* Sol menü yine kendi içinde dikey scroll alsın (varsa) */
 .sidebar { height: 100vh; overflow-y: auto; }
 
@@ -85,37 +89,6 @@ html, body {
 /* ------------------------ */
 /*  Giriş / Şifre Sayfaları */
 /* ------------------------ */
-
-/* Arka plan katmanı */
-
-#bg {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(180deg, #6ec9ff 0%, #00d4ff 100%);
-}
-
-/* Dalga katmanı (SVG) */
-#bg::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 55vh;
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'><path fill='%23ffffff22' d='M0,64L48,80C96,96,192,128,288,149.3C384,171,480,181,576,160C672,139,768,85,864,74.7C960,64,1056,96,1152,122.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L0,320Z'></path></svg>") no-repeat bottom;
-  background-size: cover;
-  opacity: .45;
-  animation: waveMove 30s linear infinite;
-  pointer-events: none;
-  z-index: -1;
-}
-
-@keyframes waveMove {
-  from { background-position-x: 0; }
-  to { background-position-x: 1000px; }
-}
 
 /* İçerik katmanı */
 .page {
