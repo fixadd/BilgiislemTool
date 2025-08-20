@@ -291,6 +291,18 @@ def init_db():
                         f"ALTER TABLE {table} ADD COLUMN ifs_no TEXT"
                     )
 
+            # Ensure older databases include the tarih column for hardware inventories
+            tarih_tables = (
+                "hardware_inventory",
+                "deleted_hardware_inventory",
+            )
+            for table in tarih_tables:
+                cols = {row[1] for row in con.execute(f"PRAGMA table_info({table})")}
+                if "tarih" not in cols:
+                    con.execute(
+                        f"ALTER TABLE {table} ADD COLUMN tarih DATE"
+                    )
+
 
 def init_admin():
     """Create default admin user using environment variables."""
