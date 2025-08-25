@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Lisanslar{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-3 content">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0">Lisanslar</h4>
+    <a class="btn btn-success btn-sm" href="{{ url_for('license_new') }}">Ekle</a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead>
+          <tr>
+            <th style="width:80px">ID</th>
+            <th>Bağlı Envanter No</th>
+            <th>Lisans Adı</th>
+            <th>Lisans Anahtarı</th>
+            <th>Sorumlu Personel</th>
+            <th class="text-end" style="width:140px">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if lisanslar|length == 0 %}
+          <tr><td colspan="6" class="text-muted">Kayıt yok</td></tr>
+          {% else %}
+          {% for lic in lisanslar %}
+          <tr data-href="{{ url_for('license_detail', id=lic.id) }}">
+            <td>{{ lic.id }}</td>
+            <td>
+              {% if lic.inventory %}
+                <a href="{{ url_for('inventory_detail', id=lic.inventory.id) }}" onclick="event.stopPropagation()">
+                  {{ lic.inventory.no }}
+                </a>
+              {% else %}-{% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('license_detail', id=lic.id) }}" onclick="event.stopPropagation()">
+                {{ lic.adi }}
+              </a>
+            </td>
+            <td class="text-monospace">{{ lic.anahtar or '-' }}</td>
+            <td>{{ lic.sorumlu_personel or '-' }}</td>
+            <td class="text-end text-nowrap">
+              <a class="btn btn-sm btn-outline-primary"
+                 href="{{ url_for('license_edit', id=lic.id) }}"
+                 onclick="event.stopPropagation()">Düzenle</a>
+            </td>
+          </tr>
+          {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
