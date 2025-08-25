@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
@@ -13,7 +14,7 @@ from sqlalchemy import (
     func,
     ForeignKey,
 )
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship
 from passlib.context import CryptContext
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -45,6 +46,9 @@ class HardwareInventory(Base):
     ifs_no = Column(String)
     tarih = Column(Date)
     islem_yapan = Column(String)
+    licenses = relationship(
+        "License", back_populates="inventory", passive_deletes=True
+    )
 
 
 class DeletedHardwareInventory(Base):
@@ -142,6 +146,38 @@ class LicenseInventory(Base):
     tarih = Column(Date)
     islem_yapan = Column(String)
     notlar = Column(Text)
+
+
+class License(Base):
+    __tablename__ = "license"
+    id = Column(Integer, primary_key=True, index=True)
+    adi = Column(String, nullable=False)
+    anahtar = Column(String, nullable=True)
+    sorumlu_personel = Column(String, nullable=True)
+    ifs_no = Column(String, nullable=True)
+    tarih = Column(Date, nullable=True)
+    islem_yapan = Column(String, nullable=True)
+    mail_adresi = Column(String, nullable=True)
+    inventory_id = Column(
+        Integer, ForeignKey("hardware_inventory.id", ondelete="SET NULL")
+    )
+    inventory = relationship(
+        "HardwareInventory", back_populates="licenses"
+    )
+
+
+class LicenseLog(Base):
+    __tablename__ = "license_log"
+    id = Column(Integer, primary_key=True, index=True)
+    license_id = Column(
+        Integer, ForeignKey("license.id", ondelete="CASCADE")
+    )
+    field = Column(String, nullable=False)
+    old_value = Column(Text)
+    new_value = Column(Text)
+    changed_by = Column(String)
+    changed_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    license = relationship("License")
 
 
 class StockItem(Base):
